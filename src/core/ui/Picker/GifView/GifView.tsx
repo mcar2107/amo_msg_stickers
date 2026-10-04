@@ -14,6 +14,7 @@ import { useGifFeed } from '../useGifFeed/useGifFeed';
 import { usePickerView } from '../usePickerView/usePickerView';
 import { ViewHeader } from '../ViewHeader/ViewHeader';
 
+import { FeedAttribution } from './FeedAttribution/FeedAttribution';
 import { FeedChips } from './FeedChips/FeedChips';
 import { gifSections } from './gifSections/gifSections';
 import { useFeedChoice } from './useFeedChoice/useFeedChoice';
@@ -21,15 +22,6 @@ import { useGifRemovalFocus } from './useGifRemovalFocus/useGifRemovalFocus';
 import { useRecentGifs } from './useRecentGifs/useRecentGifs';
 import { useSearchFocus } from './useSearchFocus/useSearchFocus';
 import type { GifViewProps } from './GifView.types';
-
-/**
- * Подпись источника под лентой — условие использования API у обоих провайдеров.
- */
-const FEED_ATTRIBUTION: Record<GifFeed, string> = {
-  'giphy-gifs': 'Powered by GIPHY',
-  'giphy-stickers': 'Powered by GIPHY',
-  klipy: 'Powered by KLIPY',
-};
 
 /**
  * Кнопка в виде ссылки: `href="#"` у `<a>` запрещён jsx-a11y, а действие — открытие
@@ -151,11 +143,9 @@ export const GifView: FC<GifViewProps> = (props) => {
         onRecentClear={handleRecentClear}
       >
         {isNothingFound && <EmptyState>{t('gifs.nothingFound')}</EmptyState>}
-
-        <div className="px-0.5 pt-1 text-right text-xxs text-cadetGray-30 dark:text-gray-70">
-          {FEED_ATTRIBUTION[feed]}
-        </div>
       </MasonryGrid>
+
+      <FeedAttribution feed={feed} />
     </>
   );
 };
