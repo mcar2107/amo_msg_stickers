@@ -6,7 +6,17 @@ import * as esbuild from 'esbuild';
 import postcss from 'postcss';
 import tailwindcss from 'tailwindcss';
 
+import { readTelegramToken } from './scripts/telegramToken.ts';
+
 const isWatch = process.argv.includes('--watch');
+
+/**
+ * Токен встроенного бота — до сборки: битое значение роняет её раньше, чем бандл уйдёт в
+ * релиз с нерабочим импортом. В лог — только наличие, сам токен секретный.
+ */
+const telegramBotToken = readTelegramToken(process.env.TELEGRAM_BOT_TOKEN);
+
+console.info(`встроенный токен Telegram: ${telegramBotToken ? 'есть' : 'нет'}`);
 
 /**
  * Адреса локального amo добавляются только в dev-сборку (`pnpm watch`): боевая работает
@@ -52,7 +62,7 @@ const USERSCRIPT_BANNER = [
    */
   '// @description  Стикеры и GIF в amo: GIPHY/KLIPY, импорт паков из Telegram, свои стикеры',
   '// @description:en Stickers and GIFs in amo: GIPHY/KLIPY, Telegram pack import, custom stickers',
-  '// @version      0.17.1',
+  '// @version      0.18.0',
   `// @icon         ${USERSCRIPT_ICON}`,
   ...['https://*.amo.tm/*', ...devMatches].map((match) => {
     return `// @match        ${match}`;
@@ -239,6 +249,11 @@ const common = {
   sourcemap: isWatch ? 'inline' : false,
   legalComments: 'none',
   logLevel: 'info',
+  /**
+   * В бандл токен попадает только там, где на константу есть ссылка, — в ядро content
+   * script и userscript; service worker и агент в мире страницы его не несут.
+   */
+  define: { __TELEGRAM_BOT_TOKEN__: JSON.stringify(telegramBotToken) },
   plugins: [tailwindPlugin, gifWorkerPlugin],
 };
 

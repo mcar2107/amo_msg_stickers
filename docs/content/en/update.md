@@ -10,7 +10,7 @@ the store after review, so it sometimes arrives later than the archive and 
 If you have the extension from the archive now, you can replace it with the extension from the store: remove
 the extension from the archive and install it
 from the [Chrome Web Store](https://chromewebstore.google.com/detail/amo-stickers/abjnjphijggkkdbbmkldhibgepgdcgip).
-You will have to enter the GIF keys and the bot token again; stickers and packs stay.
+You will have to enter the GIF keys and your own bot token again; stickers and packs stay.
 
 ## Extension from the archive {#archive}
 
@@ -30,7 +30,7 @@ The archive doesn’t update by itself: the browser doesn’t know where to 
 
 ::: warning The same folder
 Unpack the new version into the same folder as the old one. The browser treats an extension from a different folder as
-a new extension, and you will have to enter the GIF keys and the bot token again.
+a new extension, and you will have to enter the GIF keys and your own bot token again.
 :::
 
 The installed version is shown on the amo stickers card on the extensions page, the latest one — on the

@@ -1,10 +1,11 @@
+import { BUILTIN_TELEGRAM_TOKEN } from '../builtinToken';
 import { toStickerGif } from '../convert';
 import type { SourceKind } from '../convert.types';
 import { deletePack, getPack, putPack, putSticker } from '../db';
 import type { Pack } from '../db.types';
 import type { Host } from '../host.types';
-import { t } from '../i18n/translate';
-import { BYTES_IN_MB } from '../net';
+import { LocalizedError, t } from '../i18n/translate';
+import { BYTES_IN_MB, httpStatus } from '../net';
 
 import {
   type ImportProgress,
@@ -18,7 +19,8 @@ import {
 
 /**
  * Импорт пака через Telegram Bot API.
- * Нужен токен любого бота (@BotFather) — getStickerSet работает для публичных паков.
+ * Нужен токен любого бота — свой из @BotFather или встроенный в сборку: getStickerSet
+ * работает для публичных паков.
  */
 
 const TG_API = 'https://api.telegram.org';
@@ -42,6 +44,58 @@ const MAX_STICKER_FILE_BYTES = 5 * BYTES_IN_MB;
  */
 const badResponse = () => {
   return new Error(t('error.source.badResponse', { source: 'Telegram' }));
+};
+
+/**
+ * Отказ бота, а не запроса: 401 — токен недействителен, 429 — бот упёрся в лимит запросов.
+ * На встроенном токене пользователь их не исправит, а свой токен — исправит. 403 Bot API
+ * отдаёт, когда пользователь заблокировал бота, — к импорту он не относится.
+ */
+const BOT_REFUSAL_STATUSES = [401, 429];
+
+/**
+ * Отказ встроенному боту подменяется подсказкой про свой токен: текст ответа Telegram
+ * («Unauthorized», «Too Many Requests») не говорит, что делать. Прочие ошибки — пак не
+ * найден, сеть, лимит размера — остаются как есть.
+ *
+ * @param error — ошибка запроса к Bot API со встроенным токеном
+ * @returns ошибка недоступности встроенного бота или исходная ошибка
+ */
+const toBuiltinError = (error: unknown): unknown => {
+  const status = httpStatus(error);
+
+  if (status === null || !BOT_REFUSAL_STATUSES.includes(status)) return error;
+
+  return new LocalizedError('error.telegram.builtinUnavailable');
+};
+
+/**
+ * Отказ встроенного бота касается всего пака, а не одного стикера: следующие запросы уйдут с
+ * тем же отозванным токеном или в тот же лимит общего бота.
+ *
+ * @param error — ошибка импорта стикера
+ * @returns `true` — встроенный бот недоступен
+ */
+const isBuiltinUnavailable = (error: unknown) => {
+  return (
+    error instanceof LocalizedError && error.key === 'error.telegram.builtinUnavailable'
+  );
+};
+
+/**
+ * Запрос к Bot API или его файлам: на встроенном токене отказ бота становится подсказкой про
+ * свой токен.
+ *
+ * @param request — запрос
+ * @param isBuiltin — запрос идёт со встроенным токеном
+ * @returns результат запроса
+ */
+const guardBuiltin = async <T>(request: Promise<T>, isBuiltin: boolean): Promise<T> => {
+  try {
+    return await request;
+  } catch (error) {
+    throw isBuiltin ? toBuiltinError(error) : error;
+  }
 };
 
 const SET_LINK_RE = /(?:t\.me|telegram\.me)\/(?:addstickers|addemoji)\/([A-Za-z0-9_]+)/;
@@ -115,18 +169,32 @@ const withMimeType = (raw: Blob, kind: SourceKind): Blob => {
   }
 };
 
+/**
+ * Импортирует пак в библиотеку. Свой токен пользователя важнее встроенного: со своим
+ * отказ бота показывается текстом ответа Telegram.
+ *
+ * @param host — окружение
+ * @param ownToken — свой токен из настроек; пустой — импорт встроенным токеном сборки
+ * @param input — ссылка на пак или имя набора
+ * @param onProgress — прогресс по стикерам
+ * @returns пак, в который импортирован хотя бы один стикер; отказ встроенного бота посреди пака —
+ *   исключение, а уже импортированные стикеры остаются в библиотеке
+ */
 export const importTelegramSet = async (
   host: Host,
-  token: string,
+  ownToken: string,
   input: string,
   onProgress: (p: ImportProgress) => void
 ): Promise<Pack> => {
   const name = parseSetName(input);
 
   if (!name) throw new Error(t('error.telegram.badLink'));
-  if (!token) throw new Error(t('error.telegram.noToken'));
+  const token = ownToken || BUILTIN_TELEGRAM_TOKEN;
 
-  const set = await call(host, token, 'getStickerSet', { name });
+  if (!token) throw new Error(t('error.telegram.noToken'));
+  const isBuiltin = !ownToken;
+
+  const set = await guardBuiltin(call(host, token, 'getStickerSet', { name }), isBuiltin);
 
   if (!isTgStickerSet(set)) throw badResponse();
   const { name: setName, title, stickers } = set;
@@ -155,17 +223,26 @@ export const importTelegramSet = async (
    */
   let firstError: unknown;
 
+  /**
+   * Отказ встроенного бота посреди пака: оставшиеся стикеры не запрашиваются, а уже импортированные
+   * остаются — пользователь видит, что делать, и повторный импорт со своим токеном допишет пак.
+   */
+  let refusal: unknown;
+
   for (const [index, sticker] of stickers.entries()) {
     try {
       if (!isTgSticker(sticker)) throw badResponse();
       const { file_id: fileId, file_unique_id: fileUniqueId, emoji } = sticker;
-      const file = await call(host, token, 'getFile', { file_id: fileId });
+      const file = await guardBuiltin(
+        call(host, token, 'getFile', { file_id: fileId }),
+        isBuiltin
+      );
 
       if (!isTgFile(file)) throw new Error(t('error.telegram.badFilePath'));
       const { file_path: filePath } = file;
-      const raw = await host.fetchBlob(
-        `${TG_API}/file/bot${token}/${filePath}`,
-        MAX_STICKER_FILE_BYTES
+      const raw = await guardBuiltin(
+        host.fetchBlob(`${TG_API}/file/bot${token}/${filePath}`, MAX_STICKER_FILE_BYTES),
+        isBuiltin
       );
       const kind = toSourceKind(sticker);
       const gif = await toStickerGif(withMimeType(raw, kind), kind);
@@ -188,6 +265,11 @@ export const importTelegramSet = async (
     } catch (e) {
       console.warn('[amo-stickers] sticker import failed', index, e);
       firstError ||= e;
+
+      if (isBuiltinUnavailable(e)) {
+        refusal = e;
+        break;
+      }
     }
 
     done++;
@@ -201,8 +283,10 @@ export const importTelegramSet = async (
    */
   if (!pack.coverId) {
     await (previous ? putPack(previous) : deletePack(pack.id));
-    throw firstError || new Error(t('error.telegram.noStickers'));
+    throw refusal || firstError || new Error(t('error.telegram.noStickers'));
   }
+
+  if (refusal) throw refusal;
 
   return pack;
 };

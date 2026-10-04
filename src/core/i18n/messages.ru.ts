@@ -26,6 +26,9 @@ export const RU = {
   'settings.telegram.label': 'Токен Telegram-бота (для импорта)',
   'settings.telegram.hint':
     'Создайте любого бота в {link}. Токен хранится локально. {docs}',
+  'settings.telegram.labelOptional': 'Свой токен Telegram-бота (необязательно)',
+  'settings.telegram.hintOptional':
+    'Необязательно: импорт работает через встроенного бота. Свой нужен, если встроенный недоступен, — создайте его в {link}. Токен хранится локально. {docs}',
   'settings.docs': 'Пошаговая инструкция',
   'settings.save': 'Сохранить',
   'stickers.recent': 'Недавние',
@@ -96,6 +99,8 @@ export const RU = {
   'error.telegram.badFilePath': 'Telegram: недопустимый путь файла',
   'error.telegram.noStickers': 'Telegram: в паке нет пригодных стикеров',
   'error.telegram.methodFailed': 'Telegram: метод {method} не выполнен',
+  'error.telegram.builtinUnavailable':
+    'Встроенный бот Telegram недоступен. Укажите свой токен бота в настройках',
   'error.copyLink': 'Не удалось скопировать ссылку',
   'error.net.notAllowed': 'Адрес вне списка разрешённых',
   'error.net.tooBig': 'Файл больше {size} МБ',

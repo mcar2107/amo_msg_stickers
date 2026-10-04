@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { deletePack, getPack, putPack, putSticker } from '../src/core/db';
 import type { Pack } from '../src/core/db.types';
 import { setLocale } from '../src/core/i18n/translate';
-import { tooBigError } from '../src/core/net';
+import { httpError, tooBigError } from '../src/core/net';
 import { importTelegramSet } from '../src/core/sources/telegram';
 
 import { fakeHost } from './helpers/fakeHost';
@@ -17,6 +17,21 @@ vi.mock('../src/core/convert', () => {
     toStickerGif: vi.fn(async () => {
       return { blob: new Blob(['gif']), width: 512, height: 512 };
     }),
+  };
+});
+
+/**
+ * Токен сборки подменяется по тесту: без подмены `vitest.config.ts` даёт сборку без него.
+ */
+const builtin = vi.hoisted(() => {
+  return { token: '' };
+});
+
+vi.mock('../src/core/builtinToken', () => {
+  return {
+    get BUILTIN_TELEGRAM_TOKEN() {
+      return builtin.token;
+    },
   };
 });
 
@@ -62,6 +77,7 @@ const botApi = (set: unknown, paths: Record<string, string> = {}) => {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  builtin.token = '';
 });
 
 afterEach(() => {
@@ -234,5 +250,206 @@ describe('importTelegramSet', () => {
     await expect(
       importTelegramSet(fakeHost({}), TOKEN, 'не ссылка', vi.fn())
     ).rejects.toThrow("Couldn't parse the link. Expected t.me/addstickers/Name");
+  });
+});
+
+describe('importTelegramSet: свой и встроенный токен', () => {
+  const BUILTIN = '999:builtin';
+  const OWN_UNAUTHORIZED = '{"ok":false,"error_code":401,"description":"Unauthorized"}';
+  const BUILTIN_UNAVAILABLE = 'Встроенный бот Telegram недоступен';
+  const PACK = { name: 'Pack', title: 'Пак', stickers: [sticker('a')] };
+
+  /**
+   * Токены всех запросов импорта — из адресов `fetchJson` и `fetchBlob`.
+   *
+   * @param host — окружение после импорта
+   * @returns токен каждого запроса по порядку
+   */
+  const requestTokens = (host: ReturnType<typeof fakeHost>) => {
+    const urls = [
+      ...vi.mocked(host.fetchJson).mock.calls,
+      ...vi.mocked(host.fetchBlob).mock.calls,
+    ];
+
+    return urls.map(([url]) => {
+      return /\/bot([^/]+)\//.exec(url)?.[1];
+    });
+  };
+
+  it('без своего токена импорт идёт со встроенным', async () => {
+    builtin.token = BUILTIN;
+    const host = fakeHost({ onJson: botApi(PACK) });
+
+    await importTelegramSet(host, '', 'Pack', vi.fn());
+
+    expect(putSticker).toHaveBeenCalledTimes(1);
+    expect(requestTokens(host)).toEqual([BUILTIN, BUILTIN, BUILTIN]);
+  });
+
+  it('свой токен важнее встроенного', async () => {
+    builtin.token = BUILTIN;
+    const host = fakeHost({ onJson: botApi(PACK) });
+
+    await importTelegramSet(host, TOKEN, 'Pack', vi.fn());
+
+    expect(requestTokens(host)).toEqual([TOKEN, TOKEN, TOKEN]);
+  });
+
+  it('без своего и встроенного — noToken без запросов', async () => {
+    const host = fakeHost({ onJson: botApi(PACK) });
+
+    await expect(importTelegramSet(host, '', 'Pack', vi.fn())).rejects.toThrow(
+      'Укажите токен бота в настройках'
+    );
+    expect(host.fetchJson).not.toHaveBeenCalled();
+    expect(host.fetchBlob).not.toHaveBeenCalled();
+  });
+
+  it.each([401, 429])('%i на встроенном — ошибка недоступности', async (status) => {
+    builtin.token = BUILTIN;
+    const host = fakeHost({
+      onJson: () => {
+        throw httpError(status, OWN_UNAUTHORIZED);
+      },
+    });
+
+    await expect(importTelegramSet(host, '', 'Pack', vi.fn())).rejects.toThrow(
+      BUILTIN_UNAVAILABLE
+    );
+  });
+
+  it('недоступность встроенного на английском', async () => {
+    setLocale('en');
+    builtin.token = BUILTIN;
+    const host = fakeHost({
+      onJson: () => {
+        throw httpError(401, OWN_UNAUTHORIZED);
+      },
+    });
+
+    await expect(importTelegramSet(host, '', 'Pack', vi.fn())).rejects.toThrow(
+      'built-in Telegram bot'
+    );
+  });
+
+  it('401 на своём токене — текст ответа', async () => {
+    builtin.token = BUILTIN;
+    const host = fakeHost({
+      onJson: () => {
+        throw httpError(401, OWN_UNAUTHORIZED);
+      },
+    });
+
+    await expect(importTelegramSet(host, TOKEN, 'Pack', vi.fn())).rejects.toThrow(
+      httpError(401, OWN_UNAUTHORIZED)
+    );
+  });
+
+  it('400 на встроенном — текст ответа', async () => {
+    builtin.token = BUILTIN;
+    const body =
+      '{"ok":false,"error_code":400,"description":"Bad Request: STICKERSET_INVALID"}';
+    const host = fakeHost({
+      onJson: () => {
+        throw httpError(400, body);
+      },
+    });
+
+    await expect(importTelegramSet(host, '', 'Pack', vi.fn())).rejects.toThrow(
+      httpError(400, body)
+    );
+  });
+
+  it('отказ getFile на всех стикерах встроенного — ошибка недоступности', async () => {
+    builtin.token = BUILTIN;
+    const set = botApi({
+      name: 'Pack',
+      title: 'Пак',
+      stickers: [sticker('a'), sticker('b')],
+    });
+    const host = fakeHost({
+      onJson: (url) => {
+        if (url.includes('/getFile')) throw httpError(429, 'Too Many Requests');
+
+        return set(url);
+      },
+    });
+
+    await expect(importTelegramSet(host, '', 'Pack', vi.fn())).rejects.toThrow(
+      BUILTIN_UNAVAILABLE
+    );
+    expect(deletePack).toHaveBeenCalledWith('tg:Pack');
+    expect(
+      vi.mocked(host.fetchJson).mock.calls.filter(([url]) => {
+        return url.includes('/getFile');
+      })
+    ).toHaveLength(1);
+  });
+
+  it('отказ встроенного посреди пака — импортированное остаётся, остальное не запрашивается', async () => {
+    builtin.token = BUILTIN;
+    const set = botApi({
+      name: 'Pack',
+      title: 'Пак',
+      stickers: [sticker('a'), sticker('b'), sticker('c')],
+    });
+    let getFileCalls = 0;
+    const host = fakeHost({
+      onJson: (url) => {
+        if (url.includes('/getFile')) {
+          getFileCalls++;
+
+          if (getFileCalls > 1) throw httpError(429, 'Too Many Requests');
+        }
+
+        return set(url);
+      },
+    });
+
+    await expect(importTelegramSet(host, '', 'Pack', vi.fn())).rejects.toThrow(
+      BUILTIN_UNAVAILABLE
+    );
+    expect(getFileCalls).toBe(2);
+    expect(putSticker).toHaveBeenCalledTimes(1);
+    expect(deletePack).not.toHaveBeenCalled();
+  });
+
+  it('отказ встроенного после другой ошибки стикера — в статусе недоступность бота', async () => {
+    builtin.token = BUILTIN;
+    const set = botApi({
+      name: 'Pack',
+      title: 'Пак',
+      stickers: [sticker('a'), sticker('b')],
+    });
+    let getFileCalls = 0;
+    const host = fakeHost({
+      onJson: (url) => {
+        if (url.includes('/getFile')) {
+          getFileCalls++;
+
+          if (getFileCalls > 1) throw httpError(429, 'Too Many Requests');
+        }
+
+        return set(url);
+      },
+    });
+
+    vi.mocked(host.fetchBlob).mockRejectedValue(tooBigError(5 * 1024 * 1024));
+
+    await expect(importTelegramSet(host, '', 'Pack', vi.fn())).rejects.toThrow(
+      BUILTIN_UNAVAILABLE
+    );
+    expect(deletePack).toHaveBeenCalledWith('tg:Pack');
+  });
+
+  it('401 на скачивании файла встроенного — ошибка недоступности', async () => {
+    builtin.token = BUILTIN;
+    const host = fakeHost({ onJson: botApi(PACK) });
+
+    vi.mocked(host.fetchBlob).mockRejectedValue(httpError(401, 'Unauthorized'));
+
+    await expect(importTelegramSet(host, '', 'Pack', vi.fn())).rejects.toThrow(
+      BUILTIN_UNAVAILABLE
+    );
   });
 });

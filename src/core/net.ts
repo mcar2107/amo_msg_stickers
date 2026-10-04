@@ -99,6 +99,26 @@ export const httpError = (status: number, body: string) => {
 };
 
 /**
+ * Начало текста ошибки `httpError` со статусом.
+ */
+const HTTP_STATUS_RE = /^HTTP (\d{3}) /;
+
+/**
+ * HTTP-статус ошибки не-2xx ответа. Граница service worker-а передаёт ошибку текстом,
+ * поэтому статус разбирается из формата `httpError`, одинакового во всех окружениях.
+ *
+ * @param error — пойманная ошибка
+ * @returns статус; `null` — ошибка не от не-2xx ответа (сеть, политика, лимит) или не `Error`
+ */
+export const httpStatus = (error: unknown): number | null => {
+  if (!(error instanceof Error)) return null;
+
+  const match = HTTP_STATUS_RE.exec(error.message);
+
+  return match ? Number(match[1]) : null;
+};
+
+/**
  * Читает поток целиком, но не больше `maxBytes`: при превышении источник отменяется, и
  * остаток не скачивается и не распаковывается.
  *

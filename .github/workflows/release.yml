@@ -21,6 +21,10 @@ jobs:
     # релиз из неё. Пропуск ci пропускает и release.
     if: ${{ github.ref == 'refs/heads/master' }}
     uses: ./.github/workflows/ci.yml
+    # Вызванный workflow секретов не видит: без токена релиз собрался бы без встроенного
+    # Telegram-бота. Передаётся только он, а не все секреты репозитория.
+    secrets:
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
 
   release:
     needs: ci

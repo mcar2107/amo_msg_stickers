@@ -137,6 +137,13 @@ declare module 'page-agent:code' {
 }
 
 /**
+ * Токен встроенного Telegram-бота — `define` сборки (`build.mjs`) из переменной
+ * `TELEGRAM_BOT_TOKEN`; пустая строка — сборка без него. Читает константу только
+ * `src/core/builtinToken.ts`.
+ */
+declare const __TELEGRAM_BOT_TOKEN__: string;
+
+/**
  * Расширение глобального `Window` возможно только через `interface`: у `type` нет
  * слияния объявлений.
  */

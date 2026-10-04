@@ -5,6 +5,7 @@ import {
   BYTES_IN_MB,
   fetchChecked,
   httpError,
+  httpStatus,
   isAllowedUrl,
   notAllowedError,
   readLimited,
@@ -106,6 +107,23 @@ describe('httpError', () => {
     await expect(fetchChecked('https://api.giphy.com/v1/gifs/trending')).rejects.toThrow(
       httpError(404, body)
     );
+  });
+});
+
+describe('httpStatus', () => {
+  it('читает статус из ошибки httpError', () => {
+    expect(httpStatus(httpError(401, '{"ok":false}'))).toBe(401);
+    expect(httpStatus(httpError(429, ''))).toBe(429);
+  });
+
+  it('null для Error без префикса HTTP', () => {
+    expect(httpStatus(new Error('fetch failed'))).toBeNull();
+    expect(httpStatus(new Error('прочее HTTP 401'))).toBeNull();
+  });
+
+  it('null для не-Error', () => {
+    expect(httpStatus('HTTP 401 Unauthorized')).toBeNull();
+    expect(httpStatus(undefined)).toBeNull();
   });
 });
 

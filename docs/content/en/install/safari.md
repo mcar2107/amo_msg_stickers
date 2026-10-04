@@ -9,9 +9,9 @@ extension or as a userscript in Tampermonkey.
 :::
 
 ::: warning Where the keys are stored
-Userscripts may keep settings not in the app itself but in the amo site storage. Then the GIF keys and the bot token
-are available to scripts on the amo page. If this matters to you, install amo stickers in a tested way — see the links
-above.
+Userscripts may keep settings not in the app itself but in the amo site storage. Then the GIF keys and your own bot
+token are available to scripts on the amo page. If this matters to you, install amo stickers in a tested way — see
+the links above.
 :::
 
 **Install Userscripts.**

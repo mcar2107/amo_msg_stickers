@@ -60,6 +60,18 @@ pnpm docs:dev          # сайт доки локально; docs:build — сб
 `@updateURL` и `@downloadURL` на userscript последнего релиза (`releases/latest/download/amo-stickers.user.js`) —
 менеджер обновляет скрипт сам; в `pnpm watch` их нет, иначе менеджер заменил бы dev-сборку версией из релиза.
 
+Токен встроенного Telegram-бота сборка берёт из переменной окружения `TELEGRAM_BOT_TOKEN`: `build.mjs` до сборки
+прогоняет её через `readTelegramToken` (`scripts/telegramToken.ts`: пробелы и переводы строки по краям снимаются,
+значение не вида `<цифры>:<строка>` роняет сборку текстом без самого значения) и подставляет `define`
+`__TELEGRAM_BOT_TOKEN__` строкой JSON. В лог идёт одна строка «встроенный токен Telegram: есть / нет», без значения.
+Без переменной — пустая строка, сборка без встроенного бота: локальная, `pnpm watch`, PR из форка. Значение попадает
+только в бандлы, где на константу есть ссылка, — `content.js` и userscript; `background.js` и `page.js` его не несут.
+Константу читает один модуль — `src/core/builtinToken.ts` (`BUILTIN_TELEGRAM_TOKEN`), объявление — `declare const` в
+`src/types.d.ts`; `vitest.config.ts` задаёт `define` пустой строкой, а тесты, которым нужен токен, подменяют модуль
+`vi.mock`. Токен в бандле публичен, и его можно достать и тратить лимиты бота — риск принят: при утечке токен
+перевыпускается в @BotFather, секрет меняется, выходит патч-релиз, а пользователь до него уходит на свой токен по
+ошибке отказа встроенного бота («Внешние данные»).
+
 TypeScript в проекте двух версий: `typescript-native` (7.x, нативный tsgo) проверяет типы, `typescript` (6.x) нужен
 только typescript-eslint, который TS 7 пока не поддерживает. `node_modules/.bin/tsc` занят одной из них — проверку
 типов запускай через `pnpm typecheck`.
@@ -135,8 +147,9 @@ src/
     host*.ts         контракты окружения (`host.types.ts`: `Host`, `HostNetwork`, `HostSettings`) и настройки по
                      умолчанию (`host.ts`: ключи GIPHY/KLIPY, токен Telegram-бота; `pickSettings` — поля
                      сохранённых настроек для адаптеров обоих окружений)
+    builtinToken.ts  `BUILTIN_TELEGRAM_TOKEN` — токен встроенного Telegram-бота из сборки, пустой — сборка без него
     net.ts           сетевая политика: разрешённые хосты, fetch с проверкой, чтение потока с лимитом, лимит
-                     скачивания GIF из поиска `MAX_REMOTE_GIF_BYTES`
+                     скачивания GIF из поиска `MAX_REMOTE_GIF_BYTES`; `httpError` и разбор его статуса `httpStatus`
     gif.ts           проверка GIF по блочной структуре (`inspectGif`)
     tgs.ts           распаковка `.tgs` с лимитом и проверкой Lottie
     userDocs*.ts     адрес доки `USER_DOCS_URL`, страницы, на которые ведёт интерфейс (`USER_DOCS_PAGE`), и
@@ -146,7 +159,7 @@ src/
                      translate.ts — `setLocale`/`getLocale`, перевод `t` и `LocalizedError`; словари messages.ru.ts
                      (эталон ключей и подстановок) и messages.en.ts; i18n.types.ts — типы языка, ключей и подстановок
     sources/         gifs.ts — поиск GIPHY и KLIPY, выбор версии для отправки по весу; telegram.ts — импорт пака
-                     через Bot API
+                     через Bot API своим или встроенным токеном
     ui/
       createPicker.tsx  фасад пикера для `app.ts`: shadow root, `open`/`close`/`setTheme`/`isHeld`, фаза панели,
                         рендер Preact-дерева, второй хост — слой предпросмотра на странице (`previewElement`)
@@ -206,7 +219,7 @@ src/
                   pageBridge*.ts — протокол ядра и агента в мире страницы: события, атрибуты, разбор команды и ответа
   types.d.ts      описания модулей без типов: gifenc, `*.css`, `gif-worker:code` и `page-agent:code` строкой; флаги
                   `window.__amoStickers` и `window.__amoStickersPage`;
-                  `ImportMeta.glob` vite для теста пар страниц доки
+                  `ImportMeta.glob` vite для теста пар страниц доки; константа сборки `__TELEGRAM_BOT_TOKEN__`
 dev/harness.html  стенд: разметка инпута и сообщения ленты amo на CSS его страницы (`dev/amo.css`, в git не лежит);
                   вставка и «Отправить» замоканы — «Отправить» кладёт в ленту сообщение с картинкой, `alt` которой —
                   имя файла; переключатели «входящее» и «с именем автора», кнопки «картинка без метки» и «ответ с
@@ -226,7 +239,8 @@ docs/             дока пользователя — отдельный па�
                   img/ — скрины и демо, общие для обоих языков; public/ — логотип
 scripts/          скрипты CI: version.ts — чистая логика проверки версии (типы — version.types.ts);
                   check-version.mjs — её запуск в CI; chromeWebStore.ts — клиент Chrome Web Store API (типы —
-                  chromeWebStore.types.ts), publish-chrome-web-store.mjs — публикация пакета из релиза
+                  chromeWebStore.types.ts), publish-chrome-web-store.mjs — публикация пакета из релиза;
+                  telegramToken.ts — проверка токена встроенного бота для `build.mjs`
 tests/            юнит-тесты, helpers/
 .github/          workflows/ci.yml — проверки PR; workflows/release.yml — релиз из master;
                   workflows/chrome-web-store.yml — публикация релиза в стор (за релизом и вручную);
@@ -744,6 +758,15 @@ GIF-блобы; у своего стикера — ещё подпись `captio
   тело сверх лимита не дочитывается, в тексте — то, что успело прийти. Ошибки политики, лимита и HTTP у всех
   окружений общие — из `core/net.ts`; политика и лимит — `LocalizedError`, чтобы отказ SW показывался на языке amo
   («Язык интерфейса»);
+- токен Bot API — свой из «Настроек» или встроенный в сборку (`importTelegramSet`: свой важнее, `noToken` — только без
+  обоих). Встроенный в настройки не попадает: `DEFAULT_SETTINGS.telegramToken` пуст, иначе он оказался бы в поле ввода
+  и при «Сохранить» — в хранилище; `SettingsView` по `BUILTIN_TELEGRAM_TOKEN` лишь меняет подпись и подсказку поля
+  (`labelOptional` / `hintOptional`). На встроенном токене отказ бота — статус 401 или 429 у `getStickerSet`,
+  `getFile` и скачивания файла, разобранный `httpStatus` из текста `httpError`, — становится
+  `error.telegram.builtinUnavailable` с подсказкой про свой токен и останавливает импорт: оставшиеся стикеры не
+  запрашиваются тем же отозванным токеном или в тот же лимит общего бота, уже импортированные остаются; прочие ошибки
+  (400 «пак не найден», сеть, лимит) и любые ошибки на своём токене показываются как есть. Статус берётся из текста, а
+  не из класса ошибки: граница SW передаёт ошибку текстом, и формат `HTTP <код> …` одинаков во всех окружениях;
 - `file_path` Telegram — без `..`, иначе URL схлопнется и запрос с токеном уйдёт в другой метод Bot API;
 - `.tgs` распаковывается не больше 8 МБ и проходит `isLottieJson`; GIF из поиска перед вставкой — `inspectGif`.
 
@@ -813,6 +836,12 @@ GitHub Actions, Node и pnpm ставятся из `.mise.toml` (`jdx/mise-actio
   не `--changed`), `build`, `docs` (`pnpm docs:build`: битая ссылка ловится до публикации), `version`. Новый коммит
   в PR отменяет прогон старого. Сборка PR лежит артефактом `build` прогона: `amo-stickers.zip` и
   `amo-stickers.user.js` — для ручной проверки до мержа.
+- **Встроенный токен.** Шаг `pnpm build` получает `TELEGRAM_BOT_TOKEN` из секрета репозитория того же имени, а
+  `release.yml` передаёт его в `ci.yml` явно — `ci.yml` объявляет его в `workflow_call.secrets`: вызванный
+  workflow секретов не видит, и релиз собрался бы без токена, а `secrets: inherit` отдал бы проверкам все секреты
+  репозитория. Незаданный секрет (PR из форка, Dependabot) — пустая строка и сборка без встроенного бота, а не
+  падение. Сборка PR из своей ветки несёт токен в артефакте — он и так публичен в релизе. Токен в лог не попадает:
+  `build.mjs` пишет только «есть / нет», а GitHub маскирует значение секрета.
 - **`version`** падает, если версия в трёх местах расходится, а в PR, который меняет файлы продукта, — ещё и если
   она не выше версии `package.json` в `master` (`scripts/check-version.mjs --base origin/master`, сравнение по
   числам). Файлы продукта — `src/`, `build.mjs`, `tailwind.config.ts`, `tsconfig.json`, `package.json`,

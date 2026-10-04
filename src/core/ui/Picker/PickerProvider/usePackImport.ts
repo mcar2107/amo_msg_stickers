@@ -64,8 +64,9 @@ export const usePackImport = (options: PackImportOptions): PackImportState => {
         finishImport({ screen: screenRef.current, pack, scrollToSection, showStatus });
       } catch (error) {
         /**
-         * Вкладка пака могла появиться на первом шаге импорта, а упавший импорт пак убирает
-         * или возвращает прежним — список перечитываем, чтобы вкладка не осталась пустой.
+         * Вкладка пака могла появиться на первом шаге импорта, а упавший импорт пак убирает,
+         * возвращает прежним или, после отказа встроенного бота, оставляет частично — список
+         * перечитываем, чтобы вкладки совпали с библиотекой.
          */
         await refreshPacks();
         showError(errorMessage(error));

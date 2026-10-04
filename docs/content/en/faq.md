@@ -58,8 +58,8 @@ More about limits and keys — in [“GIF keys”](./setup/gif-keys#limits).
 ## Keys and token are gone after updating from the archive
 
 The browser tells extensions from an archive apart by the folder they are loaded from. If you unpack the new version
-into a different folder, the browser installs it as a new extension — with empty “Settings”. Enter the GIF keys and
-the bot token again, and from then on update the extension in the same folder — following the steps in
+into a different folder, the browser installs it as a new extension — with empty “Settings”. Enter the GIF keys again,
+and your own bot token if you set one, and from then on update the extension in the same folder — following the steps in
 [“Updating”](./update#archive). Stickers and packs aren’t lost: they are stored on the amo site, not in the extension.
 
 ## How to view a sticker or GIF larger

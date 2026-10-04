@@ -18,8 +18,8 @@ own:
 - `api.telegram.org` — importing packs from Telegram;
 - `giphy.com` and `klipy.com` — GIF search.
 
-The script has no other addresses. With Tampermonkey, the GIF keys and the bot token are stored in the manager itself,
-and scripts on the amo page can’t see them.
+The script has no other addresses. With Tampermonkey, the GIF keys and your own bot token are stored in the manager
+itself, and scripts on the amo page can’t see them.
 
 **Check it.** Open or reload the amo tab: a sticker button will appear in the message field next to the emoji button.
 

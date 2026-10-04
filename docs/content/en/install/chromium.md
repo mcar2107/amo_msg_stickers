@@ -17,7 +17,8 @@ In Edge, first click “Allow extensions from other stores” on the Chrome W
 Chrome Extensions” extension — otherwise the browser won’t let you install an extension from the Chrome Web Store.
 
 If you already have the extension from the archive, remove it before installing from the store. You will have to enter
-the GIF keys and the bot token again; stickers and packs stay: they are stored on the amo site, not in the extension.
+the GIF keys again, and your own bot token if you set one; stickers and packs stay: they are stored on the amo
+site, not in the extension.
 == Archive
 The archive is the same extension as in the Chrome Web Store, except that the browser loads it from a folder on your
 computer.
@@ -25,7 +26,7 @@ computer.
 ::: warning The archive doesn’t update by itself
 You need to install new versions manually — see below. Keep the extension in the same folder: if you unpack a new
 version into a different folder, the browser will treat it as a new extension, and you will have to enter the GIF keys
-and the bot token again.
+again, and your own bot token if you set one.
 :::
 
 **Installation**

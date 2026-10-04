@@ -28,6 +28,9 @@ export const EN: Messages = {
   'settings.telegram.label': 'Telegram bot token (for import)',
   'settings.telegram.hint':
     'Create any bot in {link}. The token is stored locally. {docs}',
+  'settings.telegram.labelOptional': 'Your Telegram bot token (optional)',
+  'settings.telegram.hintOptional':
+    'Optional: import works through the built-in bot. You need your own if the built-in one is unavailable — create one in {link}. The token is stored locally. {docs}',
   'settings.docs': 'Step-by-step instructions',
   'settings.save': 'Save',
   'stickers.recent': 'Recent',
@@ -98,6 +101,8 @@ export const EN: Messages = {
   'error.telegram.badFilePath': 'Telegram: invalid file path',
   'error.telegram.noStickers': 'Telegram: the pack has no usable stickers',
   'error.telegram.methodFailed': 'Telegram: {method} failed',
+  'error.telegram.builtinUnavailable':
+    'The built-in Telegram bot is unavailable. Enter your own bot token in settings',
   'error.copyLink': 'Couldn’t copy the link',
   'error.net.notAllowed': 'URL is not on the allowed list',
   'error.net.tooBig': 'File is larger than {size} MB',

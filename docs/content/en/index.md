@@ -21,7 +21,7 @@ features:
   - title: Your own stickers
     details: Make a sticker from an image, a GIF, a video or an animated Telegram sticker (.tgs), with or without a caption.
   - title: Packs from Telegram
-    details: Import a whole pack by its link — through your own Telegram bot.
+    details: Import a whole pack by its link, no setup needed.
   - title: GIF search
     details: GIPHY and KLIPY with your own free key, recent GIFs always at hand.
   - title: Send with a click
@@ -52,6 +52,6 @@ as in the text.
 
 1. [Install](./install/) the extension or the userscript in your browser.
 2. To search GIFs, get a [free key](./setup/gif-keys) for KLIPY or GIPHY.
-3. To import packs from Telegram, create [a bot and paste its token](./setup/telegram).
+3. To import a pack from Telegram, [copy its link](./setup/telegram) — no bot or token needed.
 
-Your own stickers and recent ones work right after installation, no keys needed.
+Your own stickers, recent ones and pack import from Telegram work right after installation, no keys needed.

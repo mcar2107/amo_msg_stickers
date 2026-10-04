@@ -4,6 +4,11 @@ on:
   pull_request:
     branches: [master]
   workflow_call:
+    # Только токен встроенного бота: остальные секреты репозитория проверкам не нужны.
+    # Без него сборка выходит без встроенного токена.
+    secrets:
+      TELEGRAM_BOT_TOKEN:
+        required: false
 
 permissions:
   contents: read
@@ -45,7 +50,11 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/setup
+      # Токен встроенного Telegram-бота: сборка кладёт его в content script и userscript.
+      # Секрета нет (PR из форка, Dependabot) — пустая строка, сборка без встроенного бота.
       - run: pnpm build
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
       # manifest.json — в корне архива: так его принимают «Загрузить распакованное»
       # после распаковки и Chrome Web Store.
       # Имя без версии: ссылка доки на архив последнего релиза не меняется от версии

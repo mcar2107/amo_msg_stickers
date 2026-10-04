@@ -1,5 +1,6 @@
 import type { FunctionComponent as FC } from 'preact';
 
+import { BUILTIN_TELEGRAM_TOKEN } from '../../../builtinToken';
 import { getLocale, t } from '../../../i18n/translate';
 import { USER_DOCS_PAGE, userDocsUrl } from '../../../userDocs';
 import { renderMessage } from '../../renderMessage/renderMessage';
@@ -11,9 +12,17 @@ import { ViewHeader } from '../ViewHeader/ViewHeader';
 import { ViewTitle } from '../ViewHeader/ViewTitle/ViewTitle';
 
 import { SecretField } from './SecretField/SecretField';
+import { telegramTokenText } from './telegramTokenText/telegramTokenText';
 import { useSettingsDraft } from './useSettingsDraft/useSettingsDraft';
 
 const SETTINGS_VIEW: View = { kind: 'settings' };
+
+/**
+ * Встроенный токен сборки не меняется до перезагрузки страницы — ключи выбираются раз.
+ */
+const { label: TELEGRAM_TOKEN_LABEL, hint: TELEGRAM_TOKEN_HINT } = telegramTokenText(
+  Boolean(BUILTIN_TELEGRAM_TOKEN)
+);
 
 /**
  * Ключи KLIPY и GIPHY и токен Telegram-бота. KLIPY первым: с него дока советует начинать, если
@@ -89,11 +98,11 @@ export const SettingsView: FC = () => {
 
           <SecretField
             id="settings-telegram-token"
-            label={t('settings.telegram.label')}
+            label={t(TELEGRAM_TOKEN_LABEL)}
             value={telegramToken}
             onInput={handleTelegramTokenInput}
           >
-            {renderMessage('settings.telegram.hint', {
+            {renderMessage(TELEGRAM_TOKEN_HINT, {
               link: <ExternalLink href="https://t.me/BotFather">@BotFather</ExternalLink>,
               docs: (
                 <ExternalLink href={telegramDocsUrl}>{t('settings.docs')}</ExternalLink>
