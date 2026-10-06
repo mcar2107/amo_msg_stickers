@@ -18,11 +18,12 @@ import { TelegramImportFooter } from './TelegramImport/TelegramImportFooter/Tele
  *
  * Хуки обеих форм вызываются здесь, а не в панелях: главная кнопка футера зависит от
  * выбранного сегмента и состояния его формы. Панели смонтированы обе, поэтому введённая
- * ссылка и черновик стикера переживают смену сегмента; закрытие экрана сбрасывает их.
+ * ссылка и черновик стикера переживают смену сегмента. Закрытие экрана сбрасывает черновик, а
+ * ссылку и ошибку её поля держит провайдер — до успешного импорта.
  */
 export const AddView: FC = () => {
   const { addSegment } = usePickerView();
-  const { link, hasLink, changeLink, isImporting, percent, startImport } =
+  const { link, hasLink, fieldError, changeLink, isImporting, percent, startImport } =
     useTelegramImport();
   const {
     fileName,
@@ -94,6 +95,7 @@ export const AddView: FC = () => {
       >
         <TelegramImport
           link={link}
+          fieldError={fieldError}
           percent={percent}
           isActive={addSegment === 'telegram'}
           onLinkChange={handleLinkChange}

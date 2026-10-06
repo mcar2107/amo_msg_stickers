@@ -4,6 +4,7 @@ import type { Pack, SendItem } from '../../../db.types';
 import type { Host, Settings } from '../../../host.types';
 import type { HoldReason, OpenedBy, PopupHolds } from '../../../hoverPopup.types';
 import type {
+  AddSegment,
   PickerScreen,
   PickerViewValue,
   SectionMotion,
@@ -112,6 +113,23 @@ export type PickerContextValue = {
 
 export type PackImportState = {
   /**
+   * Ссылка на пак или его имя, как ввёл пользователь. Переживает закрытие экрана и смену
+   * сегмента, после успешного импорта — пустая.
+   */
+  link: string;
+
+  /**
+   * Ошибка значения поля ссылки: ссылка без имени пака или ошибка импорта, завершившегося на
+   * открытом сегменте «Telegram»; `null` — ошибки нет. Правка ссылки её снимает.
+   */
+  fieldError: string | null;
+
+  /**
+   * Меняет введённую ссылку и снимает ошибку поля.
+   */
+  changeLink: (link: string) => void;
+
+  /**
    * Идёт импорт: повторный запуск недоступен, в том числе после возврата на вкладку.
    */
   isImporting: boolean;
@@ -123,10 +141,11 @@ export type PackImportState = {
   percent: number | null;
 
   /**
-   * Импортирует пак по ссылке или имени; пока идёт импорт, вызов ничего не делает.
-   * Промис не отклоняется: ошибка уходит в статус, по успеху открывается вкладка пака.
+   * Импортирует пак по введённой ссылке; пока идёт импорт, вызов ничего не делает. Ссылка без
+   * имени пака — ошибка поля без запроса. Промис не отклоняется: ошибка уходит к полю или в
+   * статус, по успеху открывается вкладка пака.
    */
-  importPack: (link: string) => Promise<void>;
+  importPack: () => Promise<void>;
 };
 
 export type PackImportOptions = {
@@ -147,6 +166,12 @@ export type PackImportOptions = {
   screen: PickerScreen | null;
 
   /**
+   * Выбранный сегмент экрана «Добавить стикеры»: ошибка импорта — у поля ссылки, только если
+   * по завершении открыт сегмент «Telegram».
+   */
+  addSegment: AddSegment;
+
+  /**
    * Перечитывает паки: вкладка пака появляется после первого стикера и по завершении.
    */
   refreshPacks: () => Promise<void>;
@@ -160,6 +185,11 @@ export type PackImportOptions = {
    * Показывает ошибку импорта в статусе.
    */
   showError: (text: string) => void;
+
+  /**
+   * Скрывает строку статуса: ошибку у поля статус не дублирует.
+   */
+  clearStatus: () => void;
 
   /**
    * Открывает раздел импортированного пака в ленте стикеров.

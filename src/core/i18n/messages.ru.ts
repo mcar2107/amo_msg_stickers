@@ -16,8 +16,6 @@ export const RU = {
   'add.segment.telegram': 'Telegram',
   'add.segment.custom': 'Свой стикер',
   'add.telegram.title': 'Импорт из Telegram',
-  'add.telegram.hint':
-    'Ссылка на пак. Нажмите на стикер из пака в чате Telegram, в окне пака откройте меню «⋮» и выберите «Копировать ссылку». Статичные, анимированные (.tgs) и видео-стикеры конвертируются в GIF. {docs}',
   'add.telegram.linkLabel': 'Ссылка на пак',
   'add.telegram.hintToggle': 'Как получить ссылку',
   'add.telegram.howTo':

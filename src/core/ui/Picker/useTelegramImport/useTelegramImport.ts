@@ -1,5 +1,3 @@
-import { useCallback, useState } from 'preact/hooks';
-
 import { usePicker } from '../PickerProvider/usePicker';
 
 import type { TelegramImportState } from './useTelegramImport.types';
@@ -8,26 +6,24 @@ import type { TelegramImportState } from './useTelegramImport.types';
  * Форма импорта пака из Telegram по ссылке: прогресс полосой и статусом ««название»: N/M»,
  * вкладка пака — после первого готового стикера, по завершении — переход в пак.
  *
- * Импорт не отменяется уходом с вкладки: он доводится до конца и открывает пак. Ход
- * импорта хранит провайдер, поэтому после возврата на вкладку видна полоса прогресса, а
- * кнопка «Импорт» недоступна, пока импорт не закончится. Введённая ссылка уходом с вкладки
- * сбрасывается.
+ * Импорт не отменяется уходом с экрана: он доводится до конца и открывает пак. Ход импорта,
+ * ссылку и ошибку поля хранит провайдер, поэтому после возврата на экран в поле та же ссылка,
+ * видна полоса прогресса, а кнопка «Импорт» недоступна, пока импорт не закончится.
  *
- * @returns ссылка, ход импорта и его запуск
+ * @returns ссылка, ошибка поля, ход импорта и его запуск
  */
 export const useTelegramImport = (): TelegramImportState => {
   const { packImport } = usePicker();
-  const { isImporting, percent, importPack } = packImport;
-  const [link, setLink] = useState('');
+  const { link, fieldError, changeLink, isImporting, percent, importPack } = packImport;
   const hasLink = link.trim() !== '';
 
-  const changeLink = useCallback((nextLink: string) => {
-    setLink(nextLink);
-  }, []);
-
-  const startImport = useCallback(async () => {
-    await importPack(link);
-  }, [importPack, link]);
-
-  return { link, hasLink, changeLink, isImporting, percent, startImport };
+  return {
+    link,
+    hasLink,
+    fieldError,
+    changeLink,
+    isImporting,
+    percent,
+    startImport: importPack,
+  };
 };

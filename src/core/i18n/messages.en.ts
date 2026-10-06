@@ -18,8 +18,6 @@ export const EN: Messages = {
   'add.segment.telegram': 'Telegram',
   'add.segment.custom': 'Custom sticker',
   'add.telegram.title': 'Import from Telegram',
-  'add.telegram.hint':
-    'Pack link. Click a sticker from the pack in a Telegram chat, open the “⋮” menu in the pack window and choose “Copy Link”. Static, animated (.tgs) and video stickers are converted to GIF. {docs}',
   'add.telegram.linkLabel': 'Pack link',
   'add.telegram.hintToggle': 'How to get the link',
   'add.telegram.howTo':
