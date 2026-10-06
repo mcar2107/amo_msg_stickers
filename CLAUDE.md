@@ -238,8 +238,9 @@ docs/             дока пользователя — отдельный па�
                   по-английски с теми же путями, _parts/ — общие фрагменты страниц (_parts/en/ — английские),
                   img/ — скрины и демо, общие для обоих языков; public/ — логотип
 scripts/          скрипты CI: version.ts — чистая логика проверки версии: формат и «не ниже базы» (типы —
-                  version.types.ts); check-version.mjs — её запуск в CI; chromeWebStore.ts — клиент Chrome Web Store API (типы —
-                  chromeWebStore.types.ts), publish-chrome-web-store.mjs — публикация пакета из релиза;
+                  version.types.ts); check-version.mjs — её запуск в CI; chromeWebStore.ts — клиент Chrome Web
+                  Store API (типы — chromeWebStore.types.ts), publish-chrome-web-store.mjs — публикация пакета из
+                  релиза;
                   telegramToken.ts — проверка токена встроенного бота для `build.mjs`
 tests/            юнит-тесты, helpers/
 .github/          workflows/ci.yml — проверки PR; workflows/release.yml — релиз из master;
@@ -850,11 +851,11 @@ GitHub Actions, Node и pnpm ставятся из `.mise.toml` (`jdx/mise-actio
   `build.mjs` подставляет её в `version` собранного manifest и в `@version` заголовка userscript.
 - **Мерж в `master`** (`release.yml`): те же проверки, затем тег `v<версия>` и GitHub Release с `amo-stickers.zip`
   (`manifest.json` в корне) и `amo-stickers.user.js`, заметки — автогенерация по PR. Имена файлов без версии: дока,
-  README и `@updateURL` ссылаются на `releases/latest/download/<файл>`, и ссылка не меняется от версии к версии. Релиз накопительный: выходит на мерже,
-  который поднял версию (PR релиза или хотфикс), и его заметки несут все PR со времени прошлого релиза. Если тег уже
-  есть, релиз пропускается с уведомлением `::notice::`, прогон зелёный: мерж без подъёма версии — штатный исход. Если push мержа не создал прогона
-  (GitHub изредка теряет событие), релиз запускается вручную — `gh workflow run release.yml --ref master`; с другой
-  ветки прогон пропускается целиком.
+  README и `@updateURL` ссылаются на `releases/latest/download/<файл>`, и ссылка не меняется от версии к версии.
+  Релиз накопительный: выходит на мерже, который поднял версию (PR релиза или хотфикс), и его заметки несут все PR
+  со времени прошлого релиза. Если тег уже есть, релиз пропускается с уведомлением `::notice::`, прогон зелёный: мерж
+  без подъёма версии — штатный исход. Если push мержа не создал прогона (GitHub изредка теряет событие), релиз
+  запускается вручную — `gh workflow run release.yml --ref master`; с другой ветки прогон пропускается целиком.
 - **Chrome Web Store** (`chrome-web-store.yml`, из `release.yml` — job `chrome-web-store`): за новым релизом его
   `amo-stickers.zip` из GitHub Release уходит в стор и на проверку — Chrome Web Store API v2, вход сервисным
   аккаунтом (`scripts/publish-chrome-web-store.mjs`, логика и подпись JWT — `scripts/chromeWebStore.ts`). Версия —
@@ -878,9 +879,10 @@ GitHub Actions, Node и pnpm ставятся из `.mise.toml` (`jdx/mise-actio
 ## Воркфлоу задачи
 
 Одна задача — один issue, одна ветка, один PR: issue (поиск дублей, связи) → ветка от `master` → спека OpenSpec,
-если задача меняет файлы продукта → правки и PR без подъёма версии → аудит inline-комментами → правка комментов →
-повторный аудит и резолв → архив OpenSpec → мерж. Релиз — отдельный PR релиза: ветка `release/<версия>` без issue и
-спеки, правка — только версия в `package.json`, уровень — наибольший из PR со времени прошлого релиза; хотфикс
+если задача меняет файлы продукта (`src/`, `build.mjs`, `tailwind.config.ts`, `tsconfig.json`, `package.json`,
+`pnpm-lock.yaml`) → правки и PR без подъёма версии → аудит inline-комментами → правка комментов → повторный аудит
+и резолв → архив OpenSpec → мерж. Релиз — отдельный PR релиза: ветка `release/<версия>` без issue и спеки, правка —
+только версия в `package.json`, уровень — наибольший из PR со времени прошлого релиза; хотфикс
 поднимает версию в самом PR. Команды, уровни версии, порядок релиза и формат аудита — в проектном
 скилле `task-workflow` (`.claude/skills/task-workflow/SKILL.md`): любая задача с правками в репозитории начинается с
 него, до первой правки.
