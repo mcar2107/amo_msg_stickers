@@ -27,7 +27,6 @@ export const EN: Messages = {
   'add.custom.title': 'Custom sticker',
   'add.custom.caption': 'Caption (optional)',
   'add.custom.save': 'Save to “My stickers”',
-  'add.custom.dropZone': 'Image, GIF, video or .tgs — drag and drop or click',
   'add.custom.dropHint': 'Drop an image, GIF, video or .tgs here',
   'add.custom.chooseFile': 'Choose file',
   'add.custom.replaceFile': 'Replace file',

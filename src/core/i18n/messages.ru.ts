@@ -25,7 +25,6 @@ export const RU = {
   'add.custom.title': 'Свой стикер',
   'add.custom.caption': 'Подпись (необязательно)',
   'add.custom.save': 'Сохранить в «Мои стикеры»',
-  'add.custom.dropZone': 'Картинка, GIF, видео или .tgs — перетащите или кликните',
   'add.custom.dropHint': 'Перетащите сюда картинку, GIF, видео или .tgs',
   'add.custom.chooseFile': 'Выбрать файл',
   'add.custom.replaceFile': 'Заменить файл',
