@@ -98,6 +98,23 @@ const guardBuiltin = async <T>(request: Promise<T>, isBuiltin: boolean): Promise
   }
 };
 
+/**
+ * Форма токена Bot API — `<id бота>:<секрет>`, та же, что проверяет сборка для встроенного
+ * токена.
+ */
+const BOT_TOKEN_RE = /^\d+:[\w-]+$/;
+
+/**
+ * Проверка только формы, без запроса к Telegram: ловит вставку не того значения, а не
+ * отозванный токен. Пробелы по краям не мешают — настройки сохраняются без них.
+ *
+ * @param token — токен из поля настроек
+ * @returns `true` — похоже на токен бота
+ */
+export const isBotTokenFormat = (token: string): boolean => {
+  return BOT_TOKEN_RE.test(token.trim());
+};
+
 const SET_LINK_RE = /(?:t\.me|telegram\.me)\/(?:addstickers|addemoji)\/([A-Za-z0-9_]+)/;
 
 export const parseSetName = (input: string): string | null => {

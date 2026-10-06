@@ -1,7 +1,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { setLocale } from '../src/core/i18n/translate';
-import { finishImport } from '../src/core/ui/Picker/PickerProvider/finishImport/finishImport';
+import {
+  finishImport,
+  importErrorTarget,
+} from '../src/core/ui/Picker/PickerProvider/finishImport/finishImport';
 import type { SectionMotion } from '../src/core/ui/Picker/usePickerView/usePickerView.types';
 
 const PACK = { id: 'tg:cats', title: 'Коты' };
@@ -62,5 +65,23 @@ describe('finishImport', () => {
     finishImport({ screen: null, pack: PACK, scrollToSection, showStatus });
 
     expect(showStatus).toHaveBeenCalledWith('Pack “Коты” added');
+  });
+});
+
+describe('importErrorTarget', () => {
+  it('экран «Добавить стикеры» на сегменте «Telegram» — ошибка у поля', () => {
+    expect(importErrorTarget('add', 'telegram')).toBe('field');
+  });
+
+  it('экран «Добавить стикеры» на другом сегменте — статус', () => {
+    expect(importErrorTarget('add', 'custom')).toBe('status');
+  });
+
+  it('другой экран — статус', () => {
+    expect(importErrorTarget('settings', 'telegram')).toBe('status');
+  });
+
+  it('экрана нет — статус', () => {
+    expect(importErrorTarget(null, 'telegram')).toBe('status');
   });
 });

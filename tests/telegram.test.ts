@@ -4,7 +4,7 @@ import { deletePack, getPack, putPack, putSticker } from '../src/core/db';
 import type { Pack } from '../src/core/db.types';
 import { setLocale } from '../src/core/i18n/translate';
 import { httpError, tooBigError } from '../src/core/net';
-import { importTelegramSet } from '../src/core/sources/telegram';
+import { importTelegramSet, isBotTokenFormat } from '../src/core/sources/telegram';
 
 import { fakeHost } from './helpers/fakeHost';
 
@@ -451,5 +451,30 @@ describe('importTelegramSet: свой и встроенный токен', () =>
     await expect(importTelegramSet(host, '', 'Pack', vi.fn())).rejects.toThrow(
       BUILTIN_UNAVAILABLE
     );
+  });
+});
+
+describe('isBotTokenFormat', () => {
+  it('<цифры>:<строка> — токен', () => {
+    expect(isBotTokenFormat('123:abc-_')).toBe(true);
+    expect(isBotTokenFormat(TOKEN)).toBe(true);
+  });
+
+  it('пустая строка — не токен', () => {
+    expect(isBotTokenFormat('')).toBe(false);
+  });
+
+  it('без id бота или без секрета — не токен', () => {
+    expect(isBotTokenFormat('abc')).toBe(false);
+    expect(isBotTokenFormat('123:')).toBe(false);
+    expect(isBotTokenFormat(':abc')).toBe(false);
+    expect(isBotTokenFormat('12a:abc')).toBe(false);
+  });
+
+  it('пробелы по краям снимаются, внутри — не токен', () => {
+    expect(isBotTokenFormat(' 123:abc \n')).toBe(true);
+    expect(isBotTokenFormat('   ')).toBe(false);
+    expect(isBotTokenFormat('123:ab c')).toBe(false);
+    expect(isBotTokenFormat('123 :abc')).toBe(false);
   });
 });
