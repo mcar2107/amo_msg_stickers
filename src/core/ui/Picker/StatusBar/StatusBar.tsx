@@ -4,6 +4,7 @@ import type { FunctionComponent as FC } from 'preact';
 import { usePicker } from '../PickerProvider/usePicker';
 import { SCREEN_FOOTER_HEIGHT_PX } from '../Screen/screenFooter';
 
+import { useHeightReport } from './useHeightReport/useHeightReport';
 import type { StatusBarProps } from './StatusBar.types';
 
 const statusVariants = cva(
@@ -40,15 +41,20 @@ const BASE_STYLE = { bottom: 0 };
  * а область, появившуюся вместе с текстом или из `display: none`, обычно пропускает.
  * Строка с рамкой рендерится только со статусом: пустая перекрывала бы низ ленты.
  *
+ * Высоту строки панель получает через `onHeightChange`: тело открытого экрана отступает на неё
+ * снизу, и строка не прячет конец его содержимого.
+ *
  * Строка появляется переходом из `@starting-style` при монтировании; переход и длительность —
  * под `motion-safe:`, как у панели режима. Смена текста в уже показанной строке не мигает.
  */
 export const StatusBar: FC<StatusBarProps> = (props) => {
-  const { isRaised } = props;
+  const { isRaised, onHeightChange } = props;
   const { status } = usePicker();
+  const regionRef = useHeightReport(onHeightChange);
 
   return (
     <div
+      ref={regionRef}
       role="status"
       className="absolute inset-x-0 z-20"
       style={isRaised ? RAISED_STYLE : BASE_STYLE}

@@ -92,6 +92,7 @@ export const RU = {
   'gifs.recent': 'Недавние',
   'gifs.trends': 'Тренды',
   'gifs.nothingFound': 'Ничего не нашлось',
+  'gifs.loadFailed': 'Не удалось загрузить GIF: {message}',
   'gifs.noKeys': 'Для поиска GIF нужен API-ключ GIPHY или KLIPY',
   'gifs.openSettings': 'Открыть настройки',
   'gifs.docs': 'Как получить ключ',

@@ -38,37 +38,42 @@ export const TelegramImport: FC<TelegramImportProps> = (props) => {
     <>
       <h3 className="mt-1.5 text-xsm font-bold">{t('add.telegram.title')}</h3>
 
-      <div className="relative">
-        <Field
-          id={LINK_FIELD_ID}
-          label={t('add.telegram.linkLabel')}
-          value={link}
-          placeholder="t.me/addstickers/…"
-          error={fieldError}
-          describedBy={isHintOpen ? HOW_TO_ID : ''}
-          onInput={handleLinkInput}
-        />
+      {/*
+       * Инструкция — описание поля ссылки: от него 4 px, как внутри поля (D10).
+       */}
+      <div className="flex flex-col gap-1">
+        <div className="relative">
+          <Field
+            id={LINK_FIELD_ID}
+            label={t('add.telegram.linkLabel')}
+            value={link}
+            placeholder="t.me/addstickers/…"
+            error={fieldError}
+            describedBy={isHintOpen ? HOW_TO_ID : ''}
+            onInput={handleLinkInput}
+          />
 
-        <HintToggle
-          hintId={HOW_TO_ID}
-          isExpanded={isHintOpen}
-          onToggle={handleHintToggle}
-        />
+          <HintToggle
+            hintId={HOW_TO_ID}
+            isExpanded={isHintOpen}
+            onToggle={handleHintToggle}
+          />
+        </div>
+
+        <p
+          id={HOW_TO_ID}
+          hidden={!isHintOpen}
+          className="m-0 text-xs leading-[1.4] text-cadetGray-30 dark:text-gray-70"
+        >
+          {renderMessage('add.telegram.howTo', {
+            docs: (
+              <ExternalLink href={userDocsUrl(USER_DOCS_PAGE.telegram, getLocale())}>
+                {t('add.telegram.docs')}
+              </ExternalLink>
+            ),
+          })}
+        </p>
       </div>
-
-      <p
-        id={HOW_TO_ID}
-        hidden={!isHintOpen}
-        className="m-0 text-xs leading-[1.4] text-cadetGray-30 dark:text-gray-70"
-      >
-        {renderMessage('add.telegram.howTo', {
-          docs: (
-            <ExternalLink href={userDocsUrl(USER_DOCS_PAGE.telegram, getLocale())}>
-              {t('add.telegram.docs')}
-            </ExternalLink>
-          ),
-        })}
-      </p>
 
       {percent !== null && <ImportProgress percent={percent} />}
     </>

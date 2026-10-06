@@ -29,6 +29,12 @@ const TELEGRAM_GROUP_ID = 'settings-group-telegram';
  */
 const GIF_NOTE_ID = 'settings-gif-note';
 
+/**
+ * Отступы D10: 4 px — внутри поля и заголовка группы с её пояснением, 12 px — между полями
+ * группы (с 4 px соседние поля сливались в одно), 16 px — между группами (`gap-4` формы).
+ */
+const GROUP_CLASS = 'flex flex-col gap-3';
+
 const GROUP_TITLE_CLASS = 'm-0 font-primary text-xsm font-semibold';
 const NOTE_CLASS = 'm-0 text-xs leading-[1.4] text-cadetGray-30 dark:text-gray-70';
 
@@ -96,14 +102,16 @@ export const SettingsView: FC = () => {
       >
         <p className={NOTE_CLASS}>{t('settings.storedLocally')}</p>
 
-        <section aria-labelledby={GIF_GROUP_ID} className="flex flex-col gap-1">
-          <h3 id={GIF_GROUP_ID} className={GROUP_TITLE_CLASS}>
-            {t('settings.group.gif')}
-          </h3>
+        <section aria-labelledby={GIF_GROUP_ID} className={GROUP_CLASS}>
+          <div className="flex flex-col gap-1">
+            <h3 id={GIF_GROUP_ID} className={GROUP_TITLE_CLASS}>
+              {t('settings.group.gif')}
+            </h3>
 
-          <p id={GIF_NOTE_ID} className={NOTE_CLASS}>
-            {renderMessage('settings.gif.oneKey', { docs: gifDocsLink })}
-          </p>
+            <p id={GIF_NOTE_ID} className={NOTE_CLASS}>
+              {renderMessage('settings.gif.oneKey', { docs: gifDocsLink })}
+            </p>
+          </div>
 
           <Field
             isSecret
@@ -140,7 +148,7 @@ export const SettingsView: FC = () => {
           />
         </section>
 
-        <section aria-labelledby={TELEGRAM_GROUP_ID} className="flex flex-col gap-1">
+        <section aria-labelledby={TELEGRAM_GROUP_ID} className={GROUP_CLASS}>
           <h3 id={TELEGRAM_GROUP_ID} className={GROUP_TITLE_CLASS}>
             {t('settings.group.telegram')}
           </h3>

@@ -1,5 +1,6 @@
 import { cva } from 'class-variance-authority';
 import type { FunctionComponent as FC, TargetedFocusEvent } from 'preact';
+import { useState } from 'preact/hooks';
 
 import type { PanelPhase } from '../../hoverPopup.types';
 import { t } from '../../i18n/translate';
@@ -76,6 +77,17 @@ const panelVariants = cva([...PANEL_CLASS, OPEN_ANIMATION_CLASS], {
  */
 const BODY_CLASS = 'relative flex min-h-0 flex-1 flex-col';
 
+/**
+ * Высота строки статуса — переменной CSS тела панели: её читает отступ тела экрана
+ * (`Screen`), а лента режима не меняет раскладку.
+ *
+ * @param height — высота строки статуса в пикселях
+ * @returns стиль тела панели
+ */
+const bodyStyle = (height: number) => {
+  return { '--status-inset': `${height}px` };
+};
+
 const renderScreen = (screen: PickerScreen) => {
   switch (screen) {
     case 'add': {
@@ -104,6 +116,7 @@ export const Picker: FC<PickerProps> = (props) => {
    */
   const isOpen = phase !== 'closed';
   const isCovered = screen !== null;
+  const [statusHeight, setStatusHeight] = useState(0);
 
   useOpenLoad(isOpen);
 
@@ -127,6 +140,10 @@ export const Picker: FC<PickerProps> = (props) => {
     if (isTextField(event.target)) setHold('field', false);
   };
 
+  const handleStatusHeightChange = (height: number) => {
+    setStatusHeight(height);
+  };
+
   return (
     <dialog
       open={isOpen}
@@ -137,7 +154,7 @@ export const Picker: FC<PickerProps> = (props) => {
       onFocusOut={handlePanelFocusOut}
     >
       <PreviewProvider phase={phase}>
-        <div className={BODY_CLASS}>
+        <div className={BODY_CLASS} style={bodyStyle(statusHeight)}>
           <ModePanel mode="stickers" isActive={mode === 'stickers'} isInert={isCovered}>
             <StickersMode isOpen={isOpen} />
           </ModePanel>
@@ -152,7 +169,7 @@ export const Picker: FC<PickerProps> = (props) => {
            */}
           {screen && renderScreen(screen)}
 
-          <StatusBar isRaised={isCovered} />
+          <StatusBar isRaised={isCovered} onHeightChange={handleStatusHeightChange} />
         </div>
 
         <Footer />

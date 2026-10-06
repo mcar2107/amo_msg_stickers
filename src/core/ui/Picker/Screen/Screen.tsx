@@ -29,8 +29,14 @@ const BACK_BUTTON_CLASS = [
 const TITLE_CLASS =
   'm-0 shrink-0 truncate px-2.5 pb-1.5 pt-1 font-primary text-sm font-semibold';
 
-const BODY_CLASS =
-  'min-h-0 flex-1 overflow-y-auto px-2.5 pb-3 pt-1 [scrollbar-width:thin]';
+/**
+ * Нижний отступ тела растёт на высоту строки статуса (`--status-inset` панели): строка лежит
+ * слоем поверх низа тела, и без отступа конец содержимого под ней не долистывался бы.
+ */
+const BODY_CLASS = [
+  'min-h-0 flex-1 overflow-y-auto px-2.5 pt-1 [scrollbar-width:thin]',
+  'pb-[calc(theme(spacing.3)_+_var(--status-inset,0px))]',
+].join(' ');
 
 /**
  * Футер — постоянной высоты `SCREEN_FOOTER_HEIGHT_PX` и вне прокрутки: главная кнопка видна

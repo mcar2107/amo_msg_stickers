@@ -94,6 +94,7 @@ export const EN: Messages = {
   'gifs.recent': 'Recent',
   'gifs.trends': 'Trending',
   'gifs.nothingFound': 'Nothing found',
+  'gifs.loadFailed': 'Couldn’t load GIFs: {message}',
   'gifs.noKeys': 'GIF search needs a GIPHY or KLIPY API key',
   'gifs.openSettings': 'Open settings',
   'gifs.docs': 'How to get a key',

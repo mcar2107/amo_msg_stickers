@@ -5,6 +5,7 @@ import { writeMode } from '../../../pickerMode';
 import type { ModeStorage, PickerMode } from '../../../pickerMode.types';
 
 import { DEFAULT_ADD_SEGMENT, resolveAddSegment } from './addSegment';
+import { shouldClearStatusOnClose } from './screenCloseStatus';
 import { startMode } from './startMode';
 import type {
   AddSegment,
@@ -31,7 +32,9 @@ const PAGE_STORAGE: ModeStorage = {
 /**
  * Состояние вида: режим, экран поверх него, сегмент «Добавить стикеры» и якорь ленты
  * стикеров. Методы стабильны между
- * рендерами и сбрасывают статус: он держится до следующего действия пользователя.
+ * рендерами и сбрасывают статус: он держится до следующего действия пользователя. Закрытие
+ * «Настроек» статус не сбрасывает (`shouldClearStatusOnClose`): «Сохранено» записи, начатой
+ * уходом с экрана, остаётся видно в режиме.
  *
  * Режим первого открытия на странице — сохранённый, без него — по библиотеке. Выбор,
  * сделанный пользователем до ответа библиотеки, не перебивается.
@@ -45,12 +48,33 @@ export const usePickerViewState = (
   clearStatus: () => void
 ): PickerViewValue => {
   const [mode, setModeState] = useState<PickerMode>('stickers');
-  const [screen, setScreen] = useState<PickerScreen | null>(null);
+  const [screen, setScreenState] = useState<PickerScreen | null>(null);
   const [anchor, setAnchor] = useState<SectionAnchor | null>(null);
   const [addSegment, setAddSegment] = useState<AddSegment>(DEFAULT_ADD_SEGMENT);
   const anchorSeqRef = useRef(0);
   const hasStartedRef = useRef(false);
   const hasChosenRef = useRef(false);
+
+  /**
+   * Экран на момент вызова метода: методы стабильны и не видят состояние текущего рендера.
+   */
+  const screenRef = useRef<PickerScreen | null>(null);
+
+  const setScreen = useCallback((nextScreen: PickerScreen | null) => {
+    screenRef.current = nextScreen;
+    setScreenState(nextScreen);
+  }, []);
+
+  /**
+   * Статус снимается, только если закрываемый экран его не оставляет.
+   */
+  const closeScreen = useCallback(() => {
+    const shouldClear = shouldClearStatusOnClose(screenRef.current);
+
+    setScreen(null);
+
+    if (shouldClear) clearStatus();
+  }, [setScreen, clearStatus]);
 
   /**
    * Layout-эффект, а не обычный: сохранённый режим встаёт до первой отрисовки открытого
@@ -79,10 +103,9 @@ export const usePickerViewState = (
   const setMode = useCallback(
     (nextMode: PickerMode) => {
       chooseMode(nextMode);
-      setScreen(null);
-      clearStatus();
+      closeScreen();
     },
-    [chooseMode, clearStatus]
+    [chooseMode, closeScreen]
   );
 
   const openScreen = useCallback(
@@ -93,7 +116,7 @@ export const usePickerViewState = (
       setScreen(nextScreen);
       clearStatus();
     },
-    [clearStatus]
+    [setScreen, clearStatus]
   );
 
   const chooseSegment = useCallback(
@@ -104,11 +127,6 @@ export const usePickerViewState = (
     [clearStatus]
   );
 
-  const closeScreen = useCallback(() => {
-    setScreen(null);
-    clearStatus();
-  }, [clearStatus]);
-
   const scrollToSection = useCallback(
     (sectionId: string, motion: SectionMotion) => {
       anchorSeqRef.current += 1;
@@ -117,7 +135,7 @@ export const usePickerViewState = (
       setAnchor({ sectionId, seq: anchorSeqRef.current, motion });
       clearStatus();
     },
-    [chooseMode, clearStatus]
+    [chooseMode, setScreen, clearStatus]
   );
 
   return useMemo(() => {
