@@ -63,27 +63,29 @@ describe('язык модуля', () => {
   });
 
   it('подставляет параметры в строку текущего языка', () => {
-    expect(t('settings.giphy.hint', { link: 'giphy.com', docs: 'doc' })).toBe(
-      'Бесплатно на\u00a0giphy.com. doc'
+    expect(t('settings.telegram.hint', { link: '@BotFather', docs: 'doc' })).toBe(
+      'Создайте любого бота в\u00a0@BotFather. doc'
     );
 
     setLocale('en');
 
-    expect(t('settings.giphy.hint', { link: 'giphy.com', docs: 'doc' })).toBe(
-      'Free at\u00a0giphy.com. doc'
+    expect(t('settings.telegram.hint', { link: '@BotFather', docs: 'doc' })).toBe(
+      'Create any bot in\u00a0@BotFather. doc'
     );
   });
 });
 
 describe('messageTemplate', () => {
   it('отдаёт шаблон текущего языка без подстановки', () => {
-    expect(messageTemplate('settings.giphy.hint')).toBe(
-      'Бесплатно на\u00a0{link}. {docs}'
+    expect(messageTemplate('settings.telegram.hint')).toBe(
+      'Создайте любого бота в\u00a0{link}. {docs}'
     );
 
     setLocale('en');
 
-    expect(messageTemplate('settings.giphy.hint')).toBe('Free at\u00a0{link}. {docs}');
+    expect(messageTemplate('settings.telegram.hint')).toBe(
+      'Create any bot in\u00a0{link}. {docs}'
+    );
   });
 });
 
@@ -132,6 +134,16 @@ describe('строки экранов', () => {
     );
     expect(messageTemplate('settings.telegram.hint')).not.toContain('локально');
     expect(messageTemplate('settings.telegram.hintOptional')).not.toContain('локально');
+
+    setLocale('en');
+
+    expect(t('settings.storedLocally')).toBe(
+      'Keys and\u00a0the\u00a0token are stored only in\u00a0this browser.'
+    );
+    expect(messageTemplate('settings.telegram.hint')).not.toMatch(/stored|locally/);
+    expect(messageTemplate('settings.telegram.hintOptional')).not.toMatch(
+      /stored|locally/
+    );
   });
 });
 
@@ -148,14 +160,14 @@ describe('LocalizedError', () => {
 
   it('сохраняет непустые параметры и подставляет их в текст', () => {
     setLocale('en');
-    const error = new LocalizedError('settings.giphy.hint', {
-      link: 'giphy.com',
+    const error = new LocalizedError('settings.telegram.hint', {
+      link: '@BotFather',
       docs: 'doc',
     });
 
-    expect(error.key).toBe('settings.giphy.hint');
-    expect(error.params).toEqual({ link: 'giphy.com', docs: 'doc' });
-    expect(error.message).toBe('Free at\u00a0giphy.com. doc');
+    expect(error.key).toBe('settings.telegram.hint');
+    expect(error.params).toEqual({ link: '@BotFather', docs: 'doc' });
+    expect(error.message).toBe('Create any bot in\u00a0@BotFather. doc');
   });
 
   it('текст фиксируется при создании', () => {
