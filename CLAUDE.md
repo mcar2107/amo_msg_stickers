@@ -256,7 +256,7 @@ scripts/          скрипты CI: version.ts — чистая логика п
                   Store API (типы — chromeWebStore.types.ts), publish-chrome-web-store.mjs — публикация пакета из
                   релиза;
                   telegramToken.ts — проверка токена встроенного бота для `build.mjs`;
-                  init-env.mjs — `postinstall`: `.env` из `.env.example`, если `.env` нет
+                  init-env.mjs — `postinstall`: `.env` из `.env.example`, если `.env` нет и это не CI
 tests/            юнит-тесты, helpers/
 .github/          workflows/ci.yml — проверки PR; workflows/release.yml — релиз из master;
                   workflows/chrome-web-store.yml — публикация релиза в стор (за релизом и вручную);
