@@ -37,6 +37,8 @@
 Версия SHALL быть записана в репозитории в одном месте — поле `version` в `package.json`. Сборка MUST подставлять её в
 `version` собранного manifest расширения и в `@version` заголовка userscript; исходники manifest и заголовка версии
 MUST NOT содержать. Проверка версии MUST падать, если версия в `package.json` не в формате `MAJOR.MINOR.PATCH` из чисел.
+Сборка в CI MUST падать, если `version` собранного manifest или `@version` собранного userscript расходится с версией
+`package.json`.
 
 #### Scenario: Подъём версии
 - **WHEN** версия в `package.json` поднята до `0.19.0`, другие файлы не менялись
@@ -46,6 +48,11 @@ MUST NOT содержать. Проверка версии MUST падать, е
 #### Scenario: Версия не по формату
 - **WHEN** версия в `package.json` — `0.19`
 - **THEN** проверка версии падает с сообщением, что версия не в формате `MAJOR.MINOR.PATCH`
+
+#### Scenario: Сборка расходится с package.json
+- **WHEN** после сборки `version` в `dist/extension/manifest.json` или `@version` в `dist/amo-stickers.user.js` не
+  равна версии `package.json`
+- **THEN** сборка в CI падает с сообщением, где названы версия `package.json` и обе версии сборки
 
 ### Requirement: Версия в PR не ниже master
 Для PR в `master` проверка версии SHALL сравнивать версию ветки с версией `package.json` в `master` как
