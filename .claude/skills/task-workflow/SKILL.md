@@ -50,10 +50,10 @@ description: Воркфлоу задачи в amo stickers — issue (с пои�
    git switch master && git pull --ff-only
    git switch -c feature/42-preact-picker
    ```
-3. **Спека.** Задача, которая меняет файлы продукта — `src/`, `build.mjs`, `tailwind.config.ts`, `tsconfig.json`,
-   `package.json`, `pnpm-lock.yaml`, — идёт через OpenSpec — в том числе исправление: proposal фиксирует, что считается готовым, а архив
-   переносит требование в `openspec/specs`, где его увидит следующая задача. Без спеки идут только PR, которые файлов
-   продукта не трогают: документация, CI, скрипты, тесты.
+3. **Спека.** Задача, которая меняет файлы продукта, идёт через OpenSpec, в том числе исправление: proposal
+   фиксирует, что считается готовым, а архив переносит требование в `openspec/specs`, где его увидит следующая задача.
+   Файлы продукта — `src/`, `build.mjs`, `tailwind.config.ts`, `tsconfig.json`, `package.json`, `pnpm-lock.yaml`. Без
+   спеки идут только PR, которые файлов продукта не трогают: документация, CI, скрипты, тесты.
 
    Change заводится в ветке задачи до первой правки кода. Имя — kebab-case по сути изменения, без номера issue; номер
    пишется в `proposal.md`: «(issue #42)».
@@ -147,8 +147,8 @@ description: Воркфлоу задачи в amo stickers — issue (с пои�
 
 ## Релиз
 
-Мерж в `master` выпускает релиз, только если версия в `package.json` выше последнего тега: `release.yml` ставит тег
-`v<версия>`, собирает GitHub Release с заметками по всем PR со времени прошлого релиза, публикует его в Chrome Web
+Мерж в `master` выпускает релиз, если тега `v<версия>` для версии из `package.json` ещё нет: `release.yml` ставит
+тег `v<версия>`, собирает GitHub Release с заметками по всем PR со времени прошлого релиза, публикует его в Chrome Web
 Store и доку на GitHub Pages. Версия записана в одном месте — поле `version` в `package.json`; manifest и заголовок
 userscript получают её при сборке.
 
@@ -162,7 +162,7 @@ PR, вошедшие в `master` со времени прошлого релиз
 ```bash
 git fetch --tags
 tag=$(gh release view --json tagName --jq .tagName)
-gh pr list --state merged --base master --search "merged:>$(git log -1 --format=%cI "${tag}")" --json number,title,headRefName
+gh pr list --state merged --base master --limit 1000 --search "merged:>$(git log -1 --format=%cI "${tag}")" --json number,title,headRefName
 ```
 
 **Уровень** — наибольший из этих PR, по тому, что получает пользователь:

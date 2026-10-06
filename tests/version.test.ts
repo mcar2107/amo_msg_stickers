@@ -61,6 +61,7 @@ describe('checkVersionNotLower', () => {
     }).toThrow('MAJOR.MINOR.PATCH');
   });
 });
+
 describe('toErrorAnnotation', () => {
   it('держит многострочную ошибку в одной аннотации', () => {
     expect(toErrorAnnotation('Command failed\nfatal: invalid object')).toBe(

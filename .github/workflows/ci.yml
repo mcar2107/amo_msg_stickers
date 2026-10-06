@@ -55,6 +55,17 @@ jobs:
       - run: pnpm build
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      # Версия записана только в package.json, сборка вставляет её в manifest и заголовок
+      # userscript. Проверяется собранный файл, а не build.mjs: в релиз уходит он.
+      - name: Версия сборки
+        run: |
+          version=$(jq -r .version package.json)
+          manifest=$(jq -r .version dist/extension/manifest.json)
+          banner=$(sed -n 's|^// @version *||p' dist/amo-stickers.user.js)
+          if [ "${manifest}" != "${version}" ] || [ "${banner}" != "${version}" ]; then
+            echo "::error::Версия сборки расходится с package.json (${version}): manifest — ${manifest}, @version — ${banner}"
+            exit 1
+          fi
       # manifest.json — в корне архива: так его принимают «Загрузить распакованное»
       # после распаковки и Chrome Web Store.
       # Имя без версии: ссылка доки на архив последнего релиза не меняется от версии
