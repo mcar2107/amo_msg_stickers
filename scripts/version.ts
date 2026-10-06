@@ -41,7 +41,8 @@ export const compareVersions = (left: Version, right: Version): number => {
 
 /**
  * Равная версия проходит: PR без подъёма — штатный случай, версию поднимает PR релиза. Ниже —
- * ошибка: такой мерж увёл бы `master` назад, и релиз с меньшей версией Chrome не примет.
+ * ошибка: такой мерж увёл бы `master` назад, а релиз с меньшей версией не примет Chrome Web Store и не обновит
+ * менеджер userscript.
  *
  * @param current — версия ветки
  * @param base — версия базовой ветки (`master`)
