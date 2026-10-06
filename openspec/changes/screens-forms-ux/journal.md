@@ -27,3 +27,10 @@
 Решения: Button — union ButtonActionProps | ButtonSubmitProps; leave() для кнопок футера — ScreenContext + useScreenLeave (не render-prop); Screen рисует тело сам, ViewBody и SecretField удалены; Field — описание в порядке ошибка → результат → подсказка; общая высота футера — SCREEN_FOOTER_HEIGHT_PX = 48 inline-стилем (Tailwind не сканирует .ts); isTextField вынесен в общий модуль (вне файлов группы).
 Аудит: ok с первого круга. Исполнитель сменён после 52 вызовов (эстафета на 4.4).
 Долг: тип View в usePickerView.types.ts больше не используется — удалить в G4; AddView footer={null} до G4; useScreenLeave не переиспользует тип ScreenLeave.
+
+### G4 · Сегменты «Добавить стикеры»
+
+Решения: формы сегментов — SegmentForm (`<form role="tabpanel" hidden>`) в AddView, кнопки — TelegramImportFooter и CreateStickerFooter (уже лежат в каталогах G5/G6) с type="submit" form; раскладка полей во вложенном div (flex на форме перебил бы hidden); resolveAddSegment, DEFAULT_ADD_SEGMENT = 'telegram'; saveBlock({ hasFile, isConverting }): без файла — noFile даже при сборке; isDraftConverting: окно задержки подписи (500 мс) считается сборкой.
+Решения координатора: окно задержки подписи → сборка — по букве custom-stickers «Сборка после правки подписи» (аудитор поднял question, спека это покрывает), отдано вторым critical. G5 разрешено править AddView.tsx (провод ошибки поля ссылки): волна 4 идёт последовательно в одном дереве; альтернатива — проп fieldError заранее в G4.
+Аудит: 1 круг доработки — critical: isConverting не доходил до CreateStickerProps (K9); окно задержки подписи. Оба закрыты. Исполнитель сменён после 75 вызовов.
+Долг: TelegramImport получает isActive, но читает его только G5; удержание попапа conversion не держится в окне задержки ввода (при фокусе в поле держится); провод openScreen и ARIA tabs проверен исполнителем на стенде, тестами — только resolveAddSegment.

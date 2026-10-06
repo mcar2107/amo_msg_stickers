@@ -3,27 +3,23 @@ import type { FunctionComponent as FC } from 'preact';
 import { getLocale, t } from '../../../../i18n/translate';
 import { USER_DOCS_PAGE, userDocsUrl } from '../../../../userDocs';
 import { renderMessage } from '../../../renderMessage/renderMessage';
-import { Button } from '../../Button/Button';
 import { ExternalLink } from '../../ExternalLink/ExternalLink';
 import { TextInput } from '../../TextInput/TextInput';
-import { useTelegramImport } from '../../useTelegramImport/useTelegramImport';
 
 import { ImportProgress } from './ImportProgress/ImportProgress';
+import type { TelegramImportProps } from './TelegramImport.types';
 
 /**
- * Форма импорта пака из Telegram. Возвращает фрагмент, а не обёртку: заголовок, строка
- * ввода и прогресс — строки общей формы вкладки «Добавить стикеры» с её отступами.
+ * Панель сегмента «Telegram»: ссылка на пак и ход импорта. Фрагмент, а не обёртка: строки
+ * ложатся в форму сегмента с её отступами. Ссылку и ход импорта держит `AddView` — «Импорт»
+ * стоит в футере экрана, вне панели. `isActive` панель получает для действий при показе
+ * сегмента.
  */
-export const TelegramImport: FC = () => {
-  const { link, hasLink, changeLink, isImporting, percent, startImport } =
-    useTelegramImport();
+export const TelegramImport: FC<TelegramImportProps> = (props) => {
+  const { link, percent, onLinkChange } = props;
 
   const handleLinkInput = (value: string) => {
-    changeLink(value);
-  };
-
-  const handleImportClick = () => {
-    void startImport();
+    onLinkChange(value);
   };
 
   return (
@@ -40,22 +36,12 @@ export const TelegramImport: FC = () => {
         })}
       </p>
 
-      <div className="flex items-center gap-1.5">
-        <TextInput
-          type="text"
-          value={link}
-          placeholder="t.me/addstickers/…"
-          onInput={handleLinkInput}
-        />
-
-        <Button
-          variant="primary"
-          isDisabled={isImporting || !hasLink}
-          onClick={handleImportClick}
-        >
-          {t('add.telegram.import')}
-        </Button>
-      </div>
+      <TextInput
+        type="text"
+        value={link}
+        placeholder="t.me/addstickers/…"
+        onInput={handleLinkInput}
+      />
 
       {percent !== null && <ImportProgress percent={percent} />}
     </>

@@ -7,6 +7,8 @@ import { errorMessage } from '../PickerProvider/errorMessage';
 import { usePicker } from '../PickerProvider/usePicker';
 import { usePickerView } from '../usePickerView/usePickerView';
 
+import { isDraftConverting } from './draftConverting';
+import { saveBlock } from './saveBlock';
 import type { StickerDraft, StickerDraftState } from './useStickerDraft.types';
 
 const CAPTION_DEBOUNCE_MS = 500;
@@ -15,9 +17,9 @@ const BYTES_IN_KB = 1024;
 /**
  * Черновик своего стикера: исходный файл, подпись и собранный из них GIF с превью.
  *
- * Пока идёт пересборка, на экране остаётся прежнее превью, а сохранение недоступно. Пока
- * стикер сохраняется, повторное сохранение тоже недоступно: иначе двойной клик записал бы
- * два одинаковых стикера.
+ * Пока идёт пересборка, на экране остаётся прежнее превью, а сохранение недоступно — в том
+ * числе в задержке ввода подписи, до запуска пересборки. Пока стикер сохраняется, повторное
+ * сохранение тоже недоступно: иначе двойной клик записал бы два одинаковых стикера.
  * Результат пересборки, которую обогнала следующая (новый файл, новая подпись) или
  * размонтирование формы, отбрасывается, и URL для него не создаётся. При ошибке
  * конвертации превью убирается: сохранять нечего.
@@ -25,7 +27,7 @@ const BYTES_IN_KB = 1024;
  * Object URL превью отзывается, как только черновик заменён, сброшен ошибкой или форма
  * размонтирована, — блоб прежнего GIF в памяти не остаётся.
  *
- * @returns черновик, выбор файла, смена подписи и сохранение
+ * @returns черновик, состояние сборки, выбор файла, смена подписи и сохранение
  */
 export const useStickerDraft = (): StickerDraftState => {
   const { refreshPacks, showStatus, showError, setHold } = usePicker();
@@ -34,8 +36,14 @@ export const useStickerDraft = (): StickerDraftState => {
   const [caption, setCaption] = useState('');
   const [captionText, setCaptionText] = useState('');
   const [draft, setDraft] = useState<StickerDraft | null>(null);
-  const [isConverting, setIsConverting] = useState(false);
+  const [isEncoding, setIsEncoding] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const isConverting = isDraftConverting({
+    hasFile: !!source,
+    caption,
+    drawnCaption: captionText,
+    isEncoding,
+  });
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -52,19 +60,19 @@ export const useStickerDraft = (): StickerDraftState => {
    * результат. Форма размонтирована — результат отбрасывается, и удержание снимается.
    */
   useEffect(() => {
-    setHold('conversion', isConverting);
+    setHold('conversion', isEncoding);
 
     return () => {
       setHold('conversion', false);
     };
-  }, [isConverting, setHold]);
+  }, [isEncoding, setHold]);
 
   useEffect(() => {
     if (!source) return;
     let isStale = false;
 
     const convert = async () => {
-      setIsConverting(true);
+      setIsEncoding(true);
       showStatus(t('status.converting'));
 
       try {
@@ -88,7 +96,7 @@ export const useStickerDraft = (): StickerDraftState => {
         setDraft(null);
         showError(t('status.convertFailed', { message: errorMessage(error) }));
       } finally {
-        if (!isStale) setIsConverting(false);
+        if (!isStale) setIsEncoding(false);
       }
     };
 
@@ -149,6 +157,8 @@ export const useStickerDraft = (): StickerDraftState => {
     caption,
     previewUrl: draft?.url || null,
     isSavable: !!draft && !isConverting && !isSaving,
+    isConverting,
+    saveBlock: saveBlock({ hasFile: !!source, isConverting }),
     pickFile,
     changeCaption,
     save,

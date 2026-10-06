@@ -1,32 +1,26 @@
 import type { FunctionComponent as FC } from 'preact';
 
 import { t } from '../../../../i18n/translate';
-import { Button } from '../../Button/Button';
 import { TextInput } from '../../TextInput/TextInput';
-import { useStickerDraft } from '../../useStickerDraft/useStickerDraft';
 
 import { DropZone } from './DropZone/DropZone';
 import { StickerPreview } from './StickerPreview/StickerPreview';
+import type { CreateStickerProps } from './CreateSticker.types';
 
 /**
- * Форма своего стикера. Возвращает фрагмент, а не обёртку: заголовок, зона загрузки,
- * подпись, превью и кнопка — строки общей формы вкладки «Добавить стикеры» с её
- * отступами.
+ * Панель сегмента «Свой стикер»: зона загрузки, подпись и превью. Фрагмент, а не обёртка:
+ * строки ложатся в форму сегмента с её отступами. Черновик держит `AddView` — сохранение
+ * стоит в футере экрана, вне панели, и черновик переживает смену сегмента.
  */
-export const CreateSticker: FC = () => {
-  const { fileName, caption, previewUrl, isSavable, pickFile, changeCaption, save } =
-    useStickerDraft();
+export const CreateSticker: FC<CreateStickerProps> = (props) => {
+  const { fileName, caption, previewUrl, onPick, onCaptionChange } = props;
 
   const handleZonePick = (file: File | undefined) => {
-    pickFile(file);
+    onPick(file);
   };
 
   const handleCaptionInput = (value: string) => {
-    changeCaption(value);
-  };
-
-  const handleSaveClick = () => {
-    void save();
+    onCaptionChange(value);
   };
 
   return (
@@ -43,12 +37,6 @@ export const CreateSticker: FC = () => {
       />
 
       {previewUrl && <StickerPreview url={previewUrl} />}
-
-      <div className="flex items-center gap-1.5">
-        <Button variant="primary" isDisabled={!isSavable} onClick={handleSaveClick}>
-          {t('add.custom.save')}
-        </Button>
-      </div>
     </>
   );
 };

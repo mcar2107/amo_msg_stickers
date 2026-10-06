@@ -23,6 +23,46 @@ export type StickerDraft = {
   url: string;
 };
 
+/**
+ * Причина недоступности сохранения: `noFile` — файл не выбран, `converting` — стикер
+ * собирается; `null` — пояснять нечего.
+ */
+export type SaveBlock = 'noFile' | 'converting' | null;
+
+export type SaveBlockInput = {
+  /**
+   * Исходный файл выбран.
+   */
+  hasFile: boolean;
+
+  /**
+   * Стикер собирается: после выбора файла или правки подписи.
+   */
+  isConverting: boolean;
+};
+
+export type DraftConvertingInput = {
+  /**
+   * Исходный файл выбран.
+   */
+  hasFile: boolean;
+
+  /**
+   * Подпись, как её ввёл пользователь.
+   */
+  caption: string;
+
+  /**
+   * Подпись без пробелов по краям, по которой стикер собран или собирается.
+   */
+  drawnCaption: string;
+
+  /**
+   * GIF кодируется.
+   */
+  isEncoding: boolean;
+};
+
 export type StickerDraftState = {
   /**
    * Имя выбранного файла; `null` — файл ещё не выбран.
@@ -44,6 +84,17 @@ export type StickerDraftState = {
    * Стикер готов, не пересобирается и ещё не сохраняется: его можно сохранить.
    */
   isSavable: boolean;
+
+  /**
+   * Стикер собирается: после выбора файла или правки подписи, включая задержку ввода
+   * подписи. Превью, если есть, — от прежней сборки.
+   */
+  isConverting: boolean;
+
+  /**
+   * Причина недоступности сохранения для текста рядом с кнопкой.
+   */
+  saveBlock: SaveBlock;
 
   /**
    * Выбирает исходный файл; `undefined` — выбор отменён, черновик не меняется.

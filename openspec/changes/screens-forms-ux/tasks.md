@@ -39,10 +39,10 @@
 
 ## 5. Сегменты «Добавить стикеры»
 
-- [ ] 5.1 `usePickerView`: `addSegment`, `openScreen(screen, segment?)`, выбор сегмента; «+» (`AddButton/`) — без
+- [x] 5.1 `usePickerView`: `addSegment`, `openScreen(screen, segment?)`, выбор сегмента; «+» (`AddButton/`) — без
   сегмента, плитка (`CreateTile/`) — `custom` (D4); проверка: стенд — сценарии «Плитка открывает свой стикер» и «+»
   помнит сегмент» (`composer-integration`)
-- [ ] 5.2 `AddView`: переключатель сегментов ARIA tabs (`moveTabFocus/`), обе панели смонтированы, неактивная
+- [x] 5.2 `AddView`: переключатель сегментов ARIA tabs (`moveTabFocus/`), обе панели смонтированы, неактивная
   `hidden`, хуки форм вызываются в `AddView`, футер по активному сегменту (D4); проверка: стенд — стрелки, `Home`,
   `End`, в Tab только выбранный сегмент, ссылка и черновик переживают смену сегмента
 
@@ -59,7 +59,7 @@
 
 ## 7. Свой стикер
 
-- [ ] 7.1 `useStickerDraft`: `isConverting` и причина недоступности сохранения (`noFile` / `converting` / `null`)
+- [x] 7.1 `useStickerDraft`: `isConverting` и причина недоступности сохранения (`noFile` / `converting` / `null`)
   (D7); проверка: `pnpm typecheck`
 - [ ] 7.2 `DropZone`: иконка, текст, кнопка «Выбрать файл» / «Заменить файл» с `input.click()` и удержанием
   `fileDialog`, скрытое поле файла, имя файла после выбора, перетаскивание на контейнере без прикрепления к amo (D7);
