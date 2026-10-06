@@ -4,30 +4,9 @@
  * напрямую, а Node снимает типы сам, без сборки.
  */
 
-import type { Version, VersionSource } from './version.types';
+import type { Version } from './version.types';
 
 const VERSION_PATTERN = /^(\d+)\.(\d+)\.(\d+)$/;
-
-/**
- * `@version` из заголовка userscript. В `build.mjs` заголовок собран из строковых
- * литералов (`'// @version      0.3.0',`), поэтому строка не якорится к началу, а
- * значение обрывается на кавычке.
- */
-const BANNER_VERSION_PATTERN = /\/\/\s*@version\s+([^\s'"`]+)/;
-
-/**
- * Файлы, из которых собирается продукт: исходники, сборка с её конфигами и зависимости.
- * Каталог — с `/` на конце, файл — точным путём. `package.json` и `pnpm-lock.yaml`
- * считаются целиком, с devDependencies: esbuild, Tailwind и PostCSS сами меняют сборку.
- */
-const PRODUCT_PATHS = [
-  'src/',
-  'build.mjs',
-  'tailwind.config.ts',
-  'tsconfig.json',
-  'package.json',
-  'pnpm-lock.yaml',
-];
 
 /**
  * Разбирает `MAJOR.MINOR.PATCH`. Пре-релизы и метки сборки не поддерживаются:
@@ -61,69 +40,24 @@ export const compareVersions = (left: Version, right: Version): number => {
 };
 
 /**
- * @param banner — текст с заголовком `==UserScript==`
- * @returns значение `@version` или `undefined`, если строки нет
- */
-export const readBannerVersion = (banner: string): string | undefined => {
-  return BANNER_VERSION_PATTERN.exec(banner)?.[1];
-};
-
-/**
- * @param sources — версии из всех мест, где она записана
- * @returns текст ошибки со всеми значениями и источниками; `undefined` — версии совпадают.
- * Пустой список — ошибка: сверять не с чем, и молчаливый успех спрятал бы поломку вызова.
- */
-export const checkVersionConsistency = (sources: VersionSource[]): string | undefined => {
-  if (sources.length === 0) {
-    return 'Не заданы источники версии';
-  }
-
-  const listing = sources
-    .map(({ source, version }) => {
-      return `${source} — ${version || 'не найдена'}`;
-    })
-    .join(', ');
-  const [first] = sources;
-  const isConsistent = sources.every(({ version }) => {
-    return Boolean(version) && version === first?.version;
-  });
-
-  if (isConsistent) {
-    return undefined;
-  }
-
-  return `Версии расходятся: ${listing}`;
-};
-
-/**
+ * Равная версия проходит: PR без подъёма — штатный случай, версию поднимает PR релиза. Ниже —
+ * ошибка: такой мерж увёл бы `master` назад, а релиз с меньшей версией не примет Chrome Web Store и не обновит
+ * менеджер userscript.
+ *
  * @param current — версия ветки
  * @param base — версия базовой ветки (`master`)
- * @returns текст ошибки, если версия ветки не выше базы; `undefined` — версия поднята
+ * @returns текст ошибки, если версия ветки ниже базы; `undefined` — равна или выше
  * @throws {Error} одна из версий не в формате `MAJOR.MINOR.PATCH`
  */
-export const checkVersionGrowth = (current: string, base: string): string | undefined => {
-  if (compareVersions(parseVersion(current), parseVersion(base)) > 0) {
+export const checkVersionNotLower = (
+  current: string,
+  base: string
+): string | undefined => {
+  if (compareVersions(parseVersion(current), parseVersion(base)) >= 0) {
     return undefined;
   }
 
-  return `Версия ${current} не выше ${base} в базовой ветке — поднимите версию`;
-};
-
-/**
- * PR без изменений продукта (документация, CI, тесты, OpenSpec) версию не поднимает:
- * релиз с тем же кодом ничего не даёт пользователю.
- *
- * @param paths — пути файлов, изменённых в PR, от корня репозитория
- * @returns `true`, если среди них есть файл продукта и версию нужно поднять
- */
-export const hasProductChanges = (paths: string[]): boolean => {
-  return paths.some((path) => {
-    return PRODUCT_PATHS.some((productPath) => {
-      return productPath.endsWith('/')
-        ? path.startsWith(productPath)
-        : path === productPath;
-    });
-  });
+  return `Версия ${current} ниже ${base} в базовой ветке`;
 };
 
 /**

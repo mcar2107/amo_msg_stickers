@@ -11,6 +11,12 @@ import { readTelegramToken } from './scripts/telegramToken.ts';
 const isWatch = process.argv.includes('--watch');
 
 /**
+ * Версия записана только в `package.json`: собранный manifest и заголовок userscript берут её
+ * отсюда, и второго места, которое разошлось бы с ней молча, в исходниках нет.
+ */
+const { version: VERSION } = JSON.parse(readFileSync('package.json', 'utf8'));
+
+/**
  * Токен встроенного бота — до сборки: битое значение роняет её раньше, чем бандл уйдёт в
  * релиз с нерабочим импортом. В лог — только наличие, сам токен секретный.
  */
@@ -62,7 +68,7 @@ const USERSCRIPT_BANNER = [
    */
   '// @description  Стикеры и GIF в amo: GIPHY/KLIPY, импорт паков из Telegram, свои стикеры',
   '// @description:en Stickers and GIFs in amo: GIPHY/KLIPY, Telegram pack import, custom stickers',
-  '// @version      0.18.1',
+  `// @version      ${VERSION}`,
   `// @icon         ${USERSCRIPT_ICON}`,
   ...['https://*.amo.tm/*', ...devMatches].map((match) => {
     return `// @match        ${match}`;
@@ -288,6 +294,8 @@ const configs = [
 
 mkdirSync('dist/extension', { recursive: true });
 const manifest = JSON.parse(readFileSync('src/extension/manifest.json', 'utf8'));
+
+manifest.version = VERSION;
 
 for (const script of manifest.content_scripts) script.matches.push(...devMatches);
 writeFileSync('dist/extension/manifest.json', `${JSON.stringify(manifest, null, 2)}\n`);
