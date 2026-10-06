@@ -77,5 +77,5 @@ Telegram: на стенде userscript работает без менеджер�
 
 ```bash
 pnpm harness
-open http://127.0.0.1:8777/dev/harness.html
+open http://localhost:8777/dev/harness.html
 ```

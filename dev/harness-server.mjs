@@ -2,7 +2,7 @@
  * Сервер стенда `dev/harness.html`: отдаёт файлы репозитория и подмешивает в стенд настройки
  * из `.env` (`GIPHY_KEY`, `KLIPY_KEY`, `TELEGRAM_BOT_TOKEN`) и прокси файлов Telegram.
  *
- * Запуск — `pnpm harness`, адрес — http://127.0.0.1:8777/dev/harness.html, порт меняет
+ * Запуск — `pnpm harness`, адрес — http://localhost:8777/dev/harness.html, порт меняет
  * переменная `PORT`. Сервер слушает только 127.0.0.1 и отвечает только на свой адрес в `Host`:
  * ключи из `.env` не уходят ни в сеть, ни чужой странице через DNS rebinding.
  */
@@ -203,5 +203,5 @@ createServer(async (req, res) => {
 
   res.writeHead(200, headers).end(readFileSync(file));
 }).listen(PORT, HOST, () => {
-  console.info(`harness: http://${HOST}:${PORT}${HARNESS_PATH}`);
+  console.info(`harness: http://localhost:${PORT}${HARNESS_PATH}`);
 });

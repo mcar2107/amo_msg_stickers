@@ -30,7 +30,7 @@ TypeScript (strict) + esbuild. UI пикера — Preact (JSX с `jsxImportSour
 pnpm i                 # ещё и .env из шаблона .env.example, если .env нет (scripts/init-env.mjs)
 pnpm build             # dist/extension/* и dist/amo-stickers.user.js
 pnpm watch             # пересборка при изменениях, с inline-sourcemap и адресами localhost:3000 и :3001
-pnpm harness           # сервер стенда dev/harness.html на 127.0.0.1:8777 («Тесты»)
+pnpm harness           # сервер стенда http://localhost:8777/dev/harness.html («Тесты»)
 pnpm typecheck         # только проверка типов (TS 7): корень и конфиг доки (docs/tsconfig.json)
 pnpm lint              # eslint + typecheck + prettier --check параллельно
 pnpm lint:fix          # eslint --fix
@@ -877,7 +877,7 @@ GIF-блобы; у своего стикера — ещё подпись `captio
 
 ```bash
 pnpm harness
-open http://127.0.0.1:8777/dev/harness.html
+open http://localhost:8777/dev/harness.html
 ```
 
 Сервер стенда — `dev/harness-server.mjs` (`pnpm harness`, порт — переменная `PORT`, по умолчанию 8777), только на
