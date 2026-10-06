@@ -55,7 +55,6 @@ export const RU = {
   'settings.check.rejected': '{source} не принял ключ',
   'settings.check.unavailable': 'Не удалось проверить ключ',
   'settings.check.badToken': 'Не похоже на токен бота. Нужен вида 123456:ABC…',
-  'settings.save': 'Сохранить',
   'stickers.recent': 'Недавние',
   'stickers.packEmpty': 'Пак пуст',
   'pack.custom': 'Мои стикеры',

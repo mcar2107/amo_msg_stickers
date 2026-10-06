@@ -502,6 +502,21 @@ describe('checkGifKey', () => {
     ).resolves.toBe('rejected');
   });
 
+  it('KLIPY: HTTP 404 — ключ не принят, так KLIPY отвечает на неверный ключ', async () => {
+    const body =
+      '{"result":false,"errors":{"message":["The provided API key is invalid."]}}';
+
+    await expect(
+      checkGifKey(failingHost(httpError(404, body)), 'klipy', 'k')
+    ).resolves.toBe('rejected');
+  });
+
+  it('GIPHY: HTTP 404 — не удалось проверить, неверный ключ GIPHY отклоняет 401', async () => {
+    await expect(
+      checkGifKey(failingHost(httpError(404, '')), 'giphy', 'g')
+    ).resolves.toBe('unavailable');
+  });
+
   it('статус разбирается из текста: ошибка с границы SW — не экземпляр от httpError', async () => {
     const host = failingHost(new Error(httpError(401, 'Unauthorized').message));
 

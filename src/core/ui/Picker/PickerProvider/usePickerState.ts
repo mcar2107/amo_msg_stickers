@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'preact/hooks';
+import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
 
 import { listPacks } from '../../../db';
 import type { Pack, SendItem } from '../../../db.types';
@@ -31,9 +31,28 @@ export const usePickerState = (options: PickerStateOptions): PickerStateValue =>
   const [status, setStatus] = useState<PickerStatus | null>(null);
   const { urlOf, dropUrl } = useObjectUrls(isOpen);
 
+  const settingsQueueRef = useRef<Promise<unknown>>(Promise.resolve());
+
+  /**
+   * Чтение и запись настроек идут одной очередью: перечитывание на открытие попапа, начатое
+   * во время записи, иначе прочитало бы хранилище до неё и вернуло бы в форму старые значения,
+   * а запись, начатая во время чтения, была бы затёрта его результатом.
+   */
+  const enqueueSettings = useCallback(<T>(task: () => Promise<T>): Promise<T> => {
+    const run = settingsQueueRef.current.then(task, task);
+
+    settingsQueueRef.current = run.catch(() => {});
+
+    return run;
+  }, []);
+
   const refreshSettings = useCallback(async () => {
-    setSettings(await env.getSettings());
-  }, [env]);
+    const next = await enqueueSettings(() => {
+      return env.getSettings();
+    });
+
+    setSettings(next);
+  }, [env, enqueueSettings]);
 
   const refreshPacks = useCallback(async () => {
     setPacks(await listPacks());
@@ -46,6 +65,27 @@ export const usePickerState = (options: PickerStateOptions): PickerStateValue =>
   const showError = useCallback((text: string) => {
     setStatus({ text, isError: true });
   }, []);
+
+  const saveSettings = useCallback(
+    (next: Partial<Settings>) => {
+      return enqueueSettings(async () => {
+        try {
+          await env.setSettings(next);
+          setSettings((prev) => {
+            return { ...prev, ...next };
+          });
+          showStatus(t('status.saved'));
+
+          return true;
+        } catch (error) {
+          showError(errorMessage(error));
+
+          return false;
+        }
+      });
+    },
+    [env, enqueueSettings, showStatus, showError]
+  );
 
   const clearStatus = useCallback(() => {
     setStatus(null);
@@ -89,6 +129,7 @@ export const usePickerState = (options: PickerStateOptions): PickerStateValue =>
       env,
       settings,
       refreshSettings,
+      saveSettings,
       packs,
       refreshPacks,
       status,

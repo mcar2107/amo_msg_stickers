@@ -57,7 +57,6 @@ export const EN: Messages = {
   'settings.check.rejected': '{source} rejected the key',
   'settings.check.unavailable': 'Couldn’t check the key',
   'settings.check.badToken': 'Doesn’t look like a bot token. Expected 123456:ABC…',
-  'settings.save': 'Save',
   'stickers.recent': 'Recent',
   'stickers.packEmpty': 'Pack is empty',
   'pack.custom': 'My stickers',

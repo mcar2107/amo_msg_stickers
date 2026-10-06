@@ -316,10 +316,17 @@ export const fetchGifs = (
 };
 
 /**
- * Статусы, которыми GIPHY и KLIPY отказывают ключу. Любой другой исход — не приговор ключу, а
- * сбой проверки.
+ * Статусы, которыми источник отказывает ключу. Любой другой исход — не приговор ключу, а сбой
+ * проверки.
+ *
+ * KLIPY на неверный ключ отвечает 404 с «The provided API key is invalid.»: ключ — часть
+ * адреса его API. У GIPHY 404 в отказ не входит: неверный ключ он отклоняет 401, а 404 значил
+ * бы сбой адреса запроса, а не ключа.
  */
-const KEY_REJECT_STATUSES = [401, 403];
+const KEY_REJECT_STATUSES: Record<GifProvider, readonly number[]> = {
+  giphy: [401, 403],
+  klipy: [401, 403, 404],
+};
 
 /**
  * Адрес проверочного запроса: тренды одной GIF — самый дешёвый запрос, которому нужен ключ.
@@ -397,7 +404,7 @@ export const checkGifKey = async (
 
     return isFeedResponse(provider, response) ? 'ok' : 'unavailable';
   } catch (error) {
-    return KEY_REJECT_STATUSES.includes(httpStatus(error) || 0)
+    return KEY_REJECT_STATUSES[provider].includes(httpStatus(error) || 0)
       ? 'rejected'
       : 'unavailable';
   }
