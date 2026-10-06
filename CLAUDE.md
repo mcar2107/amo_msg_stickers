@@ -27,9 +27,10 @@ TypeScript (strict) + esbuild. UI пикера — Preact (JSX с `jsxImportSour
 `eval`, который не пропускает CSP расширения). Пакетный менеджер — pnpm, версии Node и pnpm — в `.mise.toml`.
 
 ```bash
-pnpm i
+pnpm i                 # ещё и .env из шаблона .env.example, если .env нет (scripts/init-env.mjs)
 pnpm build             # dist/extension/* и dist/amo-stickers.user.js
 pnpm watch             # пересборка при изменениях, с inline-sourcemap и адресами localhost:3000 и :3001
+pnpm harness           # сервер стенда dev/harness.html на 127.0.0.1:8777 («Тесты»)
 pnpm typecheck         # только проверка типов (TS 7): корень и конфиг доки (docs/tsconfig.json)
 pnpm lint              # eslint + typecheck + prettier --check параллельно
 pnpm lint:fix          # eslint --fix
@@ -118,6 +119,7 @@ markdown (`- ` списков, `::::tabs`, `../` путей), а неразры�
 build.mjs package.json tsconfig.json vitest.config.ts               # сборка двух целей (+ CSS, Worker), конфиги
 eslint.config.mjs .prettierrc .prettierignore .editorconfig          # линтеры
 .lintstagedrc.mjs .husky/pre-commit                                  # гейт коммита
+.env.example                                                         # шаблон .env стенда; .env — в .gitignore
 src/
   core/
     app.ts           старт: поиск полей ввода MutationObserver-ом, кнопка рядом с эмодзи, открытие пикера, отправка
@@ -231,6 +233,7 @@ src/
   types.d.ts      описания модулей без типов: gifenc, `*.css`, `gif-worker:code` и `page-agent:code` строкой; флаги
                   `window.__amoStickers` и `window.__amoStickersPage`;
                   `ImportMeta.glob` vite для теста пар страниц доки; константа сборки `__TELEGRAM_BOT_TOKEN__`
+dev/harness-server.mjs  сервер стенда (`pnpm harness`): ключи из `.env` и прокси файлов Telegram («Тесты»)
 dev/harness.html  стенд: разметка инпута и сообщения ленты amo на CSS его страницы (`dev/amo.css`, в git не лежит);
                   вставка и «Отправить» замоканы — «Отправить» кладёт в ленту сообщение с картинкой, `alt` которой —
                   имя файла; переключатели «входящее» и «с именем автора», кнопки «картинка без метки» и «ответ с
@@ -252,7 +255,8 @@ scripts/          скрипты CI: version.ts — чистая логика п
                   version.types.ts); check-version.mjs — её запуск в CI; chromeWebStore.ts — клиент Chrome Web
                   Store API (типы — chromeWebStore.types.ts), publish-chrome-web-store.mjs — публикация пакета из
                   релиза;
-                  telegramToken.ts — проверка токена встроенного бота для `build.mjs`
+                  telegramToken.ts — проверка токена встроенного бота для `build.mjs`;
+                  init-env.mjs — `postinstall`: `.env` из `.env.example`, если `.env` нет
 tests/            юнит-тесты, helpers/
 .github/          workflows/ci.yml — проверки PR; workflows/release.yml — релиз из master;
                   workflows/chrome-web-store.yml — публикация релиза в стор (за релизом и вручную);
@@ -872,9 +876,18 @@ GIF-блобы; у своего стикера — ещё подпись `captio
 что завязано на DOM amo и отправку, проверяется на стенде `dev/harness.html` и в живом amo:
 
 ```bash
-python3 -m http.server 8777 -b 127.0.0.1
+pnpm harness
 open http://127.0.0.1:8777/dev/harness.html
 ```
+
+Сервер стенда — `dev/harness-server.mjs` (`pnpm harness`, порт — переменная `PORT`, по умолчанию 8777), только на
+`127.0.0.1` и только с этим адресом или `localhost` в `Host`. В начало стенда он подмешивает скрипт: настройки из
+`.env` в корне (`GIPHY_KEY`, `KLIPY_KEY`, `TELEGRAM_BOT_TOKEN`; `.env` создаёт `pnpm i` из шаблона `.env.example`,
+если его нет, существующий не трогает) — в `localStorage`, хранилище userscript без
+менеджера, — и подмену `fetch` файлов Telegram на свой прокси `/__proxy`: файлы отдаются без CORS, и прямой `fetch` со
+страницы на них падает, а менеджер и расширение ходят в обход CORS сами («Внешние данные»). Прокси пускает только
+`https://api.telegram.org/file/…` по разобранному `URL`; скрытые пути (`.env`, `.git`) сервер не отдаёт. Статический
+сервер без прокси (`python3 -m http.server`) подходит для всего, кроме импорта из Telegram.
 
 Гейт коммита гоняет только тесты по изменённым файлам (`vitest --changed`); полный прогон — `pnpm test`.
 
