@@ -20,7 +20,7 @@
 
 ## 3. Словарь
 
-- [ ] 3.1 Новые ключи в `messages.ru.ts` и `messages.en.ts` по D10, `settings.save` и неиспользуемые ключи удалены;
+- [x] 3.1 Новые ключи в `messages.ru.ts` и `messages.en.ts` по D10, `settings.save` и неиспользуемые ключи удалены;
   русские строки — через typograf, английские — с `en-US`; названия, у которых есть перевод в amo («Готово»,
   «Назад»), совпадают с ним; проверка: `pnpm typecheck`, `tests/translate.test.ts`
 

@@ -99,6 +99,42 @@ describe('status.importProgress', () => {
   });
 });
 
+describe('строки экранов', () => {
+  it('отказ ключа называет источник на обоих языках', () => {
+    expect(t('settings.check.rejected', { source: 'GIPHY' })).toBe(
+      'GIPHY не принял ключ'
+    );
+
+    setLocale('en');
+
+    expect(t('settings.check.rejected', { source: 'GIPHY' })).toBe(
+      'GIPHY rejected the key'
+    );
+  });
+
+  it('ссылки на доку — «Инструкция» без языка инструкции', () => {
+    expect([t('settings.docs'), t('add.telegram.docs')]).toEqual([
+      'Инструкция',
+      'Инструкция',
+    ]);
+
+    setLocale('en');
+
+    expect([t('settings.docs'), t('add.telegram.docs')]).toEqual([
+      'Instructions',
+      'Instructions',
+    ]);
+  });
+
+  it('подсказки токена не говорят о хранении: это строка экрана', () => {
+    expect(t('settings.storedLocally')).toBe(
+      'Ключи и токен хранятся только в этом браузере.'
+    );
+    expect(messageTemplate('settings.telegram.hint')).not.toContain('локально');
+    expect(messageTemplate('settings.telegram.hintOptional')).not.toContain('локально');
+  });
+});
+
 describe('LocalizedError', () => {
   it('сохраняет ключ, параметры и текст на текущем языке', () => {
     setLocale('en');
