@@ -39,15 +39,16 @@ export const buttonVariants = cva(
 );
 
 export const Button: FC<ButtonProps> = (props) => {
-  const { variant, isDisabled, onClick, children } = props;
+  const { variant, type = 'button', form, isDisabled, onClick, children } = props;
 
   const handleButtonClick = () => {
-    onClick();
+    onClick?.();
   };
 
   return (
     <button
-      type="button"
+      type={type}
+      form={form}
       disabled={isDisabled}
       className={buttonVariants({ variant })}
       onClick={handleButtonClick}

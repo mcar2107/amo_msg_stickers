@@ -9,7 +9,7 @@ import type { buttonVariants } from './Button';
  */
 export type ButtonVariant = NonNullable<VariantProps<typeof buttonVariants>['variant']>;
 
-export type ButtonProps = {
+type ButtonBaseProps = {
   /**
    * Вид кнопки: основная — акцентная заливка, опасная — мелкая текстовая кнопка цвета
    * ошибки.
@@ -17,17 +17,57 @@ export type ButtonProps = {
   variant: ButtonVariant;
 
   /**
-   * Кнопка недоступна: полупрозрачна и не нажимается.
+   * Кнопка недоступна: полупрозрачна и не нажимается, а кнопка отправки ещё и не даёт
+   * отправить свою форму Enter-ом из поля.
    */
   isDisabled?: boolean;
-
-  /**
-   * Колбэк на нажатие.
-   */
-  onClick: () => void;
 
   /**
    * Подпись кнопки.
    */
   children: ComponentChildren;
 };
+
+/**
+ * Обычная кнопка: действие — только колбэк, поэтому он обязателен.
+ */
+export type ButtonActionProps = ButtonBaseProps & {
+  /**
+   * Тип кнопки; без него — `button`, кнопка не отправляет формы.
+   */
+  type?: 'button';
+
+  /**
+   * Связь с формой бывает только у кнопки отправки.
+   */
+  form?: never;
+
+  /**
+   * Колбэк на нажатие.
+   */
+  onClick: () => void;
+};
+
+/**
+ * Кнопка отправки формы: действие — обработчик `submit` формы, поэтому колбэк
+ * необязателен.
+ */
+export type ButtonSubmitProps = ButtonBaseProps & {
+  /**
+   * Тип кнопки — отправка формы.
+   */
+  type: 'submit';
+
+  /**
+   * Id формы, которую кнопка отправляет, если кнопка лежит вне неё (футер экрана). Форма
+   * ищется в том же дереве, что и кнопка, — в shadow root пикера.
+   */
+  form?: string;
+
+  /**
+   * Колбэк на нажатие, до отправки формы.
+   */
+  onClick?: () => void;
+};
+
+export type ButtonProps = ButtonActionProps | ButtonSubmitProps;

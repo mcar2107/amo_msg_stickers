@@ -20,3 +20,10 @@
 Отступление: settings.save и старые ключи (add.telegram.hint, add.custom.dropZone, settings.{giphy,klipy}.hint) не удалены — по K5 их удаляют G7 и G8; правлен tests/renderMessage.test.ts вслед за строкой подсказки.
 Аудит: ok с первого круга.
 Долг: G7 обязана вывести settings.storedLocally на экран; тест «подсказки токена не говорят о хранении» проверяет только RU; 10.2 убирает старые ключи.
+
+### G3 · Каркас экрана и примитивы
+
+1.2: headless Chrome 154 (CDP) — Enter в поле формы в закрытом shadow root шлёт submit с submitter = кнопка type="submit" form="<id>" вне формы; disabled — не шлёт. Основной вариант D3 в силе, запасной не нужен; Firefox не проверялся (поведение — стандарт HTML).
+Решения: Button — union ButtonActionProps | ButtonSubmitProps; leave() для кнопок футера — ScreenContext + useScreenLeave (не render-prop); Screen рисует тело сам, ViewBody и SecretField удалены; Field — описание в порядке ошибка → результат → подсказка; общая высота футера — SCREEN_FOOTER_HEIGHT_PX = 48 inline-стилем (Tailwind не сканирует .ts); isTextField вынесен в общий модуль (вне файлов группы).
+Аудит: ok с первого круга. Исполнитель сменён после 52 вызовов (эстафета на 4.4).
+Долг: тип View в usePickerView.types.ts больше не используется — удалить в G4; AddView footer={null} до G4; useScreenLeave не переиспользует тип ScreenLeave.

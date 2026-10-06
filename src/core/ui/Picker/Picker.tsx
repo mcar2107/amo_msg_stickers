@@ -7,11 +7,11 @@ import { t } from '../../i18n/translate';
 import { AddView } from './AddView/AddView';
 import { Footer } from './Footer/Footer';
 import { GifView } from './GifView/GifView';
+import { isTextField } from './isTextField/isTextField';
 import { ModePanel } from './ModePanel/ModePanel';
 import { usePicker } from './PickerProvider/usePicker';
 import { PreviewOverlay } from './Preview/PreviewOverlay/PreviewOverlay';
 import { PreviewProvider } from './Preview/PreviewProvider';
-import { Screen } from './Screen/Screen';
 import { SettingsView } from './SettingsView/SettingsView';
 import { StatusBar } from './StatusBar/StatusBar';
 import { StickersMode } from './StickersMode/StickersMode';
@@ -94,25 +94,6 @@ const renderScreen = (screen: PickerScreen) => {
   }
 };
 
-/**
- * Типы `input`, в которые печатают: фокус в них удерживает попап, пока идёт ввод.
- */
-const TEXT_INPUT_TYPES = new Set([
-  'text',
-  'search',
-  'password',
-  'url',
-  'email',
-  'tel',
-  'number',
-]);
-
-const isTextField = (target: EventTarget | null) => {
-  if (target instanceof HTMLTextAreaElement) return true;
-
-  return target instanceof HTMLInputElement && TEXT_INPUT_TYPES.has(target.type);
-};
-
 export const Picker: FC<PickerProps> = (props) => {
   const { phase, isDark, previewRoot, onClose } = props;
   const { setHold } = usePicker();
@@ -166,11 +147,12 @@ export const Picker: FC<PickerProps> = (props) => {
           </ModePanel>
 
           {/*
-           * `key` — смена экрана на экран монтирует новый, и появление проигрывается снова.
+           * Экраны — разные компоненты: смена экрана на экран монтирует новый, и его появление
+           * проигрывается снова.
            */}
-          {screen && <Screen key={screen}>{renderScreen(screen)}</Screen>}
+          {screen && renderScreen(screen)}
 
-          <StatusBar />
+          <StatusBar isRaised={isCovered} />
         </div>
 
         <Footer />

@@ -6,16 +6,11 @@ import { USER_DOCS_PAGE, userDocsUrl } from '../../../userDocs';
 import { renderMessage } from '../../renderMessage/renderMessage';
 import { Button } from '../Button/Button';
 import { ExternalLink } from '../ExternalLink/ExternalLink';
-import type { View } from '../usePickerView/usePickerView.types';
-import { ViewBody } from '../ViewBody/ViewBody';
-import { ViewHeader } from '../ViewHeader/ViewHeader';
-import { ViewTitle } from '../ViewHeader/ViewTitle/ViewTitle';
+import { Field } from '../Field/Field';
+import { Screen } from '../Screen/Screen';
 
-import { SecretField } from './SecretField/SecretField';
 import { telegramTokenText } from './telegramTokenText/telegramTokenText';
 import { useSettingsDraft } from './useSettingsDraft/useSettingsDraft';
-
-const SETTINGS_VIEW: View = { kind: 'settings' };
 
 /**
  * Встроенный токен сборки не меняется до перезагрузки страницы — ключи выбираются раз.
@@ -53,70 +48,61 @@ export const SettingsView: FC = () => {
   };
 
   return (
-    <>
-      <ViewHeader>
-        <ViewTitle title={t('settings.title')} />
-      </ViewHeader>
+    <Screen
+      title={t('settings.title')}
+      footer={
+        <Button variant="primary" onClick={handleSaveClick}>
+          {t('settings.save')}
+        </Button>
+      }
+    >
+      <div className="flex flex-col gap-2 px-0.5">
+        <Field
+          isSecret
+          id="settings-klipy-key"
+          label="KLIPY API key"
+          value={klipyKey}
+          hint={renderMessage('settings.klipy.hint', {
+            link: (
+              <ExternalLink href="https://partner.klipy.com/api-keys">
+                partner.klipy.com
+              </ExternalLink>
+            ),
+            docs: <ExternalLink href={gifKeysDocsUrl}>{t('settings.docs')}</ExternalLink>,
+          })}
+          onInput={handleKlipyKeyInput}
+        />
 
-      <ViewBody view={SETTINGS_VIEW}>
-        <div className="flex flex-col gap-2 px-0.5 pb-3 pt-1">
-          <SecretField
-            id="settings-klipy-key"
-            label="KLIPY API key"
-            value={klipyKey}
-            onInput={handleKlipyKeyInput}
-          >
-            {renderMessage('settings.klipy.hint', {
-              link: (
-                <ExternalLink href="https://partner.klipy.com/api-keys">
-                  partner.klipy.com
-                </ExternalLink>
-              ),
-              docs: (
-                <ExternalLink href={gifKeysDocsUrl}>{t('settings.docs')}</ExternalLink>
-              ),
-            })}
-          </SecretField>
+        <Field
+          isSecret
+          id="settings-giphy-key"
+          label="GIPHY API key"
+          value={giphyKey}
+          hint={renderMessage('settings.giphy.hint', {
+            link: (
+              <ExternalLink href="https://developers.giphy.com/dashboard/">
+                developers.giphy.com
+              </ExternalLink>
+            ),
+            docs: <ExternalLink href={gifKeysDocsUrl}>{t('settings.docs')}</ExternalLink>,
+          })}
+          onInput={handleGiphyKeyInput}
+        />
 
-          <SecretField
-            id="settings-giphy-key"
-            label="GIPHY API key"
-            value={giphyKey}
-            onInput={handleGiphyKeyInput}
-          >
-            {renderMessage('settings.giphy.hint', {
-              link: (
-                <ExternalLink href="https://developers.giphy.com/dashboard/">
-                  developers.giphy.com
-                </ExternalLink>
-              ),
-              docs: (
-                <ExternalLink href={gifKeysDocsUrl}>{t('settings.docs')}</ExternalLink>
-              ),
-            })}
-          </SecretField>
-
-          <SecretField
-            id="settings-telegram-token"
-            label={t(TELEGRAM_TOKEN_LABEL)}
-            value={telegramToken}
-            onInput={handleTelegramTokenInput}
-          >
-            {renderMessage(TELEGRAM_TOKEN_HINT, {
-              link: <ExternalLink href="https://t.me/BotFather">@BotFather</ExternalLink>,
-              docs: (
-                <ExternalLink href={telegramDocsUrl}>{t('settings.docs')}</ExternalLink>
-              ),
-            })}
-          </SecretField>
-
-          <div className="flex items-center gap-1.5">
-            <Button variant="primary" onClick={handleSaveClick}>
-              {t('settings.save')}
-            </Button>
-          </div>
-        </div>
-      </ViewBody>
-    </>
+        <Field
+          isSecret
+          id="settings-telegram-token"
+          label={t(TELEGRAM_TOKEN_LABEL)}
+          value={telegramToken}
+          hint={renderMessage(TELEGRAM_TOKEN_HINT, {
+            link: <ExternalLink href="https://t.me/BotFather">@BotFather</ExternalLink>,
+            docs: (
+              <ExternalLink href={telegramDocsUrl}>{t('settings.docs')}</ExternalLink>
+            ),
+          })}
+          onInput={handleTelegramTokenInput}
+        />
+      </div>
+    </Screen>
   );
 };
