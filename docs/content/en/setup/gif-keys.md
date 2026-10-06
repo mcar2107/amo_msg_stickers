@@ -18,13 +18,13 @@ Start with KLIPY if you choose one service: it has a wider selection of GIFs
 3. Click “Show key” on the key and copy it.
 4. In amo, open the amo stickers panel with the sticker button in the message field, and click “Settings” at the
    bottom of the panel.
-5. Paste the key into the “KLIPY API key” field. The key saves on its own — as soon as you stop typing, leave
-   the field, press Enter or click “Done” at the bottom of the screen. “Saved” will appear at the bottom of the panel.
+5. Paste the key into the “KLIPY API key” field. The key saves on its own — as soon as you stop typing, leave the field
+   or press Enter.
 
 ![API Keys page in the KLIPY Partner Panel: a platform with an app, a hidden key with “Show key”, the “Testing” status and the “Add Platform” and “Create Key” buttons](../../img/setup/klipy-api-keys.png)
 
-When you leave the field, press Enter or click “Done”, amo stickers checks the key with a request to the service.
-The result is under the field:
+When you leave the field or press Enter, amo stickers checks the key with a request to the service. The result is under
+the field:
 
 - “Checking the key…” — the check is running;
 - “The key works” — you’re all set;

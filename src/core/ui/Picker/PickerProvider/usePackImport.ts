@@ -7,7 +7,11 @@ import type { ImportProgress } from '../../../sources/telegram.types';
 import { finishImport, importErrorTarget } from './finishImport/finishImport';
 import type { ImportErrorTarget } from './finishImport/finishImport.types';
 import { runPackImport } from './runPackImport/runPackImport';
-import type { PackImportOptions, PackImportState } from './PickerProvider.types';
+import type {
+  ImportCount,
+  PackImportOptions,
+  PackImportState,
+} from './PickerProvider.types';
 
 /**
  * Импорт пака из Telegram на уровне провайдера. Провайдер живёт всё время страницы, а
@@ -37,7 +41,7 @@ export const usePackImport = (options: PackImportOptions): PackImportState => {
   const [link, setLink] = useState('');
   const [fieldError, setFieldError] = useState<string | null>(null);
   const [isImporting, setIsImporting] = useState(false);
-  const [percent, setPercent] = useState<number | null>(null);
+  const [progress, setProgress] = useState<ImportCount | null>(null);
 
   /**
    * Экран и сегмент на момент завершения, а не запуска: импорт идёт долго, и пользователь
@@ -57,9 +61,18 @@ export const usePackImport = (options: PackImportOptions): PackImportState => {
   const importPack = useCallback(async () => {
     if (isImporting) return;
 
+    /**
+     * Пока открыт сегмент «Telegram», ход импорта показывает счётчик под полосой, и строка
+     * статуса его не дублирует; ушедший с экрана видит ход только в строке статуса.
+     */
     const trackProgress = ({ done, total, title }: ImportProgress) => {
-      setPercent(total ? (done / total) * 100 : 0);
-      showStatus(t('status.importProgress', { title, done, total }));
+      setProgress({ done, total });
+
+      if (importErrorTarget(screenRef.current, segmentRef.current) === 'field') {
+        clearStatus();
+      } else {
+        showStatus(t('status.importProgress', { title, done, total }));
+      }
 
       /**
        * Первый готовый стикер — сразу показываем вкладку пака, не дожидаясь импорта
@@ -106,7 +119,7 @@ export const usePackImport = (options: PackImportOptions): PackImportState => {
       },
       onStart: () => {
         setIsImporting(true);
-        setPercent(0);
+        setProgress({ done: 0, total: 0 });
         setFieldError(null);
       },
       onSuccess: (pack) => {
@@ -117,7 +130,7 @@ export const usePackImport = (options: PackImportOptions): PackImportState => {
       onError: showImportError,
       onFinish: () => {
         setIsImporting(false);
-        setPercent(null);
+        setProgress(null);
       },
     });
   }, [
@@ -132,5 +145,5 @@ export const usePackImport = (options: PackImportOptions): PackImportState => {
     scrollToSection,
   ]);
 
-  return { link, fieldError, changeLink, isImporting, percent, importPack };
+  return { link, fieldError, changeLink, isImporting, progress, importPack };
 };

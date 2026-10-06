@@ -12,6 +12,12 @@ export type FieldProps = {
   label: ComponentChildren;
 
   /**
+   * Элементы в строке подписи сразу после неё — кнопка рядом с подписью. Лежат вне `<label>`:
+   * их имя не входит в имя поля.
+   */
+  labelAside?: ComponentChildren;
+
+  /**
    * Текущее значение.
    */
   value: string;
@@ -37,6 +43,12 @@ export type FieldProps = {
   result?: ComponentChildren;
 
   /**
+   * Тон результата проверки: `valid` — поле и результат зелёные, `invalid` — красные, и поле
+   * помечено недействительным; `null` — без тона. Ошибка значения (`error`) важнее тона.
+   */
+  tone?: FieldTone | null;
+
+  /**
    * Подсказка под полем: что вводить и где это взять.
    */
   hint?: ComponentChildren;
@@ -51,3 +63,8 @@ export type FieldProps = {
    */
   onInput: (value: string) => void;
 };
+
+/**
+ * Тон результата проверки поля.
+ */
+export type FieldTone = 'valid' | 'invalid';

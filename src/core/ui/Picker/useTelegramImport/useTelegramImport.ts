@@ -14,7 +14,7 @@ import type { TelegramImportState } from './useTelegramImport.types';
  */
 export const useTelegramImport = (): TelegramImportState => {
   const { packImport } = usePicker();
-  const { link, fieldError, changeLink, isImporting, percent, importPack } = packImport;
+  const { link, fieldError, changeLink, isImporting, progress, importPack } = packImport;
   const hasLink = link.trim() !== '';
 
   return {
@@ -23,7 +23,7 @@ export const useTelegramImport = (): TelegramImportState => {
     fieldError,
     changeLink,
     isImporting,
-    percent,
+    progress,
     startImport: importPack,
   };
 };

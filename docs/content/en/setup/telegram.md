@@ -101,14 +101,13 @@ You can copy the token again at any time: open @BotFather, choose the bot in�
 
 1. Open amo and hover over the sticker button in the message field or click it.
 2. Click “Settings” at the bottom of the panel.
-3. Paste the token into the “Your Telegram bot token (optional)” field. The token saves on its own — as soon as you
-   stop typing, leave the field, press Enter or click “Done” at the bottom of the screen.
-   “Saved” will appear at the bottom of the panel.
+3. Paste the token into the “Your Telegram bot token (optional)” field. The token saves on its own — as soon as you stop
+   typing, leave the field or press Enter.
 
 If “Doesn’t look like a bot token. Expected 123456:ABC…” appears under the field, the token wasn’t copied in full:
 copy it again following the [“Copy the token”](#own-bot-token) step.
 
-<!-- скрин: img/setup/settings-token.png — поле «Свой токен Telegram-бота (необязательно)» и его подсказка -->
+<!-- скрин: img/setup/settings-token.png — поле «Свой токен Telegram-бота (опционально)» и его подсказка -->
 
 Import the pack again following the [“Import the pack”](#import) step: with your own token it goes through your bot
 rather than the built-in one.

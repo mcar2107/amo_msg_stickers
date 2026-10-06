@@ -1,3 +1,5 @@
+import type { ImportCount } from '../../PickerProvider/PickerProvider.types';
+
 export type TelegramImportProps = {
   /**
    * Ссылка на пак или его имя, как ввёл пользователь.
@@ -10,9 +12,9 @@ export type TelegramImportProps = {
   fieldError: string | null;
 
   /**
-   * Доля обработанных стикеров в процентах; `null` — импорт не идёт, полосы нет.
+   * Ход импорта; `null` — импорт не идёт, полосы нет.
    */
-  percent: number | null;
+  progress: ImportCount | null;
 
   /**
    * Сегмент «Telegram» выбран и панель видна: показ сегмента отмечает инструкцию увиденной.

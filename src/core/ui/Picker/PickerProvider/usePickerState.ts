@@ -74,7 +74,6 @@ export const usePickerState = (options: PickerStateOptions): PickerStateValue =>
           setSettings((prev) => {
             return { ...prev, ...next };
           });
-          showStatus(t('status.saved'));
 
           return true;
         } catch (error) {
@@ -84,7 +83,7 @@ export const usePickerState = (options: PickerStateOptions): PickerStateValue =>
         }
       });
     },
-    [env, enqueueSettings, showStatus, showError]
+    [env, enqueueSettings, showError]
   );
 
   const clearStatus = useCallback(() => {
@@ -125,6 +124,16 @@ export const usePickerState = (options: PickerStateOptions): PickerStateValue =>
   useEffect(() => {
     setHold('import', isImporting);
   }, [isImporting, setHold]);
+
+  /**
+   * Открытый экран удерживает попап: на «Добавить стикеры» и «Настройках» заполняют форму, и
+   * случайный уход курсора за край попапа не должен прятать её. Закрыть такой попап можно
+   * кликом вне него, Escape, кнопкой стикеров или «Назад» — после «Назад» уход курсора снова
+   * закрывает попап.
+   */
+  useEffect(() => {
+    setHold('screen', Boolean(screen));
+  }, [screen, setHold]);
 
   return {
     picker: {

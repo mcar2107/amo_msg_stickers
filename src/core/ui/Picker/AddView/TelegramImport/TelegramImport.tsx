@@ -23,7 +23,7 @@ const HOW_TO_ID = 'picker-add-telegram-how-to';
  * «?». Описанием поля она служит, только пока раскрыта.
  */
 export const TelegramImport: FC<TelegramImportProps> = (props) => {
-  const { link, fieldError, percent, isActive, onLinkChange } = props;
+  const { link, fieldError, progress, isActive, onLinkChange } = props;
   const { isHintOpen, toggleHint } = useImportHint(isActive);
 
   const handleLinkInput = (value: string) => {
@@ -42,23 +42,22 @@ export const TelegramImport: FC<TelegramImportProps> = (props) => {
        * Инструкция — описание поля ссылки: от него 4 px, как внутри поля (D10).
        */}
       <div className="flex flex-col gap-1">
-        <div className="relative">
-          <Field
-            id={LINK_FIELD_ID}
-            label={t('add.telegram.linkLabel')}
-            value={link}
-            placeholder="t.me/addstickers/…"
-            error={fieldError}
-            describedBy={isHintOpen ? HOW_TO_ID : ''}
-            onInput={handleLinkInput}
-          />
-
-          <HintToggle
-            hintId={HOW_TO_ID}
-            isExpanded={isHintOpen}
-            onToggle={handleHintToggle}
-          />
-        </div>
+        <Field
+          id={LINK_FIELD_ID}
+          label={t('add.telegram.linkLabel')}
+          labelAside={
+            <HintToggle
+              hintId={HOW_TO_ID}
+              isExpanded={isHintOpen}
+              onToggle={handleHintToggle}
+            />
+          }
+          value={link}
+          placeholder="t.me/addstickers/…"
+          error={fieldError}
+          describedBy={isHintOpen ? HOW_TO_ID : ''}
+          onInput={handleLinkInput}
+        />
 
         <p
           id={HOW_TO_ID}
@@ -75,7 +74,7 @@ export const TelegramImport: FC<TelegramImportProps> = (props) => {
         </p>
       </div>
 
-      {percent !== null && <ImportProgress percent={percent} />}
+      {progress && <ImportProgress done={progress.done} total={progress.total} />}
     </>
   );
 };

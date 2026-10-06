@@ -9,7 +9,7 @@ import { Field } from '../Field/Field';
 import { Screen } from '../Screen/Screen';
 
 import { fieldCheckText } from './fieldCheckText/fieldCheckText';
-import { SettingsDone } from './SettingsDone/SettingsDone';
+import { fieldCheckTone } from './fieldCheckTone/fieldCheckTone';
 import { telegramTokenText } from './telegramTokenText/telegramTokenText';
 import { useSettingsDraft } from './useSettingsDraft/useSettingsDraft';
 
@@ -93,7 +93,7 @@ export const SettingsView: FC = () => {
   );
 
   return (
-    <Screen title={t('settings.title')} footer={<SettingsDone onCommit={commit} />}>
+    <Screen title={t('settings.title')}>
       <form
         className="flex flex-col gap-4 px-0.5"
         noValidate
@@ -118,7 +118,9 @@ export const SettingsView: FC = () => {
             id="settings-klipy-key"
             label="KLIPY API key"
             value={klipyKey}
+            placeholder={t('settings.gif.placeholder')}
             result={fieldCheckText(klipyCheck, 'KLIPY')}
+            tone={fieldCheckTone(klipyCheck)}
             hint={renderMessage('settings.klipy.where', {
               link: (
                 <ExternalLink href="https://partner.klipy.com/api-keys">
@@ -135,7 +137,9 @@ export const SettingsView: FC = () => {
             id="settings-giphy-key"
             label="GIPHY API key"
             value={giphyKey}
+            placeholder={t('settings.gif.placeholder')}
             result={fieldCheckText(giphyCheck, 'GIPHY')}
+            tone={fieldCheckTone(giphyCheck)}
             hint={renderMessage('settings.giphy.where', {
               link: (
                 <ExternalLink href="https://developers.giphy.com/dashboard/">
@@ -158,7 +162,9 @@ export const SettingsView: FC = () => {
             id="settings-telegram-token"
             label={t(TELEGRAM_TOKEN_LABEL)}
             value={telegramToken}
+            placeholder={t('settings.telegram.placeholder')}
             result={fieldCheckText(telegramCheck, 'Telegram')}
+            tone={fieldCheckTone(telegramCheck)}
             hint={renderMessage(TELEGRAM_TOKEN_HINT, {
               link: <ExternalLink href="https://t.me/BotFather">@BotFather</ExternalLink>,
               docs: telegramDocsLink,

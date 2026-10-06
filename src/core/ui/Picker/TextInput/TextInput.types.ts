@@ -23,6 +23,11 @@ export type TextInputProps = {
   placeholder?: string;
 
   /**
+   * Внутри поля справа стоит кнопка (показ скрытого значения): у текста отступ под неё.
+   */
+  hasTrailingAction?: boolean;
+
+  /**
    * Значение атрибута `autocomplete`: `off` не даёт браузеру подставлять сохранённое.
    */
   autoComplete?: string;
@@ -37,6 +42,11 @@ export type TextInputProps = {
    * Значение поля недействительно: поле помечено `aria-invalid` и обведено цветом ошибки.
    */
   isInvalid?: boolean;
+
+  /**
+   * Значение проверено и принято: поле обведено зелёным. С `isInvalid` не сочетается.
+   */
+  isValid?: boolean;
 
   /**
    * Ссылка на DOM-поле — чтобы поставить в него фокус.

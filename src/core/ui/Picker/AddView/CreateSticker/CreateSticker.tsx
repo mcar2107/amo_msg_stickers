@@ -3,19 +3,19 @@ import type { FunctionComponent as FC } from 'preact';
 import { t } from '../../../../i18n/translate';
 import { Field } from '../../Field/Field';
 
+import { DraftPreview } from './DraftPreview/DraftPreview';
 import { DropZone } from './DropZone/DropZone';
-import { StickerPreview } from './StickerPreview/StickerPreview';
 import type { CreateStickerProps } from './CreateSticker.types';
 
 const CAPTION_FIELD_ID = 'picker-add-custom-caption';
 
 /**
- * Панель сегмента «Свой стикер»: зона загрузки, подпись и превью. Фрагмент, а не обёртка:
+ * Панель сегмента «Свой стикер»: зона загрузки с превью и подпись. Фрагмент, а не обёртка:
  * строки ложатся в форму сегмента с её отступами. Черновик держит `AddView` — сохранение
  * стоит в футере экрана, вне панели, и черновик переживает смену сегмента.
  *
- * Превью показано и до первой картинки, пока стикер собирается: на его месте стоит
- * индикатор сборки.
+ * Своего заголовка у панели нет: её называет вкладка сегмента, а лишняя строка не дала бы
+ * сегменту поместиться в панель без прокрутки.
  */
 export const CreateSticker: FC<CreateStickerProps> = (props) => {
   const { fileName, caption, previewUrl, isConverting, onPick, onCaptionChange } = props;
@@ -30,20 +30,21 @@ export const CreateSticker: FC<CreateStickerProps> = (props) => {
 
   return (
     <>
-      <h3 className="mt-1.5 text-xsm font-bold">{t('add.custom.title')}</h3>
-
-      <DropZone fileName={fileName} onPick={handleZonePick} />
+      <DropZone
+        fileName={fileName}
+        preview={
+          <DraftPreview url={previewUrl} caption={caption.trim()} isBusy={isConverting} />
+        }
+        onPick={handleZonePick}
+      />
 
       <Field
         id={CAPTION_FIELD_ID}
         label={t('add.custom.caption')}
         value={caption}
+        placeholder={t('add.custom.captionPlaceholder')}
         onInput={handleCaptionInput}
       />
-
-      {(previewUrl || isConverting) && (
-        <StickerPreview url={previewUrl} isBusy={isConverting} />
-      )}
     </>
   );
 };

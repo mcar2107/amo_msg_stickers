@@ -17,6 +17,7 @@ import { SettingsView } from './SettingsView/SettingsView';
 import { StatusBar } from './StatusBar/StatusBar';
 import { StickersMode } from './StickersMode/StickersMode';
 import { useOpenLoad } from './useOpenLoad/useOpenLoad';
+import { hasScreenFooter } from './usePickerView/hasScreenFooter';
 import { usePickerView } from './usePickerView/usePickerView';
 import type { PickerScreen } from './usePickerView/usePickerView.types';
 import type { PickerProps } from './Picker.types';
@@ -169,7 +170,10 @@ export const Picker: FC<PickerProps> = (props) => {
            */}
           {screen && renderScreen(screen)}
 
-          <StatusBar isRaised={isCovered} onHeightChange={handleStatusHeightChange} />
+          <StatusBar
+            isRaised={hasScreenFooter(screen)}
+            onHeightChange={handleStatusHeightChange}
+          />
         </div>
 
         <Footer />

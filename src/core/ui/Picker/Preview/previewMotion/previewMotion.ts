@@ -85,14 +85,61 @@ export const flyTransform = (from: RectLike, to: RectLike): string | null => {
 };
 
 /**
+ * Прямоугольник, который занимает картинка при `object-fit: contain` с центровкой: вписана в
+ * элемент с сохранением пропорций, по свободной оси — поля поровну с двух сторон.
+ *
+ * @param box — прямоугольник элемента `img`
+ * @param naturalWidth — собственная ширина картинки, px
+ * @param naturalHeight — собственная высота картинки, px
+ * @returns видимая картинка внутри элемента; без собственного размера (не загружена,
+ * без размеров) или у элемента без размера — весь прямоугольник элемента
+ */
+export const containRect = (
+  box: RectLike,
+  naturalWidth: number,
+  naturalHeight: number
+): RectLike => {
+  const { left, top, width, height } = box;
+
+  if (!naturalWidth || !naturalHeight || !width || !height) {
+    return { left, top, width, height };
+  }
+
+  const scale = Math.min(width / naturalWidth, height / naturalHeight);
+  const contentWidth = naturalWidth * scale;
+  const contentHeight = naturalHeight * scale;
+
+  return {
+    left: left + (width - contentWidth) / 2,
+    top: top + (height - contentHeight) / 2,
+    width: contentWidth,
+    height: contentHeight,
+  };
+};
+
+/**
  * Прямоугольник картинки ячейки-источника: то, что видит пользователь. У кнопки вокруг неё
  * есть отступ, поэтому берётся `img` внутри, а сама кнопка — только если картинки нет.
+ *
+ * Картинка, вписанная в свой элемент `object-fit: contain` (превью черновика на всю зону
+ * загрузки), занимает лишь его часть: полёт стартует от неё, а не от элемента, иначе
+ * картинка вылетала бы со сдвигом и не в своём размере. У ячейки стикера элемент по
+ * пропорциям картинки, и вписанный прямоугольник совпадает с ним; плитка GIF
+ * (`object-fit: cover`) заполнена картинкой целиком и берётся как есть.
  *
  * @param source — кнопка ячейки
  * @returns прямоугольник относительно окна
  */
-const sourceImageRect = (source: HTMLElement) => {
-  return (source.querySelector('img') || source).getBoundingClientRect();
+const sourceImageRect = (source: HTMLElement): RectLike => {
+  const image = source.querySelector('img');
+
+  if (!image) return source.getBoundingClientRect();
+
+  const rect = image.getBoundingClientRect();
+
+  if (getComputedStyle(image).objectFit !== 'contain') return rect;
+
+  return containRect(rect, image.naturalWidth, image.naturalHeight);
 };
 
 /**

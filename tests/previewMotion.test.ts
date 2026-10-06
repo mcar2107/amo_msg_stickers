@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  containRect,
   EMOJI_LEAVE_MS,
   EMOJI_POP_DELAY_MS,
   flyTransform,
@@ -50,6 +51,67 @@ describe('flyTransform', () => {
     const from = { left: 0, top: 0, width: 50, height: 50 };
 
     expect(flyTransform(from, { left: 0, top: 0, width: 0, height: 0 })).toBeNull();
+  });
+});
+
+describe('containRect', () => {
+  /**
+   * Элемент превью черновика: вся зона загрузки 300×100 со смещением от края окна.
+   */
+  const ZONE = { left: 20, top: 40, width: 300, height: 100 };
+
+  it('картинка шире зоны по пропорциям: во всю ширину, поля сверху и снизу', () => {
+    expect(containRect(ZONE, 512, 128)).toEqual({
+      left: 20,
+      top: 52.5,
+      width: 300,
+      height: 75,
+    });
+  });
+
+  it('картинка выше зоны по пропорциям: во всю высоту, поля слева и справа', () => {
+    expect(containRect(ZONE, 512, 512)).toEqual({
+      left: 120,
+      top: 40,
+      width: 100,
+      height: 100,
+    });
+  });
+
+  it('высокая картинка 100×400 в зоне: ширина 25 по центру', () => {
+    expect(containRect(ZONE, 100, 400)).toEqual({
+      left: 157.5,
+      top: 40,
+      width: 25,
+      height: 100,
+    });
+  });
+
+  it('та же пропорция: весь элемент, мелкая картинка растянута до него', () => {
+    expect(containRect(ZONE, 30, 10)).toEqual(ZONE);
+  });
+
+  it.each([
+    ['не загружена', 0, 0],
+    ['без ширины', 0, 128],
+    ['без высоты', 512, 0],
+  ])('картинка %s: весь прямоугольник элемента', (_name, naturalWidth, naturalHeight) => {
+    expect(containRect(ZONE, naturalWidth, naturalHeight)).toEqual(ZONE);
+  });
+
+  it('элемент без размера: прямоугольник как есть, без деления на ноль', () => {
+    const empty = { left: 5, top: 5, width: 0, height: 0 };
+
+    expect(containRect(empty, 512, 512)).toEqual(empty);
+  });
+
+  it('вписанный прямоугольник даёт полёт видимой картинки, а не зоны', () => {
+    const preview = { left: 0, top: 0, width: 400, height: 400 };
+    const square = containRect(ZONE, 512, 512);
+
+    // квадрат 100×100 в центре зоны (170, 90) → квадрат 400 с центром (200, 200)
+    expect(flyTransform(square, preview)).toBe('translate(-30px, -110px) scale(0.25)');
+    expect(flyTransform(ZONE, preview)).toBe('translate(-30px, -110px) scale(0.75)');
   });
 });
 

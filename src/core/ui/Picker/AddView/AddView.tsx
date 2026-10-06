@@ -23,12 +23,13 @@ import { TelegramImportFooter } from './TelegramImport/TelegramImportFooter/Tele
  */
 export const AddView: FC = () => {
   const { addSegment } = usePickerView();
-  const { link, hasLink, fieldError, changeLink, isImporting, percent, startImport } =
+  const { link, hasLink, fieldError, changeLink, isImporting, progress, startImport } =
     useTelegramImport();
   const {
     fileName,
     caption,
     previewUrl,
+    size,
     isSavable,
     isConverting,
     saveBlock,
@@ -65,7 +66,13 @@ export const AddView: FC = () => {
       }
 
       case 'custom': {
-        return <CreateStickerFooter isDisabled={!isSavable} saveBlock={saveBlock} />;
+        return (
+          <CreateStickerFooter
+            isDisabled={!isSavable}
+            saveBlock={saveBlock}
+            size={size}
+          />
+        );
       }
 
       default: {
@@ -96,7 +103,7 @@ export const AddView: FC = () => {
         <TelegramImport
           link={link}
           fieldError={fieldError}
-          percent={percent}
+          progress={progress}
           isActive={addSegment === 'telegram'}
           onLinkChange={handleLinkChange}
         />

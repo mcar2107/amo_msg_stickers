@@ -16,11 +16,15 @@ import type { DropZoneProps } from './DropZone.types';
  */
 const zoneVariants = cva(
   [
-    'flex flex-col items-center gap-2 rounded-lgx border-[1.5px] border-dashed p-4 text-center text-xs',
+    'flex h-31 shrink-0 items-center rounded-lgx border-[1.5px] border-dashed text-xs',
     'motion-safe:transition-[color,background-color,border-color] motion-safe:duration-base',
   ].join(' '),
   {
     variants: {
+      hasFile: {
+        true: 'relative p-1.5',
+        false: 'flex-col justify-center gap-1.5 p-3 text-center',
+      },
       isDragOver: {
         true: 'border-blue-50 bg-blue-50/[.06] text-blue-50 dark:border-beige-70 dark:bg-beige-70/[.06] dark:text-beige-70',
         false:
@@ -31,15 +35,51 @@ const zoneVariants = cva(
 );
 
 /**
+ * Плашка поверх превью: непрозрачный фон и тень читаются на любой картинке, а не только на
+ * шахматке.
+ */
+const OVERLAY_CLASS = [
+  'absolute rounded-md bg-white-0/90 font-semibold text-cadetGray-10 shadow-[0_1px_3px] shadow-black-0/20',
+  'dark:bg-gray-10/90 dark:text-gray-90',
+].join(' ');
+
+/**
  * Кнопка выбора — своя, а не основная `Button`: кольцо фокуса панели рисуется внутри
  * границы цветом акцента, и на акцентной заливке основной кнопки его не видно. Нейтральная
  * заливка оставляет кольцо заметным и не спорит с главной кнопкой футера.
  */
-const CHOOSE_BUTTON_CLASS = [
-  'h-8 shrink-0 cursor-pointer rounded-lg px-3.5 font-primary text-xsm font-semibold leading-[normal]',
-  'bg-cadetGray-30/[.12] text-cadetGray-10 hover:bg-cadetGray-30/[.2]',
-  'dark:bg-white-0/[.08] dark:text-gray-90 dark:hover:bg-white-0/[.14]',
-  'motion-safe:transition-[background-color] motion-safe:duration-base',
+const chooseButtonVariants = cva(
+  [
+    'shrink-0 cursor-pointer rounded-lg font-primary font-semibold leading-[normal]',
+    'motion-safe:transition-[background-color] motion-safe:duration-base',
+  ].join(' '),
+  {
+    variants: {
+      /**
+       * Замена — второстепенное действие поверх превью: маленькая плашка в углу, картинка
+       * главнее.
+       */
+      hasFile: {
+        true: [
+          OVERLAY_CLASS,
+          'right-2.5 top-2.5 h-6 px-2 text-xs hover:bg-white-0 dark:hover:bg-gray-10',
+        ].join(' '),
+        false: [
+          'h-8 px-3.5 text-xsm',
+          'bg-cadetGray-30/[.12] text-cadetGray-10 hover:bg-cadetGray-30/[.2]',
+          'dark:bg-white-0/[.08] dark:text-gray-90 dark:hover:bg-white-0/[.14]',
+        ].join(' '),
+      },
+    },
+  }
+);
+
+/**
+ * Имя файла — плашкой в нижнем левом углу превью; правый край оставлен значку увеличения.
+ */
+const FILE_NAME_CLASS = [
+  OVERLAY_CLASS,
+  'pointer-events-none bottom-2.5 left-2.5 m-0 max-w-[calc(100%-3.5rem)] truncate px-1.5 py-0.5',
 ].join(' ');
 
 const UPLOAD_ICON_PATH = [
@@ -49,7 +89,11 @@ const UPLOAD_ICON_PATH = [
 ].join('');
 
 /**
- * Зона загрузки: перетаскивание принимает вся зона, а диалог выбора открывает кнопка.
+ * Зона загрузки: перетаскивание принимает вся зона, а диалог выбора открывает кнопка. Пока
+ * файла нет — иконка, текст и «Выбрать файл»; после выбора превью (слот `preview`) занимает
+ * всю зону, а имя файла и маленькая «Заменить файл» лежат поверх него в углах. Высота зоны одна в обоих видах: выбор файла не
+ * сдвигает форму, и сегмент помещается в панель без прокрутки и тогда, когда тело отступает
+ * под показанную строку статуса.
  *
  * Нативное поле файла скрыто: его кнопка и строка «Файл не выбран» — на языке браузера, а не
  * интерфейса, и попали бы в дерево доступности. Имя кнопки и текст зоны берутся из словаря,
@@ -57,7 +101,8 @@ const UPLOAD_ICON_PATH = [
  * пользователя, и браузер диалог пускает.
  */
 export const DropZone: FC<DropZoneProps> = (props) => {
-  const { fileName, onPick } = props;
+  const { fileName, preview, onPick } = props;
+  const hasFile = Boolean(fileName);
   const { setHold } = usePicker();
   const [isDragOver, setIsDragOver] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -112,28 +157,46 @@ export const DropZone: FC<DropZoneProps> = (props) => {
     onPick(event.dataTransfer?.files[0]);
   };
 
+  const chooseButton = (
+    <button
+      type="button"
+      className={chooseButtonVariants({ hasFile })}
+      onClick={handleChooseClick}
+    >
+      {t(hasFile ? 'add.custom.replaceFile' : 'add.custom.chooseFile')}
+    </button>
+  );
+
   return (
     <div
-      className={zoneVariants({ isDragOver })}
+      className={zoneVariants({ hasFile, isDragOver })}
       onDragOver={handleZoneDragOver}
       onDragLeave={handleZoneDragLeave}
       onDrop={handleZoneDrop}
     >
-      <svg viewBox="0 0 24 24" aria-hidden="true" className="size-6 fill-current">
-        <path d={UPLOAD_ICON_PATH} />
-      </svg>
+      {fileName ? (
+        <>
+          {preview}
 
-      <p className="m-0 leading-[1.4]">{t('add.custom.dropHint')}</p>
+          <p className={FILE_NAME_CLASS}>{fileName}</p>
 
-      {fileName && (
-        <p className="m-0 max-w-full truncate font-semibold text-cadetGray-10 dark:text-gray-90">
-          {fileName}
-        </p>
+          {chooseButton}
+        </>
+      ) : (
+        <>
+          <svg
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+            className="size-5 shrink-0 fill-current"
+          >
+            <path d={UPLOAD_ICON_PATH} />
+          </svg>
+
+          <p className="m-0 leading-[1.4]">{t('add.custom.dropHint')}</p>
+
+          {chooseButton}
+        </>
       )}
-
-      <button type="button" className={CHOOSE_BUTTON_CLASS} onClick={handleChooseClick}>
-        {t(fileName ? 'add.custom.replaceFile' : 'add.custom.chooseFile')}
-      </button>
 
       <input
         ref={inputRef}

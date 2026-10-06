@@ -1,3 +1,5 @@
+import type { ImportCount } from '../PickerProvider/PickerProvider.types';
+
 export type TelegramImportState = {
   /**
    * Ссылка на пак или его имя, как ввёл пользователь.
@@ -26,10 +28,10 @@ export type TelegramImportState = {
   isImporting: boolean;
 
   /**
-   * Доля обработанных стикеров в процентах; `null` — импорт не идёт, полоса прогресса
-   * скрыта: после успеха и после ошибки её нет.
+   * Ход импорта; `null` — импорт не идёт, полоса прогресса скрыта: после успеха и после
+   * ошибки её нет.
    */
-  percent: number | null;
+  progress: ImportCount | null;
 
   /**
    * Импортирует пак по введённой ссылке. Промис не отклоняется: ошибка уходит к полю ссылки
