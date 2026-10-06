@@ -44,7 +44,9 @@ jobs:
       - id: version
         run: echo "version=$(jq -r .version package.json)" >> "$GITHUB_OUTPUT"
 
-      # Проверяется тег, а не релиз: тег без релиза тоже значит «версия занята».
+      # Проверяется тег, а не релиз: тег без релиза тоже значит «версия занята». Мерж
+      # без подъёма версии — штатный исход: его PR войдёт в заметки следующего релиза,
+      # поэтому это notice, а не предупреждение.
       - id: tag
         env:
           TAG: v${{ steps.version.outputs.version }}
@@ -52,7 +54,7 @@ jobs:
           sha=$(git ls-remote --tags origin "refs/tags/${TAG}" | cut -f1)
           echo "sha=${sha}" >> "$GITHUB_OUTPUT"
           if [ -n "${sha}" ]; then
-            echo "::warning::Версия ${TAG} уже выпущена — релиз не создаётся"
+            echo "::notice::Версия ${TAG} уже выпущена — релиз не создаётся"
             echo "exists=true" >> "$GITHUB_OUTPUT"
           else
             echo "exists=false" >> "$GITHUB_OUTPUT"
@@ -101,3 +103,15 @@ jobs:
     with:
       tag: v${{ needs.release.outputs.version }}
     secrets: inherit
+
+  # Дока публикуется только с релизом и из его коммита: сайт не описывает ещё не
+  # выпущенное. Условие то же, что у стора, — перезапуск упавшей попытки того же прогона
+  # публикует и доку. Вызванный workflow не получит прав больше, чем у этого job-а.
+  pages:
+    needs: release
+    if: ${{ needs.release.outputs.released == 'true' }}
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/pages.yml

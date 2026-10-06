@@ -1,30 +1,23 @@
 name: Pages
 
-# Публикация доки не ждёт релиза: правка текста не требует подъёма версии. Сборку
+# Сайт описывает выпущенный продукт, поэтому публикуется за релизом, а не за каждым
+# мержем: правка доки о ещё не выпущенном поведении ждёт релиза вместе с кодом. Сборку
 # в PR проверяет задание docs в ci.yml той же командой.
 on:
-  push:
-    branches: [master]
-    paths:
-      - 'docs/**'
-      - '.github/actions/setup/**'
-      - '.mise.toml'
-      # Скрипт docs:build живёт в корневом package.json.
-      - 'package.json'
-      - '.github/workflows/pages.yml'
+  # Вызов из release.yml за новым релизом: событие release от релиза, созданного
+  # GITHUB_TOKEN, workflow не запускает.
+  workflow_call:
+  # Ручная публикация: правка доки о выпущенном поведении без нового релиза.
   workflow_dispatch:
 
 permissions:
   contents: read
 
-# Идущая публикация не отменяется: оборванный деплой оставил бы сайт в неизвестном
-# состоянии, а следующий прогон всё равно опубликует свежую сборку.
-concurrency:
-  group: pages
-  cancel-in-progress: false
-
 jobs:
   build:
+    # У workflow_dispatch нет фильтра веток: ручной запуск с другой ветки опубликовал бы
+    # её доку. Пропуск сборки пропускает и деплой.
+    if: ${{ github.ref == 'refs/heads/master' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -41,6 +34,12 @@ jobs:
     permissions:
       pages: write
       id-token: write
+    # Группа на деплое, а не на workflow: сборки двух прогонов идут параллельно, а
+    # публикации — по одной. Идущая не отменяется: оборванный деплой оставил бы сайт в
+    # неизвестном состоянии, а следующий всё равно опубликует свежую сборку.
+    concurrency:
+      group: pages
+      cancel-in-progress: false
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

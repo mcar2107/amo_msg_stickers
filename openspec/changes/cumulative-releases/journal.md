@@ -1,0 +1,19 @@
+# Журнал прогона
+
+Решения без заказчика, отступления от спеки, итоги аудитов и долг прогона change `cumulative-releases`.
+
+## 2026-10-06
+
+### Старт прогона
+
+База прогона: 304e0eb304f60140939911a5eb9c0145f5092709. Масштаб: малый, одна группа G1 (1.1–5.1).
+Гейт: pnpm lint && pnpm test && pnpm build.
+Задач, недоступных агенту, нет. Живых данных change не требует.
+
+### G1
+
+Исполнитель: 4 пачки одним агентом (1.1–1.2, 2.1–2.3, 3.1–3.3, 4.1–5.1). 2.3 сделана в пачке 2: typecheck включает tests/.
+Решения: VERSION из package.json в build.mjs, manifest.version = VERSION; check-version разбирает формат всегда, с --base — «не ниже»; pages.yml: if master на build, права deploy на job; job pages в release.yml без secrets.
+Аудит: ok с первого круга, плюс пункты итога. Гейт lint/test/build зелёный, actionlint ok, 17 сценариев, 12 без автопроверки (workflow — чтением и actionlint).
+Долг: пустая строка tests/version.test.ts:63; переформатировать шаг 3 SKILL.md:53-54; «выше последнего тега» в «Релиз» неточно (release.yml смотрит наличие тега); gh pr list без --limit (30); сборочная вставка версии без проверки в CI.
+После мержа: прогон release.yml — ::notice::, job pages пропущен; первый PR релиза — job pages публикует сайт.

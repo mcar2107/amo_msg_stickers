@@ -1,12 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
 import {
-  checkVersionConsistency,
-  checkVersionGrowth,
+  checkVersionNotLower,
   compareVersions,
-  hasProductChanges,
   parseVersion,
-  readBannerVersion,
   toErrorAnnotation,
 } from '../scripts/version';
 
@@ -40,126 +37,30 @@ describe('compareVersions', () => {
   });
 });
 
-describe('readBannerVersion', () => {
-  it('находит @version в заголовке userscript', () => {
-    const banner =
-      '// ==UserScript==\n// @name         amo stickers\n// @version      0.3.0\n// ==/UserScript==';
-
-    expect(readBannerVersion(banner)).toBe('0.3.0');
-  });
-
-  it('находит @version в заголовке из строковых литералов, как в build.mjs', () => {
-    const source =
-      "const USERSCRIPT_BANNER = [\n  '// ==UserScript==',\n  '// @version      0.4.0',\n].join('\\n');";
-
-    expect(readBannerVersion(source)).toBe('0.4.0');
-  });
-
-  it('возвращает undefined, если @version нет', () => {
-    expect(
-      readBannerVersion('// ==UserScript==\n// @name amo\n// ==/UserScript==')
-    ).toBeUndefined();
-  });
-});
-
-describe('checkVersionConsistency', () => {
-  it('молчит, когда версии совпадают', () => {
-    expect(
-      checkVersionConsistency([
-        { source: 'package.json', version: '0.3.0' },
-        { source: 'manifest.json', version: '0.3.0' },
-        { source: 'build.mjs', version: '0.3.0' },
-      ])
-    ).toBeUndefined();
-  });
-
-  it('перечисляет все значения с источниками при расхождении', () => {
-    const error = checkVersionConsistency([
-      { source: 'package.json', version: '0.4.0' },
-      { source: 'manifest.json', version: '0.3.0' },
-      { source: 'build.mjs', version: '0.3.0' },
-    ]);
-
-    expect(error).toContain('package.json — 0.4.0');
-    expect(error).toContain('manifest.json — 0.3.0');
-    expect(error).toContain('build.mjs — 0.3.0');
-  });
-
-  it('считает ненайденную версию расхождением', () => {
-    const error = checkVersionConsistency([
-      { source: 'package.json', version: '0.3.0' },
-      { source: 'build.mjs', version: undefined },
-    ]);
-
-    expect(error).toContain('build.mjs — не найдена');
-  });
-
-  it('не считает пустой список источников согласованным', () => {
-    expect(checkVersionConsistency([])).toBe('Не заданы источники версии');
-  });
-});
-
-describe('checkVersionGrowth', () => {
+describe('checkVersionNotLower', () => {
   it.each([
-    ['0.3.0', '0.2.0'],
+    ['0.19.0', '0.18.1'],
     ['0.10.0', '0.9.0'],
     ['1.0.0', '0.9.0'],
-  ])('%s выше %s — проходит', (current, base) => {
-    expect(checkVersionGrowth(current, base)).toBeUndefined();
+    ['0.18.1', '0.18.1'],
+  ])('%s не ниже %s — проходит', (current, base) => {
+    expect(checkVersionNotLower(current, base)).toBeUndefined();
   });
 
   it.each([
-    ['0.3.0', '0.3.0'],
     ['0.2.0', '0.3.0'],
     ['0.9.0', '0.10.0'],
-  ])('%s не выше %s — просит поднять версию', (current, base) => {
-    expect(checkVersionGrowth(current, base)).toContain('поднимите версию');
+    ['0.18.1', '1.0.0'],
+  ])('%s ниже %s — ошибка', (current, base) => {
+    expect(checkVersionNotLower(current, base)).toContain('ниже');
   });
 
   it('падает на невалидной версии базы', () => {
     expect(() => {
-      return checkVersionGrowth('0.3.0', 'master');
+      return checkVersionNotLower('0.3.0', 'master');
     }).toThrow('MAJOR.MINOR.PATCH');
   });
 });
-
-describe('hasProductChanges', () => {
-  it.each([
-    ['src/core/app.ts'],
-    ['src/extension/manifest.json'],
-    ['build.mjs'],
-    ['tailwind.config.ts'],
-    ['tsconfig.json'],
-    ['package.json'],
-    ['pnpm-lock.yaml'],
-  ])('%s — файл продукта', (path) => {
-    expect(hasProductChanges(['CLAUDE.md', path])).toBe(true);
-  });
-
-  it('не считает продуктом документацию, CI, тесты и OpenSpec', () => {
-    expect(
-      hasProductChanges([
-        'CLAUDE.md',
-        'README.md',
-        '.github/workflows/ci.yml',
-        'scripts/version.ts',
-        'tests/version.test.ts',
-        'openspec/specs/ci-cd/spec.md',
-      ])
-    ).toBe(false);
-  });
-
-  it('сверяет каталог по префиксу пути, а файл — точно', () => {
-    expect(hasProductChanges(['srcs/app.ts', 'dev/build.mjs', 'build.mjs.bak'])).toBe(
-      false
-    );
-  });
-
-  it('пустой список — продукт не менялся', () => {
-    expect(hasProductChanges([])).toBe(false);
-  });
-});
-
 describe('toErrorAnnotation', () => {
   it('держит многострочную ошибку в одной аннотации', () => {
     expect(toErrorAnnotation('Command failed\nfatal: invalid object')).toBe(
