@@ -1,8 +1,9 @@
 import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'preact/hooks';
 
 import { countStickers } from '../../../db';
+import { PAGE_STORAGE } from '../../../pageStorage';
 import { writeMode } from '../../../pickerMode';
-import type { ModeStorage, PickerMode } from '../../../pickerMode.types';
+import type { PickerMode } from '../../../pickerMode.types';
 
 import { DEFAULT_ADD_SEGMENT, resolveAddSegment } from './addSegment';
 import { startMode } from './startMode';
@@ -13,20 +14,6 @@ import type {
   SectionAnchor,
   SectionMotion,
 } from './usePickerView.types';
-
-/**
- * `localStorage` страницы, к которому обращаются только внутри методов: сам геттер
- * `window.localStorage` бросает под запретом хранилища сайта, а исключения методов ловит
- * модуль режима.
- */
-const PAGE_STORAGE: ModeStorage = {
-  getItem: (key) => {
-    return localStorage.getItem(key);
-  },
-  setItem: (key, value) => {
-    localStorage.setItem(key, value);
-  },
-};
 
 /**
  * Состояние вида: режим, экран поверх него, сегмент «Добавить стикеры» и якорь ленты

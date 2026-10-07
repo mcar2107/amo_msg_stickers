@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
+import type { PageStorage } from '../src/core/pageStorage.types';
 import { MODE_KEY } from '../src/core/pickerMode';
-import type { ModeStorage } from '../src/core/pickerMode.types';
 import { startMode } from '../src/core/ui/Picker/usePickerView/startMode';
 
 /**
@@ -10,7 +10,7 @@ import { startMode } from '../src/core/ui/Picker/usePickerView/startMode';
  * @param value — значение под ключом режима; `null` — ключа нет
  * @returns хранилище только для чтения
  */
-const storedMode = (value: string | null): ModeStorage => {
+const storedMode = (value: string | null): PageStorage => {
   return {
     getItem: (key) => {
       return key === MODE_KEY ? value : null;
@@ -22,7 +22,7 @@ const storedMode = (value: string | null): ModeStorage => {
 /**
  * Хранилище, которое бросает на чтении и на записи — как `localStorage` под запретом сайта.
  */
-const THROWING_STORAGE: ModeStorage = {
+const THROWING_STORAGE: PageStorage = {
   getItem: () => {
     throw new DOMException('denied', 'SecurityError');
   },

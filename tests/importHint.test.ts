@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { HINT_SEEN_KEY, readHintSeen, writeHintSeen } from '../src/core/importHint';
-import type { HintStorage } from '../src/core/importHint.types';
+import type { PageStorage } from '../src/core/pageStorage.types';
 
 /**
  * Хранилище на объекте — как `localStorage`, без браузера.
@@ -11,7 +11,7 @@ import type { HintStorage } from '../src/core/importHint.types';
  */
 const memoryStorage = (initial: Record<string, string> = {}) => {
   const data = new Map(Object.entries(initial));
-  const storage: HintStorage = {
+  const storage: PageStorage = {
     getItem: (key) => {
       return data.get(key) || null;
     },
@@ -26,7 +26,7 @@ const memoryStorage = (initial: Record<string, string> = {}) => {
 /**
  * Хранилище, которое бросает на любом обращении — как `localStorage` под запретом сайта.
  */
-const THROWING_STORAGE: HintStorage = {
+const THROWING_STORAGE: PageStorage = {
   getItem: () => {
     throw new DOMException('denied', 'SecurityError');
   },

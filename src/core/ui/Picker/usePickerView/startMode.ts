@@ -1,5 +1,6 @@
+import type { PageStorage } from '../../../pageStorage.types';
 import { readMode } from '../../../pickerMode';
-import type { ModeStorage, PickerMode } from '../../../pickerMode.types';
+import type { PickerMode } from '../../../pickerMode.types';
 
 /**
  * Режим первого открытия попапа на странице: сохранённый, а без него — по библиотеке.
@@ -13,7 +14,7 @@ import type { ModeStorage, PickerMode } from '../../../pickerMode.types';
  * @returns режим для первого открытия
  */
 export const startMode = async (
-  storage: ModeStorage,
+  storage: PageStorage,
   countStickers: () => Promise<number>
 ): Promise<PickerMode> => {
   const saved = readMode(storage);

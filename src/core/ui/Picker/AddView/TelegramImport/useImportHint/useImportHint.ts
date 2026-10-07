@@ -1,23 +1,9 @@
 import { useCallback, useEffect, useState } from 'preact/hooks';
 
 import { readHintSeen, writeHintSeen } from '../../../../../importHint';
-import type { HintStorage } from '../../../../../importHint.types';
+import { PAGE_STORAGE } from '../../../../../pageStorage';
 
 import type { ImportHintState } from './useImportHint.types';
-
-/**
- * `localStorage` страницы, к которому обращаются только внутри методов: сам геттер
- * `window.localStorage` бросает под запретом хранилища сайта, а исключения методов ловит
- * модуль признака — инструкция тогда раскрыта, импорт работает.
- */
-const PAGE_STORAGE: HintStorage = {
-  getItem: (key) => {
-    return localStorage.getItem(key);
-  },
-  setItem: (key, value) => {
-    localStorage.setItem(key, value);
-  },
-};
 
 /**
  * Раскрытие инструкции импорта. Признак «видел» читается один раз при монтировании — панель

@@ -1,4 +1,4 @@
-import type { HintStorage } from './importHint.types';
+import type { PageStorage } from './pageStorage.types';
 
 export const HINT_SEEN_KEY = 'amo-stickers:import-hint-seen';
 
@@ -15,7 +15,7 @@ const SEEN = '1';
  * @returns `true` — инструкция уже показывалась; `false` — нет признака или хранилище
  * недоступно
  */
-export const readHintSeen = (storage: HintStorage): boolean => {
+export const readHintSeen = (storage: PageStorage): boolean => {
   try {
     return storage.getItem(HINT_SEEN_KEY) === SEEN;
   } catch {
@@ -29,7 +29,7 @@ export const readHintSeen = (storage: HintStorage): boolean => {
  *
  * @param storage — хранилище страницы
  */
-export const writeHintSeen = (storage: HintStorage) => {
+export const writeHintSeen = (storage: PageStorage) => {
   try {
     storage.setItem(HINT_SEEN_KEY, SEEN);
   } catch {

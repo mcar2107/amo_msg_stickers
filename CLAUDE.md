@@ -149,6 +149,8 @@ src/
     pickerMode.ts    режим попапа в `localStorage` страницы: `readMode` / `writeMode`, ключ `amo-stickers:mode`
     importHint.ts    признак «инструкция импорта уже показана» в `localStorage` страницы: `readHintSeen` /
                      `writeHintSeen`, ключ `amo-stickers:import-hint-seen`
+    pageStorage*.ts  `PAGE_STORAGE` — `localStorage` страницы для обоих модулей выше, геттер вызывается внутри методов
+                     (под запретом хранилища бросает он сам); `PageStorage` — их срез `Storage`, тесты подставляют свой
     host*.ts         контракты окружения (`host.types.ts`: `Host`, `HostNetwork`, `HostSettings`) и настройки по
                      умолчанию (`host.ts`: ключи GIPHY/KLIPY, токен Telegram-бота; `pickSettings` — поля
                      сохранённых настроек для адаптеров обоих окружений)
