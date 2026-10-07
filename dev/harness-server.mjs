@@ -114,7 +114,10 @@ const buildSeed = () => {
 
     return fields;
   }, {});
-  const seed = JSON.stringify(settings);
+  /**
+   * `<` экранируется: значение с `</script>` закрыло бы тег посреди JSON.
+   */
+  const seed = JSON.stringify(settings).replaceAll('<', '\\u003c');
   const key = JSON.stringify(SETTINGS_KEY);
   const store = `try{var k=${key},s={};try{var v=JSON.parse(localStorage.getItem(k));if(v&&typeof v==='object'&&!Array.isArray(v))s=v;}catch(e){}Object.assign(s,${seed});localStorage.setItem(k,JSON.stringify(s));}catch(e){}`;
 
@@ -217,7 +220,15 @@ createServer(async (req, res) => {
   };
 
   if (pathname === HARNESS_PATH) {
-    const html = readFileSync(file, 'utf8').replace('<head>', `<head>${buildSeed()}`);
+    const seed = buildSeed();
+
+    /**
+     * Заменитель — функция: в строке-замене `$&`, `$'` и подобные из значений `.env`
+     * подставились бы как спецпоследовательности `replace`.
+     */
+    const html = readFileSync(file, 'utf8').replace('<head>', () => {
+      return `<head>${seed}`;
+    });
 
     res.writeHead(200, headers).end(html);
 
