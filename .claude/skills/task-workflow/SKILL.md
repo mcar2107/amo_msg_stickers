@@ -51,6 +51,10 @@ description: Воркфлоу задачи в amo stickers — issue (с пои�
    git switch master && git pull --ff-only
    git switch -c feature/42-preact-picker
    ```
+
+   Создание ветки с номером issue в имени переводит её карточку на доске проекта из Backlog или Ready в In progress
+   (`board.yml`); привязка PR (`Closes #N`) оставляет карточку в In progress, мерж или закрытие issue — в Done.
+   In review и Ready на доске ставятся руками.
 3. **Спека.** Задача, которая меняет файлы продукта, идёт через OpenSpec, в том числе исправление: proposal
    фиксирует, что считается готовым, а архив переносит требование в `openspec/specs`, где его увидит следующая задача.
    Файлы продукта — `src/`, `build.mjs`, `tailwind.config.ts`, `tsconfig.json`, `package.json`, `pnpm-lock.yaml`. Без

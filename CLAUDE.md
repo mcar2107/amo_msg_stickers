@@ -241,11 +241,14 @@ scripts/          скрипты CI: version.ts — чистая логика п
                   version.types.ts); check-version.mjs — её запуск в CI; chromeWebStore.ts — клиент Chrome Web
                   Store API (типы — chromeWebStore.types.ts), publish-chrome-web-store.mjs — публикация пакета из
                   релиза;
-                  telegramToken.ts — проверка токена встроенного бота для `build.mjs`
+                  telegramToken.ts — проверка токена встроенного бота для `build.mjs`;
+                  boardMove.ts — чистая логика перевода карточки доски в In progress (типы — boardMove.types.ts),
+                  move-issue-in-progress.mjs — её запуск в CI
 tests/            юнит-тесты, helpers/
 .github/          workflows/ci.yml — проверки PR; workflows/release.yml — релиз из master;
                   workflows/chrome-web-store.yml — публикация релиза в стор (за релизом и вручную);
-                  workflows/pages.yml — публикация доки; actions/setup — окружение
+                  workflows/pages.yml — публикация доки; workflows/board.yml — карточка доски в In progress по
+                  созданной ветке; actions/setup — окружение
 openspec/         specs/ — действующие требования; changes/ — proposal, design, specs, tasks задачи;
                   changes/archive/ — закрытые
 local/            локальные заготовки под конкретное окружение; в .gitignore, eslint его не трогает
@@ -875,6 +878,14 @@ GitHub Actions, Node и pnpm ставятся из `.mise.toml` (`jdx/mise-actio
   `anthropics/claude-code-action` — ответ в треде и правки в ветку. Авторизация — секрет `CLAUDE_CODE_OAUTH_TOKEN`
   (`claude setup-token`), окружение — `.github/actions/setup`, из команд разрешены `pnpm lint`, `test`, `typecheck`,
   `format`.
+- **Доска** (`board.yml`): создание ветки `<type>/<номер issue>-<имя>` переводит карточку issue на доске проекта
+  (`https://github.com/users/mcar2107/projects/1`) из Backlog или Ready в In progress — встроенные workflows доски
+  делают это только по привязанному PR, а ветка появляется раньше. Карточки в In progress, In review и Done, ветки без
+  номера issue (`release/<версия>`), issue вне доски и сбой доски скрипт (`scripts/move-issue-in-progress.mjs`)
+  пропускает с записью в лог, прогон остаётся зелёным. Управлять доской пользователя токен прогона не может, поэтому
+  нужен секрет `PROJECT_TOKEN` — PAT со scope `project`; без него скрипт пишет `::warning::`. Остальные статусы
+  двигают встроенные workflows доски (PR привязан — In progress, PR влит или issue закрыта — Done), Ready и In review
+  — руками.
 
 ## Воркфлоу задачи
 
