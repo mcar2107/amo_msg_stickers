@@ -83,6 +83,7 @@ export const EN: Messages = {
   'cell.gif.preview': 'Preview of GIF',
   'cell.gif.previewTitle': 'Preview of GIF “{title}”',
   'menu.removeSticker': 'Delete sticker',
+  'menu.removeStickerConfirm': 'Really delete?',
   'menu.removeRecent': 'Remove from recent',
   'menu.clearRecent': 'Clear',
   'menu.clearRecentConfirm': 'Really clear?',

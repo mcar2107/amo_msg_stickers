@@ -81,6 +81,7 @@ export const RU = {
   'cell.gif.preview': 'Предпросмотр GIF',
   'cell.gif.previewTitle': 'Предпросмотр GIF «{title}»',
   'menu.removeSticker': 'Удалить стикер',
+  'menu.removeStickerConfirm': 'Точно удалить?',
   'menu.removeRecent': 'Убрать из недавних',
   'menu.clearRecent': 'Очистить',
   'menu.clearRecentConfirm': 'Точно очистить?',
