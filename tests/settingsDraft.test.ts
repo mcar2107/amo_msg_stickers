@@ -4,6 +4,7 @@ import type { Settings } from '../src/core/host.types';
 import {
   checkPlan,
   dropWritten,
+  forgetChecked,
   pendingWrite,
 } from '../src/core/ui/Picker/SettingsView/settingsDraft/settingsDraft';
 
@@ -71,5 +72,30 @@ describe('checkPlan', () => {
     const values: Settings = { ...SAVED, klipyKey: ' k1 ' };
 
     expect(checkPlan(values, { klipyKey: 'k1' }).keys).toEqual([]);
+  });
+});
+
+describe('forgetChecked', () => {
+  it('после правки возврат к проверенному значению проверяется заново', () => {
+    const values: Settings = { ...SAVED, giphyKey: 'g2' };
+    const { checked } = checkPlan(values, { giphyKey: 'g1' });
+
+    expect(checkPlan(values, forgetChecked(checked, 'giphyKey')).keys).toEqual([
+      'giphyKey',
+    ]);
+  });
+
+  it('поле остаётся правленым, а пустое значение по-прежнему не проверяется', () => {
+    const values: Settings = { ...SAVED, klipyKey: '' };
+    const checked = forgetChecked({}, 'klipyKey');
+
+    expect(checkPlan(values, checked)).toEqual({ keys: [], checked: { klipyKey: '' } });
+  });
+
+  it('проверенные значения других полей не трогает', () => {
+    expect(forgetChecked({ giphyKey: 'g1', klipyKey: 'k1' }, 'klipyKey')).toEqual({
+      giphyKey: 'g1',
+      klipyKey: '',
+    });
   });
 });

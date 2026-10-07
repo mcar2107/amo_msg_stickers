@@ -5,7 +5,12 @@ import { checkGifKey } from '../../../../sources/gifs';
 import type { GifProvider } from '../../../../sources/gifs.types';
 import { isBotTokenFormat } from '../../../../sources/telegram';
 import { usePicker } from '../../PickerProvider/usePicker';
-import { checkPlan, dropWritten, pendingWrite } from '../settingsDraft/settingsDraft';
+import {
+  checkPlan,
+  dropWritten,
+  forgetChecked,
+  pendingWrite,
+} from '../settingsDraft/settingsDraft';
 
 import type { FieldCheck, SettingsChecks, SettingsDraft } from './useSettingsDraft.types';
 
@@ -131,10 +136,7 @@ export const useSettingsDraft = (): SettingsDraft => {
 
   const changeField = useCallback(
     (key: keyof Settings, value: string) => {
-      if (checkedRef.current[key] === undefined) {
-        checkedRef.current = { ...checkedRef.current, [key]: settingsRef.current[key] };
-      }
-
+      checkedRef.current = forgetChecked(checkedRef.current, key);
       editsRef.current = { ...editsRef.current, [key]: value };
       setEdits(editsRef.current);
       nextCheckSeq(key);
