@@ -24,7 +24,9 @@ const SKELETON_CLASS = 'h-3.5 rounded bg-cadetGray-30/[.12] dark:bg-white-0/[.06
  * него. Текст карточки — описание поля ссылки, поэтому скринридер читает пак вместе с полем.
  *
  * Пока состав пака загружается, на месте строки — заглушка с `aria-busy` и текстом загрузки,
- * видным только скринридеру: высота карточки та же, и ответ не сдвигает футер.
+ * видным только скринридеру. Строка заглушки — `1.4em` кегля названия, как межстрочный интервал
+ * строки названия: ответ сдвигает низ карточки меньше чем на пиксель (выравнивание счётчика по
+ * базовой линии), если не добавляет пометку «уже в библиотеке».
  *
  * Во время импорта счётчик «N/M» скринридер читает значением полосы (`aria-valuetext`), а сам
  * текст от него скрыт — иначе прочитал бы его дважды. Ширина полосы — единственное
@@ -36,7 +38,10 @@ export const PackCard: FC<PackCardProps> = (props) => {
   if (card.status === 'loading') {
     return (
       <div id={id} aria-busy="true" className={CARD_CLASS}>
-        <div aria-hidden="true" className="flex items-center justify-between gap-2">
+        <div
+          aria-hidden="true"
+          className="flex h-[1.4em] items-center justify-between gap-2 text-xsm"
+        >
           <div className={`${SKELETON_CLASS} w-1/2`} />
 
           <div className={`${SKELETON_CLASS} w-16`} />

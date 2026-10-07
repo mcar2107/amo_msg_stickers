@@ -126,8 +126,12 @@ const botMethods = (host: Host) => {
   });
 };
 
+/**
+ * Сброс, а не очистка: тест, который подменяет реализацию мока `db` на весь импорт
+ * (`mockImplementation`), иначе оставил бы её следующим тестам.
+ */
 beforeEach(() => {
-  vi.clearAllMocks();
+  vi.resetAllMocks();
   builtin.token = '';
 });
 

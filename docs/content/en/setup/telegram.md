@@ -25,22 +25,30 @@ pack name — the part of the link after the last `/` — works too.
 
 1. In amo stickers, open the “Stickers” mode and click “+” to the right of the section tabs — the “Add stickers”
    screen will open.
-2. At the top of the screen, choose “Telegram” if “Custom sticker” is open. Paste the link into the “Pack link” field
-   and click “Import” or press Enter. The first time the screen opens, a short guide on getting the pack link
-   is expanded under the field; after that it’s collapsed — expand it with the “?” button next to the field.
-3. Wait for the import to finish: the panel shows a sticker count at the bottom, for example **“Pack name”: 12/40**,
-   and at the end **Pack “Pack name” added**. While the import is running, the panel doesn’t close if you move the
-   cursor away from it.
+2. At the top of the screen, choose “Telegram” if “Custom sticker” is open. Paste the link into the “Pack link” field —
+   a pack card will appear under the field with the pack name and the number of stickers. If the pack is already
+   imported, the card says that importing will update it. Click “Import” or press Enter. The first time the screen
+   opens, a short guide on getting the pack link is expanded under the field; after that it’s collapsed — expand it with
+   the “?” button next to the field.
+3. Wait for the import to finish: the pack card shows a progress bar and a sticker count, for example **12/40**,
+   and at the end the bottom of the panel shows **Pack “Pack name” added**. If you leave the “Add stickers” screen,
+   the count goes on at the bottom of the panel. While the import is running, the panel doesn’t close if you move
+   the cursor away from it.
 
-![The “Add stickers” screen, “Telegram” tab: a pack link in the “Pack link” field, the guide below it, a progress bar and the sticker count “Hot Cherry”: 16/34 at the bottom of the panel](../../img/setup/telegram-import.png)
+![The “Add stickers” screen, “Telegram” tab: a pack link in the “Pack link” field, under it the “Hot Cherry” pack card with a progress bar and the count 14/34, and the “Cancel” button in the footer](../../img/setup/telegram-import.png)
 
 The pack will appear as a separate tab in the “Stickers” mode. The stickers of each pack are converted once during
 import — after that they are sent right away.
 
+Changed your mind? Click “Cancel”: while the import is running, it takes the place of the “Import” button. Your library
+stays as it was before the import: a new pack won’t appear, and a pack imported earlier keeps its previous stickers.
+The bottom of the panel shows **Import canceled**, and the link stays in the field — you can start the import again.
+
 ## If it didn’t work
 
 An import error appears under the “Pack link” field, or at the bottom of the panel if you’ve left the “Add stickers”
-screen.
+screen. If no pack card appears under the field, you can still import: if something is wrong, the import will show
+an error.
 
 - **“The built-in Telegram bot is unavailable. Enter your own bot token in settings”** — Telegram refused the
   built-in bot: it hit the request limit or its token was revoked. Try the import again later or set up
@@ -51,8 +59,9 @@ screen.
   following [step 1](#pack-link).
 - **“HTTP 401 … Unauthorized”** — Telegram didn’t accept your token. Check that the token is copied in full, or get it
   again following the [“Copy the token”](#own-bot-token) step and paste it into “Settings”.
-- **“HTTP 400 … STICKERSET_INVALID”** — Telegram didn’t find the pack. Check that the pack opens from the link in
-  Telegram itself, and copy the link again following [step 1](#pack-link).
+- **“HTTP 400 … STICKERSET_INVALID”** — Telegram didn’t find the pack. This error appears under the field right after
+  you paste the link, and “Import” stays unavailable until the link is fixed. Check that the pack opens from the link
+  in Telegram itself, and copy the link again following [step 1](#pack-link).
 
 ## Your own bot (optional) {#own-bot}
 
