@@ -1,0 +1,45 @@
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directories:
+      - "/"
+      - "/docs"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Europe/Moscow"
+    cooldown:
+      default-days: 5
+    open-pull-requests-limit: 5
+    assignees:
+      - "mcar2107"
+    commit-message:
+      prefix: "chore(deps)"
+      prefix-development: "chore(deps-dev)"
+    groups:
+      # порядок важен: пакет попадает в первую подходящую группу
+      eslint:
+        patterns: ["eslint*", "@eslint/*", "typescript-eslint", "globals"]
+        update-types: ["minor", "patch"]
+      runtime:
+        dependency-type: "production"
+        update-types: ["minor", "patch"]
+      dev-tools:
+        dependency-type: "development"
+        update-types: ["minor", "patch"]
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      timezone: "Europe/Moscow"
+    assignees:
+      - "mcar2107"
+    groups:
+      actions:
+        patterns: ["*"]
