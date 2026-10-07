@@ -112,9 +112,19 @@ export const useStickerDraft = (): StickerDraftState => {
     };
   }, [draft]);
 
-  const pickFile = useCallback((file: File | undefined) => {
-    if (file) setSource(file);
-  }, []);
+  /**
+   * Признак сборки поднимается вместе с новым файлом, а не эффектом сборки: эффект сработает
+   * после отрисовки, и в этом кадре «Сохранить» была бы доступна при прежнем черновике. Тот же
+   * файл сборку не перезапускает, поэтому признак не поднимается — снять его было бы некому.
+   */
+  const pickFile = useCallback(
+    (file: File | undefined) => {
+      if (!file || file === source) return;
+      setIsEncoding(true);
+      setSource(file);
+    },
+    [source]
+  );
 
   const changeCaption = useCallback((nextCaption: string) => {
     setCaption(nextCaption);
