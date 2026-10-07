@@ -40,8 +40,13 @@ export const RU = {
   'settings.group.gif': 'GIF',
   'settings.group.telegram': 'Telegram',
   'settings.gif.oneKey': 'Для поиска GIF хватит одного ключа из двух. {docs}',
+  'settings.gif.builtinNote':
+    'Поиск KLIPY работает без ключа, а ключ GIPHY добавит источники GIPHY. {docs}',
   'settings.giphy.where': 'Бесплатно на {link}.',
   'settings.klipy.where': 'Бесплатный тестовый ключ — в Partner Panel: {link}.',
+  'settings.klipy.labelOptional': 'Свой KLIPY API key (необязательно)',
+  'settings.klipy.whereOptional':
+    'Необязательно: поиск KLIPY работает со встроенным ключом. Свой нужен, если встроенный недоступен, — бесплатный тестовый ключ в Partner Panel: {link}.',
   'settings.telegram.label': 'Токен Telegram-бота (для импорта)',
   'settings.telegram.hint': 'Создайте любого бота в {link}. {docs}',
   'settings.telegram.labelOptional': 'Свой токен Telegram-бота (необязательно)',
@@ -128,6 +133,8 @@ export const RU = {
   'error.telegram.methodFailed': 'Telegram: метод {method} не выполнен',
   'error.telegram.builtinUnavailable':
     'Встроенный бот Telegram недоступен. Укажите свой токен бота в настройках',
+  'error.gifs.builtinUnavailable':
+    'Встроенный ключ KLIPY недоступен — укажите свой в настройках',
   'error.copyLink': 'Не удалось скопировать ссылку',
   'error.net.notAllowed': 'Адрес вне списка разрешённых',
   'error.net.tooBig': 'Файл больше {size} МБ',
