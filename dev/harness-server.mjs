@@ -1,5 +1,5 @@
 /**
- * Сервер стенда `dev/harness.html`: отдаёт файлы репозитория и подмешивает в стенд настройки
+ * Сервер стенда `dev/harness.html`: отдаёт файлы стенда и сборки и подмешивает в стенд настройки
  * из `.env` (`GIPHY_KEY`, `KLIPY_KEY`, `TELEGRAM_BOT_TOKEN`) и прокси файлов Telegram.
  *
  * Запуск — `pnpm harness`, адрес — http://localhost:8777/dev/harness.html, порт меняет
@@ -8,13 +8,20 @@
  */
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import { createServer } from 'node:http';
-import { extname, join, normalize, resolve, sep } from 'node:path';
+import { extname, join, normalize, relative, resolve, sep } from 'node:path';
 
 const ROOT = resolve(import.meta.dirname, '..');
 const HOST = '127.0.0.1';
 const PORT = Number(process.env.PORT) || 8777;
 const ALLOWED_HOSTS = new Set([`${HOST}:${PORT}`, `localhost:${PORT}`]);
 const HARNESS_PATH = '/dev/harness.html';
+
+/**
+ * Каталоги, которые нужны стенду: сам стенд с CSS amo и userscript из сборки. Остальной репозиторий
+ * не отдаётся: в `local/` и `CLAUDE.local.md` лежат учётки и заметки, которым нечего делать в
+ * ответе локального сервера.
+ */
+const SERVED_DIRS = new Set(['dev', 'dist']);
 const PROXY_PATH = '/__proxy';
 const SETTINGS_KEY = 'amo-stickers:settings';
 const TELEGRAM_HOST = 'api.telegram.org';
@@ -130,20 +137,22 @@ const proxyTelegramFile = async (target, res) => {
 };
 
 /**
- * Файл репозитория по пути запроса. Путь вне корня и путь со скрытым сегментом (`.env`,
- * `.git`) не отдаются: в `.env` лежат ключи.
+ * Файл стенда по пути запроса. Отдаются только файлы из `SERVED_DIRS`, без скрытых сегментов
+ * (`.env`, `.git`): каталог проверяется по пути после нормализации, и `/dev/../local/…` не
+ * пройдёт.
  *
  * @param pathname — путь запроса
  * @returns абсолютный путь файла; `null` — отдавать нечего
  */
 const resolveFile = (pathname) => {
   const file = normalize(join(ROOT, pathname));
-  const isInside = file.startsWith(ROOT + sep);
+  const [topDir] = relative(ROOT, file).split(sep);
+  const isServed = file.startsWith(ROOT + sep) && SERVED_DIRS.has(topDir);
   const isHidden = pathname.split('/').some((segment) => {
     return segment.startsWith('.');
   });
 
-  if (!isInside || isHidden || !existsSync(file) || !statSync(file).isFile()) return null;
+  if (!isServed || isHidden || !existsSync(file) || !statSync(file).isFile()) return null;
 
   return file;
 };

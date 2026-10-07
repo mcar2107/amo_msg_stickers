@@ -237,7 +237,8 @@ src/
   types.d.ts      описания модулей без типов: gifenc, `*.css`, `gif-worker:code` и `page-agent:code` строкой; флаги
                   `window.__amoStickers` и `window.__amoStickersPage`;
                   `ImportMeta.glob` vite для теста пар страниц доки; константа сборки `__TELEGRAM_BOT_TOKEN__`
-dev/harness-server.mjs  сервер стенда (`pnpm harness`): ключи из `.env` и прокси файлов Telegram («Тесты»)
+dev/harness-server.mjs  сервер стенда (`pnpm harness`): файлы `dev/` и `dist/`, ключи из `.env` и прокси файлов
+                  Telegram («Тесты»)
 dev/harness.html  стенд: разметка инпута и сообщения ленты amo на CSS его страницы (`dev/amo.css`, в git не лежит);
                   вставка и «Отправить» замоканы — «Отправить» кладёт в ленту сообщение с картинкой, `alt` которой —
                   имя файла; переключатели «входящее» и «с именем автора», кнопки «картинка без метки» и «ответ с
@@ -911,8 +912,9 @@ open http://localhost:8777/dev/harness.html
 если его нет, существующий не трогает) — в `localStorage`, хранилище userscript без
 менеджера, — и подмену `fetch` файлов Telegram на свой прокси `/__proxy`: файлы отдаются без CORS, и прямой `fetch` со
 страницы на них падает, а менеджер и расширение ходят в обход CORS сами («Внешние данные»). Прокси пускает только
-`https://api.telegram.org/file/…` по разобранному `URL`; скрытые пути (`.env`, `.git`) сервер не отдаёт. Статический
-сервер без прокси (`python3 -m http.server`) подходит для всего, кроме импорта из Telegram.
+`https://api.telegram.org/file/…` по разобранному `URL`. Файлы сервер отдаёт только из `dev/` и `dist/` — стенд, CSS
+amo и userscript сборки, — без скрытых путей (`.env`, `.git`): `local/`, `CLAUDE.local.md` и остальной репозиторий
+недоступны. Статический сервер без прокси (`python3 -m http.server`) подходит для всего, кроме импорта из Telegram.
 
 Гейт коммита гоняет только тесты по изменённым файлам (`vitest --changed`); полный прогон — `pnpm test`.
 
