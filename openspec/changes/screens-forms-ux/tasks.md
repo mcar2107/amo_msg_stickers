@@ -124,7 +124,7 @@
   «Импорт», остальные сбои — без превью, пометка «уже в библиотеке» по списку паков провайдера, снимок `{ title, total }` на старте
   импорта, импорт берёт набор из кэша (D11); проверка: `pnpm typecheck`, стенд — сценарии «Карточка пака»
   (`telegram-import`)
-- [ ] 11.4 `TelegramImport/PackCard/` вместо `ImportProgress/`: название `truncate`, «Стикеров: N» / «N/M»
+- [x] 11.4 `TelegramImport/PackCard/` вместо `ImportProgress/`: название `truncate`, «Стикеров: N» / «N/M»
   `tabular-nums`, полоса `progressbar`, скелетон с `aria-busy`, пометка «уже в библиотеке», id карточки в
   `aria-describedby` поля, появление `[@starting-style]:` под `motion-safe:`; ключи словаря парой в `RU` / `EN`
   (typograf, `en-US`) (D11); проверка: `pnpm lint`, стенд — 350×400 со свёрнутой инструкцией без прокрутки тела,
@@ -144,7 +144,7 @@
 - [x] 12.3 `runPackImport` и `usePackImport`: `AbortController`, `cancelImport`, исход `onCancel` — `refreshPacks`,
   статус «Импорт отменён» через `showStatus`, ссылка, карточка и ошибка поля не трогаются, лента не прокручивается
   (D12); проверка: `tests/runPackImport.test.ts` — отмена зовёт `onCancel` и `onFinish`, а не `onError` и `onSuccess`
-- [ ] 12.4 `Button` передаёт событие клика в `onClick`; `TelegramImportFooter` во время импорта — тот же узел
+- [x] 12.4 `Button` передаёт событие клика в `onClick`; `TelegramImportFooter` во время импорта — тот же узел
   «Отменить», вариант `secondary`, `type="button"`, клик с `detail > 1` игнорируется; ключи словаря парой (D12);
   проверка: `pnpm lint`, стенд — сценарии «Фокус на кнопке», «Двойной клик по «Импорт»», «Enter во время импорта»
 - [ ] 12.5 Стенд (userscript без менеджера), видеопак: сценарии «Отмена нового пака», «Отмена повторного импорта»,

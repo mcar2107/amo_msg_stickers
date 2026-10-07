@@ -11,7 +11,7 @@ import type { TelegramImportState } from './useTelegramImport.types';
  * `cancelImport`. Ход импорта, ссылку, карточку и ошибку поля хранит провайдер, поэтому после
  * возврата на экран в поле та же ссылка и виден ход импорта.
  *
- * @returns ссылка, ошибка поля, карточка, ход импорта, его запуск и отмена
+ * @returns ссылка, ошибка поля, карточка с ходом импорта, его запуск и отмена
  */
 export const useTelegramImport = (): TelegramImportState => {
   const { packImport } = usePicker();
@@ -22,7 +22,6 @@ export const useTelegramImport = (): TelegramImportState => {
     card,
     changeLink,
     isImporting,
-    progress,
     importPack,
     cancelImport,
   } = packImport;
@@ -36,7 +35,6 @@ export const useTelegramImport = (): TelegramImportState => {
     card,
     changeLink,
     isImporting,
-    progress,
     startImport: importPack,
     cancelImport,
   };

@@ -1,4 +1,4 @@
-import type { ImportCount } from '../../PickerProvider/PickerProvider.types';
+import type { PackCard } from '../../PickerProvider/packCardView/packCardView.types';
 
 export type TelegramImportProps = {
   /**
@@ -12,9 +12,9 @@ export type TelegramImportProps = {
   fieldError: string | null;
 
   /**
-   * Ход импорта; `null` — импорт не идёт, полосы нет.
+   * Карточка пака под полем: превью до импорта или ход импорта; `null` — карточки нет.
    */
-  progress: ImportCount | null;
+  card: PackCard | null;
 
   /**
    * Сегмент «Telegram» выбран и панель видна: показ сегмента отмечает инструкцию увиденной.

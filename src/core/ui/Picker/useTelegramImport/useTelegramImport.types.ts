@@ -1,5 +1,4 @@
 import type { PackCard } from '../PickerProvider/packCardView/packCardView.types';
-import type { ImportCount } from '../PickerProvider/PickerProvider.types';
 
 export type TelegramImportState = {
   /**
@@ -38,12 +37,6 @@ export type TelegramImportState = {
    * Идёт импорт: повторный запуск недоступен.
    */
   isImporting: boolean;
-
-  /**
-   * Ход импорта; `null` — импорт не идёт, полоса прогресса скрыта: после успеха и после
-   * ошибки её нет.
-   */
-  progress: ImportCount | null;
 
   /**
    * Импортирует пак по введённой ссылке. Промис не отклоняется: ошибка уходит к полю ссылки

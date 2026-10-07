@@ -28,10 +28,11 @@ export const AddView: FC = () => {
     hasLink,
     fieldError,
     isPackMissing,
+    card,
     changeLink,
     isImporting,
-    progress,
     startImport,
+    cancelImport,
   } = useTelegramImport();
   const {
     fileName,
@@ -47,8 +48,16 @@ export const AddView: FC = () => {
   } = useStickerDraft();
   const isImportDisabled = isImporting || !hasLink || isPackMissing;
 
+  /**
+   * Enter в поле во время импорта отправляет форму и без кнопки отправки в футере — у формы с
+   * одним полем неявная отправка идёт и так; импорт он не отменяет и второй не запускает.
+   */
   const handleTelegramSubmit = () => {
     if (!isImportDisabled) void startImport();
+  };
+
+  const handleImportCancel = () => {
+    cancelImport();
   };
 
   const handleLinkChange = (value: string) => {
@@ -70,7 +79,13 @@ export const AddView: FC = () => {
   const renderFooter = () => {
     switch (addSegment) {
       case 'telegram': {
-        return <TelegramImportFooter isDisabled={isImportDisabled} />;
+        return (
+          <TelegramImportFooter
+            isImporting={isImporting}
+            isDisabled={isImportDisabled}
+            onCancel={handleImportCancel}
+          />
+        );
       }
 
       case 'custom': {
@@ -111,7 +126,7 @@ export const AddView: FC = () => {
         <TelegramImport
           link={link}
           fieldError={fieldError}
-          progress={progress}
+          card={card}
           isActive={addSegment === 'telegram'}
           onLinkChange={handleLinkChange}
         />

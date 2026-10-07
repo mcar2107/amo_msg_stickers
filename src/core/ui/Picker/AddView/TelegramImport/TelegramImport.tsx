@@ -7,24 +7,28 @@ import { ExternalLink } from '../../ExternalLink/ExternalLink';
 import { Field } from '../../Field/Field';
 
 import { HintToggle } from './HintToggle/HintToggle';
-import { ImportProgress } from './ImportProgress/ImportProgress';
+import { PackCard } from './PackCard/PackCard';
 import { useImportHint } from './useImportHint/useImportHint';
 import type { TelegramImportProps } from './TelegramImport.types';
 
 const LINK_FIELD_ID = 'picker-add-telegram-link';
 const HOW_TO_ID = 'picker-add-telegram-how-to';
+const CARD_ID = 'picker-add-telegram-card';
 
 /**
- * Панель сегмента «Telegram»: поле «Ссылка на пак», инструкция и ход импорта. Фрагмент, а не
- * обёртка: строки ложатся в форму сегмента с её отступами. Ссылку, ошибку поля и ход импорта
+ * Панель сегмента «Telegram»: поле «Ссылка на пак», инструкция и карточка пака. Фрагмент, а не
+ * обёртка: строки ложатся в форму сегмента с её отступами. Ссылку, ошибку поля и карточку
  * держит провайдер, а раздаёт `AddView` — «Импорт» стоит в футере экрана, вне панели.
  *
  * Свёрнутая инструкция остаётся в документе скрытой: на неё указывает `aria-controls` кнопки
- * «?». Описанием поля она служит, только пока раскрыта.
+ * «?». Описанием поля она служит, только пока раскрыта; карточка — всегда, пока она есть.
  */
 export const TelegramImport: FC<TelegramImportProps> = (props) => {
-  const { link, fieldError, progress, isActive, onLinkChange } = props;
+  const { link, fieldError, card, isActive, onLinkChange } = props;
   const { isHintOpen, toggleHint } = useImportHint(isActive);
+  const describedBy = [isHintOpen && HOW_TO_ID, card && CARD_ID]
+    .filter(Boolean)
+    .join(' ');
 
   const handleLinkInput = (value: string) => {
     onLinkChange(value);
@@ -55,7 +59,7 @@ export const TelegramImport: FC<TelegramImportProps> = (props) => {
           value={link}
           placeholder="t.me/addstickers/…"
           error={fieldError}
-          describedBy={isHintOpen ? HOW_TO_ID : ''}
+          describedBy={describedBy}
           onInput={handleLinkInput}
         />
 
@@ -74,7 +78,7 @@ export const TelegramImport: FC<TelegramImportProps> = (props) => {
         </p>
       </div>
 
-      {progress && <ImportProgress done={progress.done} total={progress.total} />}
+      {card && <PackCard id={CARD_ID} card={card} />}
     </>
   );
 };

@@ -1,5 +1,5 @@
 import type { VariantProps } from 'class-variance-authority';
-import type { ComponentChildren } from 'preact';
+import type { ComponentChildren, JSX } from 'preact';
 
 import type { buttonVariants } from './Button';
 
@@ -9,10 +9,15 @@ import type { buttonVariants } from './Button';
  */
 export type ButtonVariant = NonNullable<VariantProps<typeof buttonVariants>['variant']>;
 
+/**
+ * Событие клика по кнопке.
+ */
+export type ButtonClickEvent = JSX.TargetedMouseEvent<HTMLButtonElement>;
+
 type ButtonBaseProps = {
   /**
-   * Вид кнопки: основная — акцентная заливка, опасная — мелкая текстовая кнопка цвета
-   * ошибки.
+   * Вид кнопки: основная — акцентная заливка, второстепенная — нейтральная заливка того же
+   * размера, опасная — мелкая текстовая кнопка цвета ошибки.
    */
   variant: ButtonVariant;
 
@@ -43,9 +48,10 @@ export type ButtonActionProps = ButtonBaseProps & {
   form?: never;
 
   /**
-   * Колбэк на нажатие.
+   * Колбэк на нажатие; событие нужно, чтобы отличить клик мышью от нажатия с клавиатуры и
+   * повторный клик серии (`detail`).
    */
-  onClick: () => void;
+  onClick: (event: ButtonClickEvent) => void;
 };
 
 /**
@@ -67,7 +73,7 @@ export type ButtonSubmitProps = ButtonBaseProps & {
   /**
    * Колбэк на нажатие, до отправки формы.
    */
-  onClick?: () => void;
+  onClick?: (event: ButtonClickEvent) => void;
 };
 
 export type ButtonProps = ButtonActionProps | ButtonSubmitProps;
