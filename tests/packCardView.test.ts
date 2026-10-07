@@ -38,6 +38,22 @@ describe('shouldRequestPreview', () => {
     expect(shouldRequestPreview('cats', READY, true)).toBe(false);
   });
 
+  it('то же имя после сбоя без превью — запрос снова', () => {
+    expect(
+      shouldRequestPreview('cats', { name: 'cats', result: { status: 'none' } }, true)
+    ).toBe(true);
+  });
+
+  it('то же имя после «пак не найден» — запроса нет', () => {
+    expect(
+      shouldRequestPreview(
+        'cats',
+        { name: 'cats', result: { status: 'notFound', message: 'нет' } },
+        true
+      )
+    ).toBe(false);
+  });
+
   it('ссылка без имени — запроса нет', () => {
     expect(shouldRequestPreview(null, READY, true)).toBe(false);
   });
