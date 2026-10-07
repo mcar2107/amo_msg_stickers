@@ -68,10 +68,12 @@ export const SettingsView: FC = () => {
   };
 
   /**
-   * `change` всплывает от поля, когда из него уходит фокус или в нём нажат Enter: одна
-   * подписка на форме фиксирует любое поле.
+   * Фиксация по уходу фокуса, а не по `change`: браузер не шлёт `change`, если значение
+   * вернулось к тому, что было при входе в поле, и возврат к уже проверенному после правки
+   * остался бы без результата проверки. `focusout` всплывает, поэтому одна подписка на форме
+   * фиксирует любое поле. Фиксация без правки ничего не пишет и не проверяет.
    */
-  const handleFormChange = () => {
+  const handleFormFocusOut = () => {
     commit();
   };
 
@@ -97,7 +99,7 @@ export const SettingsView: FC = () => {
       <form
         className="flex flex-col gap-4 px-0.5"
         noValidate
-        onChange={handleFormChange}
+        onFocusOut={handleFormFocusOut}
         onSubmit={handleFormSubmit}
       >
         <p className={NOTE_CLASS}>{t('settings.storedLocally')}</p>
