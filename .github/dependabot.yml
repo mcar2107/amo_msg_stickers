@@ -1,45 +1,50 @@
 version: 2
 updates:
-  - package-ecosystem: "npm"
+  - package-ecosystem: 'npm'
     directories:
-      - "/"
-      - "/docs"
+      - '/'
+      - '/docs'
     schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "09:00"
-      timezone: "Europe/Moscow"
+      interval: 'weekly'
+      day: 'monday'
+      time: '09:00'
+      timezone: 'Europe/Moscow'
     cooldown:
       default-days: 5
     open-pull-requests-limit: 5
     assignees:
-      - "mcar2107"
+      - 'mcar2107'
     commit-message:
-      prefix: "chore(deps)"
-      prefix-development: "chore(deps-dev)"
+      prefix: 'chore(deps)'
+      prefix-development: 'chore(deps-dev)'
     groups:
       # порядок важен: пакет попадает в первую подходящую группу
       eslint:
-        patterns: ["eslint*", "@eslint/*", "typescript-eslint", "globals"]
-        update-types: ["minor", "patch"]
+        patterns: ['eslint*', '@eslint/*', 'typescript-eslint', 'globals']
+        update-types: ['minor', 'patch']
       runtime:
-        dependency-type: "production"
-        update-types: ["minor", "patch"]
+        dependency-type: 'production'
+        update-types: ['minor', 'patch']
       dev-tools:
-        dependency-type: "development"
-        update-types: ["minor", "patch"]
+        dependency-type: 'development'
+        update-types: ['minor', 'patch']
     ignore:
-      - dependency-name: "*"
-        update-types: ["version-update:semver-major"]
+      # версия закреплена точной: апдейт требует `pnpm skills:update` в том же PR, вручную
+      - dependency-name: '@fission-ai/openspec'
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
 
-  - package-ecosystem: "github-actions"
-    directory: "/"
+  - package-ecosystem: 'github-actions'
+    directory: '/'
     schedule:
-      interval: "weekly"
-      day: "monday"
-      timezone: "Europe/Moscow"
+      interval: 'weekly'
+      day: 'monday'
+      time: '09:00'
+      timezone: 'Europe/Moscow'
+    cooldown:
+      default-days: 5
     assignees:
-      - "mcar2107"
+      - 'mcar2107'
     groups:
       actions:
-        patterns: ["*"]
+        patterns: ['*']
