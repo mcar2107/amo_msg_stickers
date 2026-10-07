@@ -44,14 +44,19 @@ message, a channel or the sticker itself won’t work. How to copy the pack
 
 ## GIF search stopped working
 
-Most likely, the key has hit its request limit. Free keys are test keys: GIPHY allows 100 requests per hour, KLIPY —
-the limit from the Partner Panel. Requests are used by search, loading the next page of the feed and trending GIFs.
+If the “GIFs” mode shows the error “The built-in KLIPY key is unavailable — enter your own in settings”, the built-in
+amo stickers key has hit its limit or stopped working. Get your own KLIPY key following the steps
+in [“GIF keys”](./setup/gif-keys#own-klipy).
+
+Otherwise, most likely, your key has hit its request limit. Your own free keys are test keys: GIPHY allows 100 requests
+per hour, KLIPY — the limit from the Partner Panel. Requests are used by search, loading the next page of the feed
+and trending GIFs.
 
 What to do:
 
 - **wait** — the limit is per hour, and search will work again within an hour;
-- **switch to another source** in the “GIFs” mode or **get a key for the second service** — each key has its own
-  limit.
+- **switch to another source** in the “GIFs” mode — KLIPY works without a key of your own — or **get a key
+  for the second service**: each key has its own limit.
 
 More about limits and keys — in [“GIF keys”](./setup/gif-keys#limits).
 

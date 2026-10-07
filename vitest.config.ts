@@ -5,11 +5,11 @@ export default defineConfig({
     projects: [
       {
         /**
-         * Сборка подставляет токен встроенного бота; тестам — сборка без него. Модуль, который
-         * читает константу, тесты подменяют `vi.mock`, а импорт без подмены не падает на
-         * `ReferenceError`.
+         * Сборка подставляет токен встроенного бота и ключ KLIPY; тестам — сборка без них.
+         * Модули, которые читают константы, тесты подменяют `vi.mock`, а импорт без подмены не
+         * падает на `ReferenceError`.
          */
-        define: { __TELEGRAM_BOT_TOKEN__: '""' },
+        define: { __TELEGRAM_BOT_TOKEN__: '""', __KLIPY_API_KEY__: '""' },
         test: {
           name: 'unit',
           include: ['tests/**/*.test.{ts,tsx}'],

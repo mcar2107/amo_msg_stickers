@@ -1,5 +1,6 @@
 import type { FunctionComponent as FC, TargetedSubmitEvent } from 'preact';
 
+import { BUILTIN_KLIPY_KEY } from '../../../builtinKlipyKey';
 import { BUILTIN_TELEGRAM_TOKEN } from '../../../builtinToken';
 import { getLocale, t } from '../../../i18n/translate';
 import { USER_DOCS_PAGE, userDocsUrl } from '../../../userDocs';
@@ -10,22 +11,29 @@ import { Screen } from '../Screen/Screen';
 
 import { fieldCheckText } from './fieldCheckText/fieldCheckText';
 import { fieldCheckTone } from './fieldCheckTone/fieldCheckTone';
+import { klipyKeyText } from './klipyKeyText/klipyKeyText';
 import { telegramTokenText } from './telegramTokenText/telegramTokenText';
 import { useSettingsDraft } from './useSettingsDraft/useSettingsDraft';
 
 /**
- * Встроенный токен сборки не меняется до перезагрузки страницы — ключи выбираются раз.
+ * Встроенные токен и ключ KLIPY сборки не меняются до перезагрузки страницы — ключи словаря
+ * выбираются раз.
  */
 const { label: TELEGRAM_TOKEN_LABEL, hint: TELEGRAM_TOKEN_HINT } = telegramTokenText(
   Boolean(BUILTIN_TELEGRAM_TOKEN)
 );
+const {
+  label: KLIPY_KEY_LABEL,
+  hint: KLIPY_KEY_HINT,
+  note: GIF_NOTE,
+} = klipyKeyText(Boolean(BUILTIN_KLIPY_KEY));
 
 const GIF_GROUP_ID = 'settings-group-gif';
 const TELEGRAM_GROUP_ID = 'settings-group-telegram';
 
 /**
- * Пояснение «хватит одного ключа» — ещё и описание обоих полей GIF: в режиме форм скринридер
- * читает только подпись и описание поля, а не текст группы.
+ * Пояснение группы «GIF» — ещё и описание обоих полей GIF: в режиме форм скринридер читает
+ * только подпись и описание поля, а не текст группы.
  */
 const GIF_NOTE_ID = 'settings-gif-note';
 
@@ -118,19 +126,19 @@ export const SettingsView: FC = () => {
             </h3>
 
             <p id={GIF_NOTE_ID} className={NOTE_CLASS}>
-              {renderMessage('settings.gif.oneKey', { docs: gifDocsLink })}
+              {renderMessage(GIF_NOTE, { docs: gifDocsLink })}
             </p>
           </div>
 
           <Field
             isSecret
             id="settings-klipy-key"
-            label="KLIPY API key"
+            label={KLIPY_KEY_LABEL ? t(KLIPY_KEY_LABEL) : 'KLIPY API key'}
             value={klipyKey}
             placeholder={t('settings.gif.placeholder')}
             result={fieldCheckText(klipyCheck, 'KLIPY')}
             tone={fieldCheckTone(klipyCheck)}
-            hint={renderMessage('settings.klipy.where', {
+            hint={renderMessage(KLIPY_KEY_HINT, {
               link: (
                 <ExternalLink href="https://partner.klipy.com/api-keys">
                   partner.klipy.com
