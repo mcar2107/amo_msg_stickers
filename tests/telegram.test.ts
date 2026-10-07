@@ -762,6 +762,37 @@ describe('importTelegramSet: отмена', () => {
     expect(deletedStickers()).toEqual(['tg:c', 'tg:d']);
   });
 
+  it('отмена повторного импорта возвращает перезаписанный стикер к прежней записи', async () => {
+    const controller = new AbortController();
+    const set = setOf(['a', 'b', 'c']);
+    const host = fakeHost({ onJson: botApi(set) });
+    const before = records(['a', 'b']);
+    const [first, second] = before;
+    const overwritten = records(['a', 'b', 'c']).map((record) => {
+      return { ...record, createdAt: 1000 };
+    });
+
+    vi.mocked(getPack).mockResolvedValueOnce(PREVIOUS);
+    vi.mocked(listStickers)
+      .mockResolvedValueOnce(before)
+      .mockResolvedValueOnce(overwritten);
+
+    await expect(
+      importTelegramSet(
+        host,
+        TOKEN,
+        set,
+        ({ done }) => {
+          if (done === 3) controller.abort();
+        },
+        controller.signal
+      )
+    ).rejects.toHaveProperty('name', 'AbortError');
+
+    expect(vi.mocked(putSticker).mock.calls.slice(-2)).toEqual([[first], [second]]);
+    expect(deletedStickers()).toEqual(['tg:c']);
+  });
+
   it('отмена во время getFile — ответ отброшен, fetchBlob и новых запросов нет', async () => {
     const controller = new AbortController();
     const set = setOf(['a', 'b', 'c']);

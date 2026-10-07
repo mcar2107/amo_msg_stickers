@@ -9,7 +9,7 @@ import {
   putPack,
   putSticker,
 } from '../db';
-import type { Pack } from '../db.types';
+import type { Pack, StickerRec } from '../db.types';
 import type { Host } from '../host.types';
 import { LocalizedError, t } from '../i18n/translate';
 import { BYTES_IN_MB, httpStatus } from '../net';
@@ -259,18 +259,19 @@ export const previewOutcome = (error: unknown): PreviewOutcome => {
 
 /**
  * Откат отменённого импорта: нового пака не остаётся вместе со стикерами, а пак, импортированный
- * раньше, возвращается к записи и составу до начала. Удаляются стикеры не из снимка, а не
- * последние N: стикер, записанный в момент отмены, тоже уходит, а перезаписанные повтором — те
- * же файлы Telegram по тому же id — остаются.
+ * раньше, возвращается к записи и составу до начала. Стикеры сверяются со снимком, а не считаются
+ * последними N: стикер, записанный в момент отмены, тоже уходит. Повтор перезаписывает стикеры
+ * пака по тому же id с новым `createdAt`, поэтому стикер из снимка возвращается к прежней записи —
+ * иначе после отмены изменился бы порядок пака.
  *
  * @param packId — id пака
  * @param previous — запись пака до импорта; undefined — пака не было
- * @param snapshot — id стикеров пака до импорта
+ * @param snapshot — записи стикеров пака до импорта по id
  */
 const rollbackImport = async (
   packId: string,
   previous: Pack | undefined,
-  snapshot: Set<string>
+  snapshot: Map<string, StickerRec>
 ) => {
   if (!previous) {
     await deletePack(packId);
@@ -279,13 +280,12 @@ const rollbackImport = async (
   }
 
   await putPack(previous);
-  const added = (await listStickers(packId)).reduce<string[]>((ids, { id }) => {
-    if (!snapshot.has(id)) ids.push(id);
 
-    return ids;
-  }, []);
+  for (const { id } of await listStickers(packId)) {
+    const before = snapshot.get(id);
 
-  for (const id of added) await deleteSticker(id);
+    await (before ? putSticker(before) : deleteSticker(id));
+  }
 };
 
 /**
@@ -327,10 +327,10 @@ export const importTelegramSet = async (
   /**
    * Снимок до записи пака: у нового пака откат удаляет его целиком, и снимок не нужен.
    */
-  const snapshot = new Set<string>();
+  const snapshot = new Map<string, StickerRec>();
 
   if (previous) {
-    for (const { id } of await listStickers(pack.id)) snapshot.add(id);
+    for (const sticker of await listStickers(pack.id)) snapshot.set(sticker.id, sticker);
   }
 
   await putPack(pack);
