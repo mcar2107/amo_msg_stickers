@@ -188,7 +188,13 @@ const decodePath = (pathname) => {
   }
 };
 
-createServer(async (req, res) => {
+/**
+ * Ответ на запрос стенда.
+ *
+ * @param req — запрос
+ * @param res — ответ сервера
+ */
+const handleRequest = async (req, res) => {
   if (!ALLOWED_HOSTS.has(req.headers.host || '')) {
     res.writeHead(421).end('misdirected request');
 
@@ -236,6 +242,27 @@ createServer(async (req, res) => {
   }
 
   res.writeHead(200, headers).end(readFileSync(file));
+};
+
+/**
+ * Сбой обработчика — чтение файла, `.env`, ответ прокси — отвечает 500, а не оставляет запрос
+ * висеть необработанным отказом промиса. Если заголовки уже ушли, ответ обрывается. Адрес запроса в
+ * лог не идёт: у прокси в нём адрес файла Telegram с токеном бота.
+ */
+createServer(async (req, res) => {
+  try {
+    await handleRequest(req, res);
+  } catch (error) {
+    console.error('harness: request failed', error);
+
+    if (res.headersSent) {
+      res.destroy();
+
+      return;
+    }
+
+    res.writeHead(500).end('internal error');
+  }
 }).listen(PORT, HOST, () => {
   console.info(`harness: http://localhost:${PORT}${HARNESS_PATH}`);
 });
