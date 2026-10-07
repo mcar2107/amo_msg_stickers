@@ -89,22 +89,36 @@ const PROXY_SHIM = `
 `;
 
 /**
+ * Поля настроек по переменным `.env`.
+ */
+const ENV_SETTINGS = {
+  giphyKey: 'GIPHY_KEY',
+  klipyKey: 'KLIPY_KEY',
+  telegramToken: 'TELEGRAM_BOT_TOKEN',
+};
+
+/**
  * Скрипт в начало `<head>` стенда: настройки из `.env` в `localStorage` — хранилище
  * userscript без менеджера — и прокси файлов Telegram. `.env` читается на каждый запрос стенда:
  * правка ключа видна после перезагрузки страницы, без перезапуска сервера.
+ *
+ * Пишутся только непустые значения `.env` поверх сохранённых полей: пустая переменная из шаблона
+ * иначе стирала бы на каждой перезагрузке ключ, введённый на стенде в «Настройках».
  *
  * @returns разметка `<script>`
  */
 const buildSeed = () => {
   const env = readEnv();
-  const settings = {
-    giphyKey: env.GIPHY_KEY || '',
-    klipyKey: env.KLIPY_KEY || '',
-    telegramToken: env.TELEGRAM_BOT_TOKEN || '',
-  };
-  const seed = JSON.stringify(JSON.stringify(settings));
+  const settings = Object.entries(ENV_SETTINGS).reduce((fields, [field, variable]) => {
+    if (env[variable]) fields[field] = env[variable];
 
-  return `<script>try{localStorage.setItem(${JSON.stringify(SETTINGS_KEY)},${seed});}catch(e){}${PROXY_SHIM}</script>`;
+    return fields;
+  }, {});
+  const seed = JSON.stringify(settings);
+  const key = JSON.stringify(SETTINGS_KEY);
+  const store = `try{var k=${key},s={};try{var v=JSON.parse(localStorage.getItem(k));if(v&&typeof v==='object'&&!Array.isArray(v))s=v;}catch(e){}Object.assign(s,${seed});localStorage.setItem(k,JSON.stringify(s));}catch(e){}`;
+
+  return `<script>${seed === '{}' ? '' : store}${PROXY_SHIM}</script>`;
 };
 
 /**
