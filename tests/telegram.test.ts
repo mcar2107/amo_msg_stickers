@@ -8,6 +8,7 @@ import {
   listStickers,
   putPack,
   putSticker,
+  setPackCover,
 } from '../src/core/db';
 import type { Pack, StickerRec } from '../src/core/db.types';
 import type { Host } from '../src/core/host.types';
@@ -55,6 +56,7 @@ vi.mock('../src/core/db', () => {
     getPack: vi.fn(async () => {}),
     putPack: vi.fn(async () => {}),
     putSticker: vi.fn(async () => {}),
+    setPackCover: vi.fn(async () => {}),
     deletePack: vi.fn(async () => {}),
     deleteSticker: vi.fn(async () => {}),
     listStickers: vi.fn(async () => {
@@ -399,6 +401,24 @@ describe('importTelegramSet: место пака в порядке', () => {
     await importTelegramSet(fakeHost({ onJson: botApi(SET) }), TOKEN, SET, vi.fn());
 
     expect(stickerTimes()).toEqual([STARTED_AT, STARTED_AT + 1]);
+  });
+
+  it('обложка пишется отдельно от записи пака: отметка во время импорта не затирается', async () => {
+    vi.mocked(getPack).mockResolvedValueOnce({
+      id: 'tg:Pack',
+      title: 'Пак',
+      source: 'telegram',
+      createdAt: 1,
+      usedAt: 300,
+    });
+    await importTelegramSet(fakeHost({ onJson: botApi(SET) }), TOKEN, SET, vi.fn());
+
+    expect(writtenPacks()).toHaveLength(1);
+    expect(setPackCover).toHaveBeenCalledOnce();
+    expect(setPackCover).toHaveBeenCalledWith(
+      'tg:Pack',
+      vi.mocked(putSticker).mock.calls[0]?.[0].id
+    );
   });
 });
 

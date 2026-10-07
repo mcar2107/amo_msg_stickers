@@ -8,6 +8,7 @@ import {
   listStickers,
   putPack,
   putSticker,
+  setPackCover,
 } from '../db';
 import type { Pack, StickerRec } from '../db.types';
 import type { Host } from '../host.types';
@@ -406,7 +407,7 @@ export const importTelegramSet = async (
 
       if (!pack.coverId) {
         pack.coverId = id;
-        await putPack(pack);
+        await setPackCover(pack.id, id);
       }
     } catch (e) {
       if (signal?.aborted) break;
