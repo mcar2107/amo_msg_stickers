@@ -17,6 +17,7 @@ everything the extension stores stays in your browser, and nothing goes to t
 **Stickers and history** — in the amo site storage (IndexedDB and `localStorage`) with any installation method:
 
 - imported Telegram packs and your own stickers — ready GIFs and their captions;
+- when a sticker was last sent from each pack — packs are ordered by it;
 - recent stickers and recent GIFs — up to 40 of each kind; for GIFs — a link to the file and the title;
 - the selected panel mode — “Stickers” or “GIFs”.
 

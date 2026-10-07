@@ -315,14 +315,24 @@ export const importTelegramSet = async (
   const { token, isBuiltin } = pickToken(ownToken);
   const { name: setName, title, stickers } = set;
 
+  const startedAt = Date.now();
+  const packId = `${TG_ID_PREFIX}${setName}`;
+  const previous = await getPack(packId);
+
+  /**
+   * Повторный импорт берёт `createdAt` и `usedAt` прежней записи: место пака в порядке не меняется, в том числе у
+   * пака без использования. Новый пак отмечен использованным временем импорта — он встаёт первым среди паков Telegram.
+   */
   const pack: Pack = {
-    id: `${TG_ID_PREFIX}${setName}`,
+    id: packId,
     title,
     source: 'telegram',
     sourceRef: setName,
-    createdAt: Date.now(),
+    createdAt: previous?.createdAt || startedAt,
   };
-  const previous = await getPack(pack.id);
+  const usedAt = previous ? previous.usedAt : startedAt;
+
+  if (usedAt) pack.usedAt = usedAt;
 
   /**
    * Снимок до записи пака: у нового пака откат удаляет его целиком, и снимок не нужен.
@@ -387,7 +397,11 @@ export const importTelegramSet = async (
         width: gif.width,
         height: gif.height,
         emoji,
-        createdAt: pack.createdAt + index,
+        /**
+         * От начала импорта, а не от `createdAt` пака: у повторного импорта он прежний, а время стикеров не должно
+         * зависеть от места пака в порядке паков.
+         */
+        createdAt: startedAt + index,
       });
 
       if (!pack.coverId) {

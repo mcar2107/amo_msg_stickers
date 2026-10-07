@@ -32,8 +32,14 @@ export const FeedRow: FC<FeedRowProps> = (props) => {
   const { row, hint, onCellDelete } = props;
   const { urlOf } = usePicker();
   const { sectionId, top, height, items, hasCreateTile } = row;
-  const removeKind: CellRemoveKind =
-    sectionId === RECENT_SECTION_ID ? 'recent' : 'sticker';
+  const isRecent = sectionId === RECENT_SECTION_ID;
+  const removeKind: CellRemoveKind = isRecent ? 'recent' : 'sticker';
+
+  /**
+   * У разделов паков id раздела — id пака. «Недавние» пака не передают: отправка оттуда
+   * использованием пака не считается.
+   */
+  const packId = isRecent ? undefined : sectionId;
   const position = { top, height };
 
   if (!items.length && !hasCreateTile) {
@@ -58,6 +64,7 @@ export const FeedRow: FC<FeedRowProps> = (props) => {
             key={key}
             id={cellId(sectionId, key)}
             item={item}
+            packId={packId}
             url={urlOf(sticker.id, sticker.blob)}
             emoji={sticker.emoji}
             name={name}

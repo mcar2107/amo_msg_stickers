@@ -103,6 +103,36 @@ export const putPack = async (pack: Pack) => {
   await promisify((await store(STORE.packs, 'readwrite')).put(pack));
 };
 
+/**
+ * Отмечает использование пака текущим временем. Чтение и запись — одна транзакция: запись пака, которую другая вкладка
+ * сделала между ними (повторный импорт), не затирается прежней копией.
+ *
+ * @param packId — id пака
+ * @returns завершение записи; пака нет (удалён в другой вкладке) — ничего не пишется, промис выполняется без ошибки
+ */
+export const touchPack = async (packId: string) => {
+  const db = await openDb();
+  const tx = db.transaction(STORE.packs, 'readwrite');
+  const packs = tx.objectStore(STORE.packs);
+  const req = packs.get(packId);
+
+  req.onsuccess = () => {
+    const pack = req.result as Pack | undefined;
+
+    if (pack) packs.put({ ...pack, usedAt: Date.now() });
+  };
+
+  await new Promise<void>((resolve, reject) => {
+    tx.oncomplete = () => {
+      return resolve();
+    };
+
+    tx.onerror = () => {
+      return reject(tx.error);
+    };
+  });
+};
+
 export const ensureCustomPack = async (): Promise<Pack> => {
   const existing = await getPack(CUSTOM_PACK_ID);
 
