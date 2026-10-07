@@ -148,3 +148,9 @@ export const isTgFile = (value: unknown): value is TgFile => {
     FILE_PATH_RE.test(value.file_path)
   );
 };
+
+/**
+ * Исход превью пака по ошибке запроса набора: `notFound` — Telegram ответил, что пака нет, и
+ * ошибка встаёт к полю ссылки; `noPreview` — любой другой сбой, превью снимается без ошибки.
+ */
+export type PreviewOutcome = 'notFound' | 'noPreview';

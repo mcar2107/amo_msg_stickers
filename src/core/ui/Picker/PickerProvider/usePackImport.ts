@@ -1,7 +1,7 @@
 import { useCallback, useRef, useState } from 'preact/hooks';
 
 import { t } from '../../../i18n/translate';
-import { importTelegramSet } from '../../../sources/telegram';
+import { importTelegramSet, resolveTelegramSet } from '../../../sources/telegram';
 import type { ImportProgress } from '../../../sources/telegram.types';
 
 import { finishImport, importErrorTarget } from './finishImport/finishImport';
@@ -110,8 +110,11 @@ export const usePackImport = (options: PackImportOptions): PackImportState => {
 
     await runPackImport({
       link,
-      importSet: (setLink) => {
-        return importTelegramSet(env, settings.telegramToken, setLink, trackProgress);
+      importSet: async (setLink) => {
+        const { telegramToken } = settings;
+        const set = await resolveTelegramSet(env, telegramToken, setLink);
+
+        return importTelegramSet(env, telegramToken, set, trackProgress);
       },
       refreshPacks,
       errorTarget: () => {

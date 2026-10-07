@@ -1,7 +1,14 @@
 import { BUILTIN_TELEGRAM_TOKEN } from '../builtinToken';
 import { toStickerGif } from '../convert';
 import type { SourceKind } from '../convert.types';
-import { deletePack, getPack, putPack, putSticker } from '../db';
+import {
+  deletePack,
+  deleteSticker,
+  getPack,
+  listStickers,
+  putPack,
+  putSticker,
+} from '../db';
 import type { Pack } from '../db.types';
 import type { Host } from '../host.types';
 import { LocalizedError, t } from '../i18n/translate';
@@ -13,8 +20,10 @@ import {
   isTgResponse,
   isTgSticker,
   isTgStickerSet,
+  type PreviewOutcome,
   SET_NAME_RE,
   type TgSticker,
+  type TgStickerSet,
 } from './telegram.types';
 
 /**
@@ -127,6 +136,12 @@ export const parseSetName = (input: string): string | null => {
 };
 
 /**
+ * Отказ метода в ответе Bot API (`ok: false`), а не сбой запроса: его отличает исход превью —
+ * Telegram сам сказал, что не так.
+ */
+class BotApiRefusal extends Error {}
+
+/**
  * Вызов метода Bot API. Возвращает `result` без проверки формы: её проверяет гард метода.
  *
  * @param host — окружение
@@ -148,7 +163,9 @@ const call = async (
   if (!isTgResponse(response)) throw badResponse();
   const { ok, result, description } = response;
 
-  if (!ok) throw new Error(description || t('error.telegram.methodFailed', { method }));
+  if (!ok) {
+    throw new BotApiRefusal(description || t('error.telegram.methodFailed', { method }));
+  }
 
   return result;
 };
@@ -187,33 +204,115 @@ const withMimeType = (raw: Blob, kind: SourceKind): Blob => {
 };
 
 /**
- * Импортирует пак в библиотеку. Свой токен пользователя важнее встроенного: со своим
- * отказ бота показывается текстом ответа Telegram.
+ * Токен запросов к Bot API: свой токен пользователя важнее встроенного — со своим отказ бота
+ * показывается текстом ответа Telegram.
+ *
+ * @param ownToken — свой токен из настроек; пустой — встроенный токен сборки
+ * @returns токен и признак встроенного
+ */
+const pickToken = (ownToken: string) => {
+  const token = ownToken || BUILTIN_TELEGRAM_TOKEN;
+
+  if (!token) throw new Error(t('error.telegram.noToken'));
+
+  return { token, isBuiltin: !ownToken };
+};
+
+/**
+ * Состав пака без записи в библиотеку: им показывают карточку пака до импорта, и он же уходит в
+ * импорт. Битая ссылка и отсутствие токена — ошибка без запроса к Telegram.
+ *
+ * @param host — окружение
+ * @param ownToken — свой токен из настроек; пустой — встроенный токен сборки
+ * @param input — ссылка на пак или имя набора
+ * @returns набор пака; отказ встроенного бота — подсказка про свой токен
+ */
+export const resolveTelegramSet = async (
+  host: Host,
+  ownToken: string,
+  input: string
+): Promise<TgStickerSet> => {
+  const name = parseSetName(input);
+
+  if (!name) throw new Error(t('error.telegram.badLink'));
+  const { token, isBuiltin } = pickToken(ownToken);
+  const set = await guardBuiltin(call(host, token, 'getStickerSet', { name }), isBuiltin);
+
+  if (!isTgStickerSet(set)) throw badResponse();
+
+  return set;
+};
+
+/**
+ * Пак не найден — HTTP 400 или отказ в ответе Bot API: пользователь исправит ссылку до
+ * импорта. Остальное — отказ встроенного бота, сеть, битый ответ — превью не показывает, но
+ * импорт не блокирует: он покажет свою ошибку сам.
+ *
+ * @param error — ошибка `resolveTelegramSet`
+ * @returns исход превью
+ */
+export const previewOutcome = (error: unknown): PreviewOutcome => {
+  if (error instanceof BotApiRefusal || httpStatus(error) === 400) return 'notFound';
+
+  return 'noPreview';
+};
+
+/**
+ * Откат отменённого импорта: нового пака не остаётся вместе со стикерами, а пак, импортированный
+ * раньше, возвращается к записи и составу до начала. Удаляются стикеры не из снимка, а не
+ * последние N: стикер, записанный в момент отмены, тоже уходит, а перезаписанные повтором — те
+ * же файлы Telegram по тому же id — остаются.
+ *
+ * @param packId — id пака
+ * @param previous — запись пака до импорта; undefined — пака не было
+ * @param snapshot — id стикеров пака до импорта
+ */
+const rollbackImport = async (
+  packId: string,
+  previous: Pack | undefined,
+  snapshot: Set<string>
+) => {
+  if (!previous) {
+    await deletePack(packId);
+
+    return;
+  }
+
+  await putPack(previous);
+  const added = (await listStickers(packId)).reduce<string[]>((ids, { id }) => {
+    if (!snapshot.has(id)) ids.push(id);
+
+    return ids;
+  }, []);
+
+  for (const id of added) await deleteSticker(id);
+};
+
+/**
+ * Импортирует в библиотеку пак по уже полученному набору (`resolveTelegramSet`): состав
+ * пака повторно не запрашивается. Токен выбирается так же, как у набора.
+ *
+ * Отмена проверяется перед каждым запросом, конвертацией и записью стикера: запрос в полёте не
+ * обрывается, но его ответ отбрасывается. Отменённый импорт откатывается до броска.
  *
  * @param host — окружение
  * @param ownToken — свой токен из настроек; пустой — импорт встроенным токеном сборки
- * @param input — ссылка на пак или имя набора
+ * @param set — набор пака
  * @param onProgress — прогресс по стикерам
+ * @param signal — отмена импорта; undefined — без неё
  * @returns пак, в который импортирован хотя бы один стикер; отказ встроенного бота посреди пака —
- *   исключение, а уже импортированные стикеры остаются в библиотеке
+ *   исключение, а уже импортированные стикеры остаются в библиотеке; отмена — `signal.reason`,
+ *   библиотека как до импорта
  */
 export const importTelegramSet = async (
   host: Host,
   ownToken: string,
-  input: string,
-  onProgress: (p: ImportProgress) => void
+  set: TgStickerSet,
+  onProgress: (p: ImportProgress) => void,
+  signal?: AbortSignal
 ): Promise<Pack> => {
-  const name = parseSetName(input);
-
-  if (!name) throw new Error(t('error.telegram.badLink'));
-  const token = ownToken || BUILTIN_TELEGRAM_TOKEN;
-
-  if (!token) throw new Error(t('error.telegram.noToken'));
-  const isBuiltin = !ownToken;
-
-  const set = await guardBuiltin(call(host, token, 'getStickerSet', { name }), isBuiltin);
-
-  if (!isTgStickerSet(set)) throw badResponse();
+  signal?.throwIfAborted();
+  const { token, isBuiltin } = pickToken(ownToken);
   const { name: setName, title, stickers } = set;
 
   const pack: Pack = {
@@ -224,6 +323,15 @@ export const importTelegramSet = async (
     createdAt: Date.now(),
   };
   const previous = await getPack(pack.id);
+
+  /**
+   * Снимок до записи пака: у нового пака откат удаляет его целиком, и снимок не нужен.
+   */
+  const snapshot = new Set<string>();
+
+  if (previous) {
+    for (const { id } of await listStickers(pack.id)) snapshot.add(id);
+  }
 
   await putPack(pack);
 
@@ -250,6 +358,8 @@ export const importTelegramSet = async (
     try {
       if (!isTgSticker(sticker)) throw badResponse();
       const { file_id: fileId, file_unique_id: fileUniqueId, emoji } = sticker;
+
+      signal?.throwIfAborted();
       const file = await guardBuiltin(
         call(host, token, 'getFile', { file_id: fileId }),
         isBuiltin
@@ -257,14 +367,19 @@ export const importTelegramSet = async (
 
       if (!isTgFile(file)) throw new Error(t('error.telegram.badFilePath'));
       const { file_path: filePath } = file;
+
+      signal?.throwIfAborted();
       const raw = await guardBuiltin(
         host.fetchBlob(`${TG_API}/file/bot${token}/${filePath}`, MAX_STICKER_FILE_BYTES),
         isBuiltin
       );
       const kind = toSourceKind(sticker);
-      const gif = await toStickerGif(withMimeType(raw, kind), kind);
+
+      signal?.throwIfAborted();
+      const gif = await toStickerGif(withMimeType(raw, kind), kind, { signal });
       const id = `${TG_ID_PREFIX}${fileUniqueId}`;
 
+      signal?.throwIfAborted();
       await putSticker({
         id,
         packId: pack.id,
@@ -280,6 +395,7 @@ export const importTelegramSet = async (
         await putPack(pack);
       }
     } catch (e) {
+      if (signal?.aborted) break;
       console.warn('[amo-stickers] sticker import failed', index, e);
       firstError ||= e;
 
@@ -291,6 +407,15 @@ export const importTelegramSet = async (
 
     done++;
     onProgress({ done, total, title });
+  }
+
+  /**
+   * Отмена после записи последнего стикера — тоже отмена: пользователь нажал «Отменить» до того,
+   * как импорт сообщил об успехе.
+   */
+  if (signal?.aborted) {
+    await rollbackImport(pack.id, previous, snapshot);
+    throw signal.reason;
   }
 
   /**

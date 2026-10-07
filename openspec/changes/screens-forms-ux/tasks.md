@@ -113,11 +113,11 @@
 
 ## 11. Карточка пака
 
-- [ ] 11.1 `sources/telegram.ts`: `resolveTelegramSet(host, ownToken, name)` и `importTelegramSet(host, ownToken, set,
+- [x] 11.1 `sources/telegram.ts`: `resolveTelegramSet(host, ownToken, name)` и `importTelegramSet(host, ownToken, set,
   onProgress, signal?)` по готовому набору; `previewOutcome(error)` — «пак не найден» на HTTP 400 / `ok: false`, иначе
   «без превью» (D11); проверка: `tests/telegram.test.ts` — `getStickerSet` уходит в `resolve` и не уходит в импорт,
   выбор токена и отказ встроенного бота в `resolve`, кейсы `previewOutcome` (400, 401, 429, сеть, битый ответ)
-- [ ] 11.2 Кэш и номер запроса превью — чистый модуль `PickerProvider/packPreview/` (D11); проверка:
+- [x] 11.2 Кэш и номер запроса превью — чистый модуль `PickerProvider/packPreview/` (D11); проверка:
   `tests/packPreview.test.ts` — второй запрос того же имени не уходит, импорт получает тот же промис, отклонённый
   промис удаляется из кэша, ответ по устаревшему номеру отбрасывается
 - [ ] 11.3 `usePackImport`: превью по смене имени с паузой 300 мс, «пак не найден» — ошибка поля и недоступная
@@ -132,11 +132,11 @@
 
 ## 12. Отмена импорта (#43)
 
-- [ ] 12.1 Конвертация: `toStickerGif(blob, kind, { signal })`, проверка `signal` перед каждым кадром прохода и перед
+- [x] 12.1 Конвертация: `toStickerGif(blob, kind, { signal })`, проверка `signal` перед каждым кадром прохода и перед
   каждым проходом лестницы, приёмник кадров и источник закрываются при обрыве (D12); проверка: тест `encodeLadder` —
   прерванный `signal` не запускает следующий проход; тест прохода с поддельным приёмником, если проход выносится в
   тестируемый модуль без `gif-worker:code`, иначе — стенд (обрыв посреди конвертации видео-стикера)
-- [ ] 12.2 `importTelegramSet(..., signal)`: проверка перед `getFile`, `fetchBlob`, конвертацией и записью; снимок id
+- [x] 12.2 `importTelegramSet(..., signal)`: проверка перед `getFile`, `fetchBlob`, конвертацией и записью; снимок id
   стикеров пака (`listStickers` из `db.ts`), откат нового пака `deletePack`, повторного — `putPack(previous)` и удаление
   стикеров не из снимка; бросок `signal.reason` после отката (D12); проверка: `tests/telegram.test.ts` с поддельным
   `Host`, замоканными `db` и `convert` — отмена нового пака после 2 стикеров (пак удалён), повторного (прежняя

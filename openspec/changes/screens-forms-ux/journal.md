@@ -99,3 +99,16 @@
 Ответы пользователя: п.1–5 и «заглушённая ошибка ленты» — в журнале выше. Отдельный issue — сырая ошибка «пак не найден» (HTTP 400 STICKERSET_INVALID), ещё не заведён.
 Правки артефактов (для /opsx:update): runtime-hosts «Проверка ключей и токена» — отказ KLIPY ещё и HTTP 404; D10 — 4 px внутри поля, 12 px между полями группы, 16 px между группами; picker-states — ошибка ленты GIF при открытом экране не пишется в статус, пустая лента показывает ошибку последней загрузки; закрытие «Настроек» не снимает статус; тело экрана отступает под строку статуса.
 Долг: CLAUDE.md не описывает поведение F1 (статус при закрытии «Настроек», ошибка ленты на месте выдачи, --status-inset) и не называет useTelegramImport/; кольцо фокуса у основных кнопок на акцентной заливке не видно; ~45 мс мигание спиннера между задержкой подписи и сборкой; вариант secondary у Button вместо CHOOSE_BUTTON_CLASS; ошибка ленты без экрана видна дважды (статус и место выдачи); оркестровка хуков (useSettingsDraft, usePackImport, useGifFeed, useHeightReport) покрыта стендом, тестами — чистые функции.
+
+## 2026-10-07
+
+### G9 · Ядро: набор пака и отмена
+
+- `resolveTelegramSet` + `importTelegramSet` по готовому набору; `previewOutcome` — `notFound` на 400 и `ok:false` (локальный `BotApiRefusal`), иначе `noPreview`.
+- `packPreview/`: `createPackPreview()` → `load(name, resolve)`, `begin()`, `isCurrent()`; resolve передаётся в каждый `load` — текущий токен.
+- `signal` по цепочке `toStickerGif` → проходы → `writeFrames`, проверки в `encodeLadder`; закрытие приёмника и источника — существующие `finally`.
+- Откат в `rollbackImport`: снимок id стикеров (`listStickers`, экспортирована) только для пака, который уже был; отмена после последнего стикера тоже откатывает.
+- Отступление: `listStickers` без теста (IndexedDB в тестах нет); `tests/convert.test.ts` импортирует `convert.ts` с подменой `frameSink`/`frameSource`.
+- Аудит: ok с первого круга.
+- Долг: CLAUDE.md про прямой импорт `convert.ts` (13.1); `mockImplementation` putSticker в telegram.test.ts:795 → `mockImplementationOnce`; convert.test.ts:115 не проверяет, что `openFrameSource` не вызван; `break` по `signal.aborted` в catch не наблюдается тестами.
+- Для G10: usePackImport пока мимо packPreview и без signal — K11/K12 подключаются в 11.3, 12.3.

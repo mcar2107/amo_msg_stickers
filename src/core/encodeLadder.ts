@@ -22,6 +22,7 @@ export const encodeLadder = async ({
   side,
   sample,
   encode,
+  signal,
 }: EncodeLadderOptions): Promise<EncodedPass> => {
   const ladder = sideLadder(side);
   let start = side;
@@ -29,6 +30,7 @@ export const encodeLadder = async ({
   if (frameCount > SAMPLE_FRAMES && ladder.length > 1) {
     const indices = sampleIndices(frameCount);
 
+    signal?.throwIfAborted();
     start = pickSide(await sample(indices), indices.length, frameCount, side);
   }
 
@@ -39,10 +41,13 @@ export const encodeLadder = async ({
    * и пик памяти не растёт с числом попыток.
    */
   for (const target of steps.slice(0, -1)) {
+    signal?.throwIfAborted();
     const pass = await encode(target);
 
     if (pass.bytes.byteLength <= MAX_GIF_BYTES) return pass;
   }
+
+  signal?.throwIfAborted();
 
   return encode(steps.at(-1) || side);
 };

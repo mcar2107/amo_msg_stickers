@@ -1,10 +1,25 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { deletePack, getPack, putPack, putSticker } from '../src/core/db';
-import type { Pack } from '../src/core/db.types';
+import { toStickerGif } from '../src/core/convert';
+import {
+  deletePack,
+  deleteSticker,
+  getPack,
+  listStickers,
+  putPack,
+  putSticker,
+} from '../src/core/db';
+import type { Pack, StickerRec } from '../src/core/db.types';
+import type { Host } from '../src/core/host.types';
 import { setLocale } from '../src/core/i18n/translate';
 import { httpError, tooBigError } from '../src/core/net';
-import { importTelegramSet, isBotTokenFormat } from '../src/core/sources/telegram';
+import {
+  importTelegramSet,
+  isBotTokenFormat,
+  previewOutcome,
+  resolveTelegramSet,
+} from '../src/core/sources/telegram';
+import type { ImportProgress } from '../src/core/sources/telegram.types';
 
 import { fakeHost } from './helpers/fakeHost';
 
@@ -41,6 +56,10 @@ vi.mock('../src/core/db', () => {
     putPack: vi.fn(async () => {}),
     putSticker: vi.fn(async () => {}),
     deletePack: vi.fn(async () => {}),
+    deleteSticker: vi.fn(async () => {}),
+    listStickers: vi.fn(async () => {
+      return [];
+    }),
   };
 });
 
@@ -75,6 +94,38 @@ const botApi = (set: unknown, paths: Record<string, string> = {}) => {
   };
 };
 
+/**
+ * Импорт по ссылке, как его ведёт провайдер: набор, затем импорт по нему.
+ *
+ * @param host — окружение
+ * @param ownToken — свой токен
+ * @param input — ссылка или имя пака
+ * @param onProgress — прогресс по стикерам
+ * @returns импортированный пак
+ */
+const importByLink = async (
+  host: Host,
+  ownToken: string,
+  input: string,
+  onProgress: (progress: ImportProgress) => void
+) => {
+  const set = await resolveTelegramSet(host, ownToken, input);
+
+  return importTelegramSet(host, ownToken, set, onProgress);
+};
+
+/**
+ * Методы Bot API по порядку запросов `fetchJson`.
+ *
+ * @param host — окружение после запросов
+ * @returns имя метода каждого запроса
+ */
+const botMethods = (host: Host) => {
+  return vi.mocked(host.fetchJson).mock.calls.map(([url]) => {
+    return new URL(url).pathname.split('/').at(-1);
+  });
+};
+
 beforeEach(() => {
   vi.clearAllMocks();
   builtin.token = '';
@@ -94,7 +145,7 @@ describe('importTelegramSet', () => {
     });
     const onProgress = vi.fn();
 
-    await importTelegramSet(host, TOKEN, 'Pack', onProgress);
+    await importByLink(host, TOKEN, 'Pack', onProgress);
 
     expect(host.fetchBlob).toHaveBeenCalledTimes(1);
     expect(host.fetchBlob).toHaveBeenCalledWith(
@@ -115,7 +166,7 @@ describe('importTelegramSet', () => {
         ),
       });
 
-      await expect(importTelegramSet(host, TOKEN, 'Pack', vi.fn())).rejects.toThrow(
+      await expect(importByLink(host, TOKEN, 'Pack', vi.fn())).rejects.toThrow(
         BAD_FILE_PATH
       );
       expect(host.fetchBlob).not.toHaveBeenCalled();
@@ -133,7 +184,7 @@ describe('importTelegramSet', () => {
     });
     const onProgress = vi.fn();
 
-    await importTelegramSet(host, TOKEN, 'Pack', onProgress);
+    await importByLink(host, TOKEN, 'Pack', onProgress);
 
     expect(putSticker).toHaveBeenCalledTimes(2);
     expect(onProgress).toHaveBeenLastCalledWith({ done: 3, total: 3, title: 'Пак' });
@@ -147,7 +198,7 @@ describe('importTelegramSet', () => {
   ])('битый getStickerSet %j — ошибка, пак не создан', async (set) => {
     const host = fakeHost({ onJson: botApi(set) });
 
-    await expect(importTelegramSet(host, TOKEN, 'Pack', vi.fn())).rejects.toThrow(
+    await expect(importByLink(host, TOKEN, 'Pack', vi.fn())).rejects.toThrow(
       BAD_RESPONSE
     );
     expect(putPack).not.toHaveBeenCalled();
@@ -161,9 +212,7 @@ describe('importTelegramSet', () => {
     async ({ stickers, message }) => {
       const host = fakeHost({ onJson: botApi({ name: 'Pack', title: 'Пак', stickers }) });
 
-      await expect(importTelegramSet(host, TOKEN, 'Pack', vi.fn())).rejects.toThrow(
-        message
-      );
+      await expect(importByLink(host, TOKEN, 'Pack', vi.fn())).rejects.toThrow(message);
       expect(deletePack).toHaveBeenCalledWith('tg:Pack');
     }
   );
@@ -187,9 +236,7 @@ describe('importTelegramSet', () => {
         throw tooBigError(maxBytes);
       });
 
-      await expect(importTelegramSet(host, TOKEN, 'Pack', vi.fn())).rejects.toThrow(
-        message
-      );
+      await expect(importByLink(host, TOKEN, 'Pack', vi.fn())).rejects.toThrow(message);
       expect(deletePack).toHaveBeenCalledWith('tg:Pack');
     }
   );
@@ -201,9 +248,7 @@ describe('importTelegramSet', () => {
     setLocale(locale);
     const host = fakeHost({ json: { ok: false } });
 
-    await expect(importTelegramSet(host, TOKEN, 'Pack', vi.fn())).rejects.toThrow(
-      message
-    );
+    await expect(importByLink(host, TOKEN, 'Pack', vi.fn())).rejects.toThrow(message);
   });
 
   it('отказ Bot API с описанием — описание Telegram как есть', async () => {
@@ -211,7 +256,7 @@ describe('importTelegramSet', () => {
       json: { ok: false, description: 'Bad Request: STICKERSET_INVALID' },
     });
 
-    await expect(importTelegramSet(host, TOKEN, 'Pack', vi.fn())).rejects.toThrow(
+    await expect(importByLink(host, TOKEN, 'Pack', vi.fn())).rejects.toThrow(
       'Bad Request: STICKERSET_INVALID'
     );
   });
@@ -229,7 +274,7 @@ describe('importTelegramSet', () => {
       onJson: botApi({ name: 'Pack', title: 'Пак', stickers: [{}] }),
     });
 
-    await expect(importTelegramSet(host, TOKEN, 'Pack', vi.fn())).rejects.toThrow(
+    await expect(importByLink(host, TOKEN, 'Pack', vi.fn())).rejects.toThrow(
       BAD_RESPONSE
     );
     expect(deletePack).not.toHaveBeenCalled();
@@ -239,7 +284,7 @@ describe('importTelegramSet', () => {
   it('ответ не в формате Bot API — ошибка', async () => {
     const host = fakeHost({ json: '<html>' });
 
-    await expect(importTelegramSet(host, TOKEN, 'Pack', vi.fn())).rejects.toThrow(
+    await expect(importByLink(host, TOKEN, 'Pack', vi.fn())).rejects.toThrow(
       BAD_RESPONSE
     );
   });
@@ -247,9 +292,9 @@ describe('importTelegramSet', () => {
   it('в английском интерфейсе непонятая ссылка — английский текст', async () => {
     setLocale('en');
 
-    await expect(
-      importTelegramSet(fakeHost({}), TOKEN, 'не ссылка', vi.fn())
-    ).rejects.toThrow("Couldn't parse the link. Expected t.me/addstickers/Name");
+    await expect(importByLink(fakeHost({}), TOKEN, 'не ссылка', vi.fn())).rejects.toThrow(
+      "Couldn't parse the link. Expected t.me/addstickers/Name"
+    );
   });
 });
 
@@ -280,7 +325,7 @@ describe('importTelegramSet: свой и встроенный токен', () =>
     builtin.token = BUILTIN;
     const host = fakeHost({ onJson: botApi(PACK) });
 
-    await importTelegramSet(host, '', 'Pack', vi.fn());
+    await importByLink(host, '', 'Pack', vi.fn());
 
     expect(putSticker).toHaveBeenCalledTimes(1);
     expect(requestTokens(host)).toEqual([BUILTIN, BUILTIN, BUILTIN]);
@@ -290,7 +335,7 @@ describe('importTelegramSet: свой и встроенный токен', () =>
     builtin.token = BUILTIN;
     const host = fakeHost({ onJson: botApi(PACK) });
 
-    await importTelegramSet(host, TOKEN, 'Pack', vi.fn());
+    await importByLink(host, TOKEN, 'Pack', vi.fn());
 
     expect(requestTokens(host)).toEqual([TOKEN, TOKEN, TOKEN]);
   });
@@ -298,7 +343,7 @@ describe('importTelegramSet: свой и встроенный токен', () =>
   it('без своего и встроенного — noToken без запросов', async () => {
     const host = fakeHost({ onJson: botApi(PACK) });
 
-    await expect(importTelegramSet(host, '', 'Pack', vi.fn())).rejects.toThrow(
+    await expect(importByLink(host, '', 'Pack', vi.fn())).rejects.toThrow(
       'Укажите токен бота в настройках'
     );
     expect(host.fetchJson).not.toHaveBeenCalled();
@@ -313,7 +358,7 @@ describe('importTelegramSet: свой и встроенный токен', () =>
       },
     });
 
-    await expect(importTelegramSet(host, '', 'Pack', vi.fn())).rejects.toThrow(
+    await expect(importByLink(host, '', 'Pack', vi.fn())).rejects.toThrow(
       BUILTIN_UNAVAILABLE
     );
   });
@@ -327,7 +372,7 @@ describe('importTelegramSet: свой и встроенный токен', () =>
       },
     });
 
-    await expect(importTelegramSet(host, '', 'Pack', vi.fn())).rejects.toThrow(
+    await expect(importByLink(host, '', 'Pack', vi.fn())).rejects.toThrow(
       'built-in Telegram bot'
     );
   });
@@ -340,7 +385,7 @@ describe('importTelegramSet: свой и встроенный токен', () =>
       },
     });
 
-    await expect(importTelegramSet(host, TOKEN, 'Pack', vi.fn())).rejects.toThrow(
+    await expect(importByLink(host, TOKEN, 'Pack', vi.fn())).rejects.toThrow(
       httpError(401, OWN_UNAUTHORIZED)
     );
   });
@@ -355,7 +400,7 @@ describe('importTelegramSet: свой и встроенный токен', () =>
       },
     });
 
-    await expect(importTelegramSet(host, '', 'Pack', vi.fn())).rejects.toThrow(
+    await expect(importByLink(host, '', 'Pack', vi.fn())).rejects.toThrow(
       httpError(400, body)
     );
   });
@@ -375,7 +420,7 @@ describe('importTelegramSet: свой и встроенный токен', () =>
       },
     });
 
-    await expect(importTelegramSet(host, '', 'Pack', vi.fn())).rejects.toThrow(
+    await expect(importByLink(host, '', 'Pack', vi.fn())).rejects.toThrow(
       BUILTIN_UNAVAILABLE
     );
     expect(deletePack).toHaveBeenCalledWith('tg:Pack');
@@ -406,7 +451,7 @@ describe('importTelegramSet: свой и встроенный токен', () =>
       },
     });
 
-    await expect(importTelegramSet(host, '', 'Pack', vi.fn())).rejects.toThrow(
+    await expect(importByLink(host, '', 'Pack', vi.fn())).rejects.toThrow(
       BUILTIN_UNAVAILABLE
     );
     expect(getFileCalls).toBe(2);
@@ -436,7 +481,7 @@ describe('importTelegramSet: свой и встроенный токен', () =>
 
     vi.mocked(host.fetchBlob).mockRejectedValue(tooBigError(5 * 1024 * 1024));
 
-    await expect(importTelegramSet(host, '', 'Pack', vi.fn())).rejects.toThrow(
+    await expect(importByLink(host, '', 'Pack', vi.fn())).rejects.toThrow(
       BUILTIN_UNAVAILABLE
     );
     expect(deletePack).toHaveBeenCalledWith('tg:Pack');
@@ -448,9 +493,347 @@ describe('importTelegramSet: свой и встроенный токен', () =>
 
     vi.mocked(host.fetchBlob).mockRejectedValue(httpError(401, 'Unauthorized'));
 
-    await expect(importTelegramSet(host, '', 'Pack', vi.fn())).rejects.toThrow(
+    await expect(importByLink(host, '', 'Pack', vi.fn())).rejects.toThrow(
       BUILTIN_UNAVAILABLE
     );
+  });
+});
+
+describe('resolveTelegramSet и importTelegramSet по набору', () => {
+  const SET = { name: 'Pack', title: 'Пак', stickers: [sticker('a'), sticker('b')] };
+
+  it('resolve отдаёт набор одним getStickerSet и ничего не пишет в базу', async () => {
+    const host = fakeHost({ onJson: botApi(SET) });
+
+    await expect(
+      resolveTelegramSet(host, TOKEN, 'https://t.me/addstickers/Pack')
+    ).resolves.toEqual(SET);
+    expect(botMethods(host)).toEqual(['getStickerSet']);
+    expect(putPack).not.toHaveBeenCalled();
+  });
+
+  it('импорт по набору не запрашивает getStickerSet', async () => {
+    const host = fakeHost({ onJson: botApi(SET) });
+
+    await importTelegramSet(host, TOKEN, SET, vi.fn());
+
+    expect(botMethods(host)).toEqual(['getFile', 'getFile']);
+    expect(putSticker).toHaveBeenCalledTimes(2);
+  });
+
+  it('resolve: битая ссылка — ошибка без запроса', async () => {
+    const host = fakeHost({ onJson: botApi(SET) });
+
+    await expect(resolveTelegramSet(host, TOKEN, 'не ссылка')).rejects.toThrow(
+      'Не понял ссылку'
+    );
+    expect(host.fetchJson).not.toHaveBeenCalled();
+  });
+
+  it('resolve: без своего и встроенного токена — noToken без запроса', async () => {
+    const host = fakeHost({ onJson: botApi(SET) });
+
+    await expect(resolveTelegramSet(host, '', 'Pack')).rejects.toThrow(
+      'Укажите токен бота в настройках'
+    );
+    expect(host.fetchJson).not.toHaveBeenCalled();
+  });
+
+  it('resolve: без своего токена — встроенный, свой важнее', async () => {
+    builtin.token = '999:builtin';
+    const host = fakeHost({ onJson: botApi(SET) });
+
+    await resolveTelegramSet(host, '', 'Pack');
+    await resolveTelegramSet(host, TOKEN, 'Pack');
+
+    const tokens = vi.mocked(host.fetchJson).mock.calls.map(([url]) => {
+      return /\/bot([^/]+)\//.exec(url)?.[1];
+    });
+
+    expect(tokens).toEqual(['999:builtin', TOKEN]);
+  });
+
+  it.each([401, 429])(
+    'resolve: %i на встроенном — недоступность бота',
+    async (status) => {
+      builtin.token = '999:builtin';
+      const host = fakeHost({
+        onJson: () => {
+          throw httpError(status, 'Unauthorized');
+        },
+      });
+
+      await expect(resolveTelegramSet(host, '', 'Pack')).rejects.toThrow(
+        'Встроенный бот Telegram недоступен'
+      );
+    }
+  );
+
+  it('resolve: битый набор — ошибка ответа', async () => {
+    const host = fakeHost({
+      onJson: botApi({ name: '../evil', title: 'Пак', stickers: [] }),
+    });
+
+    await expect(resolveTelegramSet(host, TOKEN, 'Pack')).rejects.toThrow(BAD_RESPONSE);
+  });
+});
+
+describe('previewOutcome', () => {
+  /**
+   * Ошибка, которую бросает `resolveTelegramSet` на ответ Bot API.
+   *
+   * @param json — ответ `getStickerSet`
+   * @param ownToken — свой токен; пустой — встроенный
+   * @returns пойманная ошибка
+   */
+  const resolveError = async (json: () => unknown, ownToken = TOKEN) => {
+    try {
+      await resolveTelegramSet(fakeHost({ onJson: json }), ownToken, 'Pack');
+    } catch (error) {
+      return error;
+    }
+
+    throw new Error('resolve не отказал');
+  };
+
+  it('HTTP 400 — пак не найден', async () => {
+    const error = await resolveError(() => {
+      throw httpError(
+        400,
+        '{"ok":false,"description":"Bad Request: STICKERSET_INVALID"}'
+      );
+    });
+
+    expect(previewOutcome(error)).toBe('notFound');
+  });
+
+  it('HTTP 400 на встроенном — пак не найден', async () => {
+    builtin.token = '999:builtin';
+    const error = await resolveError(() => {
+      throw httpError(400, 'Bad Request');
+    }, '');
+
+    expect(previewOutcome(error)).toBe('notFound');
+  });
+
+  it('ответ ok: false — пак не найден', async () => {
+    const error = await resolveError(() => {
+      return { ok: false, description: 'Bad Request: STICKERSET_INVALID' };
+    });
+
+    expect(previewOutcome(error)).toBe('notFound');
+  });
+
+  it.each([401, 429])('%i на встроенном — без превью', async (status) => {
+    builtin.token = '999:builtin';
+    const error = await resolveError(() => {
+      throw httpError(status, 'Too Many Requests');
+    }, '');
+
+    expect(previewOutcome(error)).toBe('noPreview');
+  });
+
+  it.each([401, 429])('%i на своём — без превью', async (status) => {
+    const error = await resolveError(() => {
+      throw httpError(status, 'Unauthorized');
+    });
+
+    expect(previewOutcome(error)).toBe('noPreview');
+  });
+
+  it('сеть — без превью', async () => {
+    const error = await resolveError(() => {
+      throw new TypeError('Failed to fetch');
+    });
+
+    expect(previewOutcome(error)).toBe('noPreview');
+  });
+
+  it.each([{ html: true }, { ok: true, result: null }])(
+    'битый ответ %j — без превью',
+    async (json) => {
+      const error = await resolveError(() => {
+        return json;
+      });
+
+      expect(previewOutcome(error)).toBe('noPreview');
+    }
+  );
+
+  it('не ошибка — без превью', () => {
+    expect(previewOutcome('HTTP 400 x')).toBe('noPreview');
+  });
+});
+
+describe('importTelegramSet: отмена', () => {
+  const PREVIOUS: Pack = {
+    id: 'tg:Pack',
+    title: 'Пак',
+    source: 'telegram',
+    createdAt: 1,
+  };
+
+  /**
+   * Набор из стикеров с данными id.
+   *
+   * @param ids — `file_unique_id` стикеров по порядку
+   * @returns набор пака
+   */
+  const setOf = (ids: string[]) => {
+    return { name: 'Pack', title: 'Пак', stickers: ids.map(sticker) };
+  };
+
+  /**
+   * Записи стикеров пака в базе.
+   *
+   * @param ids — `file_unique_id` стикеров
+   * @returns записи стикеров
+   */
+  const records = (ids: string[]) => {
+    return ids.map((id): StickerRec => {
+      return {
+        id: `tg:${id}`,
+        packId: 'tg:Pack',
+        blob: new Blob(),
+        width: 512,
+        height: 512,
+        createdAt: 1,
+      };
+    });
+  };
+
+  /**
+   * id удалённых по одному стикеров.
+   *
+   * @returns id из вызовов `deleteSticker`
+   */
+  const deletedStickers = () => {
+    return vi.mocked(deleteSticker).mock.calls.map(([id]) => {
+      return id;
+    });
+  };
+
+  it('отмена нового пака после 2 стикеров — пак удалён, дальше запросов нет', async () => {
+    const controller = new AbortController();
+    const set = setOf(['a', 'b', 'c', 'd', 'e']);
+    const host = fakeHost({ onJson: botApi(set) });
+    const onProgress = vi.fn(({ done }: ImportProgress) => {
+      if (done === 2) controller.abort();
+    });
+
+    await expect(
+      importTelegramSet(host, TOKEN, set, onProgress, controller.signal)
+    ).rejects.toHaveProperty('name', 'AbortError');
+
+    expect(deletePack).toHaveBeenCalledWith('tg:Pack');
+    expect(putSticker).toHaveBeenCalledTimes(2);
+    expect(botMethods(host)).toEqual(['getFile', 'getFile']);
+    expect(host.fetchBlob).toHaveBeenCalledTimes(2);
+  });
+
+  it('отмена повторного импорта — прежняя запись, новые стикеры удалены, старые на месте', async () => {
+    const controller = new AbortController();
+    const set = setOf(['a', 'b', 'c', 'd', 'e']);
+    const host = fakeHost({ onJson: botApi(set) });
+
+    vi.mocked(getPack).mockResolvedValueOnce(PREVIOUS);
+    vi.mocked(listStickers)
+      .mockResolvedValueOnce(records(['a', 'b']))
+      .mockResolvedValueOnce(records(['a', 'b', 'c', 'd']));
+
+    await expect(
+      importTelegramSet(
+        host,
+        TOKEN,
+        set,
+        ({ done }) => {
+          if (done === 4) controller.abort();
+        },
+        controller.signal
+      )
+    ).rejects.toHaveProperty('name', 'AbortError');
+
+    expect(deletePack).not.toHaveBeenCalled();
+    expect(putPack).toHaveBeenLastCalledWith(PREVIOUS);
+    expect(deletedStickers()).toEqual(['tg:c', 'tg:d']);
+  });
+
+  it('отмена во время getFile — ответ отброшен, fetchBlob и новых запросов нет', async () => {
+    const controller = new AbortController();
+    const set = setOf(['a', 'b', 'c']);
+    const api = botApi(set);
+    let getFileCalls = 0;
+    const host = fakeHost({
+      onJson: (url) => {
+        getFileCalls++;
+
+        if (getFileCalls === 2) controller.abort();
+
+        return api(url);
+      },
+    });
+
+    await expect(
+      importTelegramSet(host, TOKEN, set, vi.fn(), controller.signal)
+    ).rejects.toHaveProperty('name', 'AbortError');
+
+    expect(getFileCalls).toBe(2);
+    expect(host.fetchBlob).toHaveBeenCalledTimes(1);
+    expect(putSticker).toHaveBeenCalledTimes(1);
+    expect(deletePack).toHaveBeenCalledWith('tg:Pack');
+  });
+
+  it('отмена сразу после записи последнего стикера удаляет и его — по снимку, а не по счётчику', async () => {
+    const controller = new AbortController();
+    const set = setOf(['a', 'b', 'c']);
+    const host = fakeHost({ onJson: botApi(set) });
+
+    vi.mocked(getPack).mockResolvedValueOnce(PREVIOUS);
+    vi.mocked(listStickers)
+      .mockResolvedValueOnce(records(['a', 'b']))
+      .mockResolvedValueOnce(records(['a', 'b', 'c']));
+    vi.mocked(putSticker).mockImplementation(async ({ id }) => {
+      if (id === 'tg:c') controller.abort();
+    });
+
+    await expect(
+      importTelegramSet(host, TOKEN, set, vi.fn(), controller.signal)
+    ).rejects.toHaveProperty('name', 'AbortError');
+
+    expect(putPack).toHaveBeenLastCalledWith(PREVIOUS);
+    expect(deletedStickers()).toEqual(['tg:c']);
+  });
+
+  it('отмена до старта — ни записи, ни запросов', async () => {
+    const controller = new AbortController();
+    const set = setOf(['a']);
+    const host = fakeHost({ onJson: botApi(set) });
+
+    controller.abort();
+
+    await expect(
+      importTelegramSet(host, TOKEN, set, vi.fn(), controller.signal)
+    ).rejects.toHaveProperty('name', 'AbortError');
+
+    expect(putPack).not.toHaveBeenCalled();
+    expect(host.fetchJson).not.toHaveBeenCalled();
+  });
+
+  it('конвертация получает signal импорта', async () => {
+    const controller = new AbortController();
+    const set = setOf(['a']);
+
+    await importTelegramSet(
+      fakeHost({ onJson: botApi(set) }),
+      TOKEN,
+      set,
+      vi.fn(),
+      controller.signal
+    );
+
+    expect(vi.mocked(toStickerGif).mock.calls[0]?.[2]).toEqual({
+      signal: controller.signal,
+    });
   });
 });
 

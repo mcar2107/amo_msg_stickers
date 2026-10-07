@@ -1,9 +1,10 @@
 # План прогона: screens-forms-ux
 
 База прогона: `03ff8ef5d8f9bdba080e795858a8e886a999c3dd`
+База дополнения (G9–G12): `b2c553bd0c0ec45cc675a4b9570cf90118bd8db3`
 Гейт: `pnpm lint && pnpm test`
 Быстрые проверки: `pnpm typecheck`, `pnpm exec vitest --project=unit --run tests/<файл>.test.ts`
-Долгие слои: стенд `dev/harness.html` в headless Chrome (CLAUDE.local.md) — G3, G4, G5, G6, G7, G8; `pnpm docs:build` — G8
+Долгие слои: стенд `dev/harness.html` в headless Chrome (CLAUDE.local.md) — G3, G4, G5, G6, G7, G8, G11, G12; `pnpm docs:build` — G8, G12
 Хук коммита: typecheck + `vitest --changed` — каждая группа оставляет типы зелёными, временных поломок между группами нет.
 
 ## Контракты
@@ -26,6 +27,19 @@
   G4 (формы сегментов в `AddView`, панели получают `isActive`); потребители G5, G6, G7.
 - **K9 Черновик стикера** — `useStickerDraft` отдаёт `isConverting` и `saveBlock: 'noFile' | 'converting' | null`, хук вызывает
   `AddView`, панель получает состояние пропсами. Владелец G4; потребитель G6.
+
+- **K10 Набор пака** — `resolveTelegramSet(host, ownToken, name)` (`getStickerSet`, выбор токена, `guardBuiltin`),
+  `importTelegramSet(host, ownToken, set, onProgress, signal?)` без `getStickerSet`, `previewOutcome(error)` — «пак не найден»
+  (HTTP 400 / `ok: false`) или «без превью», всё в `sources/telegram.ts`. Владелец G9; потребитель G10.
+- **K11 Кэш превью** — чистый `PickerProvider/packPreview/`: `Map<имя, Promise<набор>>` (отклонённый удаляется) и номер
+  запроса; превью и импорт `usePackImport` получают набор только через него. Владелец G9; потребитель G10.
+- **K12 Отмена** — `signal` идёт `importTelegramSet` → `toStickerGif(blob, kind, { signal })` → `encodeLadder` / `writeFrames`;
+  отмена бросает `signal.reason` после отката; `runPackImport` отличает её по `signal.aborted` → `onCancel`. Владелец G9 (ядро),
+  G10 (`runPackImport`); потребители G10, G11.
+- **K13 Импорт для UI** — `useTelegramImport` отдаёт превью (загрузка / набор с «уже в библиотеке» / нет), снимок
+  `{ title, total }`, `progress`, `cancelImport`; «пак не найден» — через `fieldError`. Владелец G10; потребитель G11.
+- **K14 Словарь дополнения** — ключи парой RU/EN через typograf (`en-US`): статус «Импорт отменён» — G10, карточка и
+  «Отменить» — G11, в блоки своих префиксов.
 
 ## Группы
 
@@ -116,6 +130,55 @@
 - Контракты: K5 (чистка ключей)
 - Усиление проверок: 10.2 — плюс поиск каждого ключа `messages.ru.ts` по `src/`: ключ без использования удалить
 
+### G9 · Ядро: набор пака и отмена · M · волна 6
+
+- Задачи: 11.1, 11.2, 12.1, 12.2
+- Зависит от: —
+- Файлы: `src/core/sources/telegram{,.types}.ts`, `src/core/{convert,encodeLadder,db}.ts`, `PickerProvider/packPreview/**`,
+  `PickerProvider/usePackImport.ts` (только вызов под новую сигнатуру), `tests/{telegram,encodeLadder,packPreview,db}.test.ts`
+- Требования: `telegram-import` → «Карточка пака», «Отмена импорта»
+- Design: D11, D12
+- Контракты: вводит K10, K11, K12 (ядро)
+- Усиление проверок: 11.1 — счёт вызовов `fetchJson` по методу Bot API: импорт по набору не зовёт `getStickerSet`;
+  11.2 — превью и импорт одного имени параллельно — `resolve` вызван один раз; 12.1 — обрыв посреди прохода закрывает
+  приёмник (поддельный sink, если проход тестируем без `gif-worker:code`, иначе стенд в G12); 12.2 — отмена сразу после
+  `putSticker` удаляет и этот стикер (снимок, а не счётчик); `listStickers` в `db.ts` нет — G9 заводит её с тестом
+
+### G10 · Провайдер: превью и отмена · M · волна 7
+
+- Задачи: 11.3, 12.3
+- Зависит от: G9
+- Файлы: `PickerProvider/{usePackImport,usePickerState,PickerProvider.types}.ts`, `PickerProvider/runPackImport/**`,
+  `useTelegramImport/**`, `tests/runPackImport.test.ts`, `src/core/i18n/messages.{ru,en}.ts` (K14)
+- Требования: `telegram-import` → «Карточка пака», «Отмена импорта»
+- Design: D11, D12
+- Контракты: потребляет K10, K11, K12; вводит K12 (`runPackImport`), K13
+- Усиление проверок: 11.3 — нужен ли запрос (имя сменилось, есть свой или встроенный токен) и что показать (снимок при
+  импорте, иначе превью) — чистыми функциями с тестом; стенд 11.3 — в G11 вместе с карточкой; 12.3 — `onCancel` не зовёт
+  `onError` / `onSuccess` / прокрутку, статус — `showStatus`
+
+### G11 · UI: карточка пака и «Отменить» · M · волна 8
+
+- Задачи: 11.4, 12.4
+- Зависит от: G10
+- Файлы: `AddView/TelegramImport/**` (`PackCard/` вместо `ImportProgress/`), `Picker/Button/**`, `src/core/i18n/messages.{ru,en}.ts`
+- Требования: `telegram-import` → «Карточка пака», «Отмена импорта»
+- Design: D11, D12
+- Контракты: потребляет K13, K14
+- Усиление проверок: 11.4 — в дереве доступности описание поля ссылки содержит текст карточки; стенд сценариев 11.3;
+  12.4 — двойной клик по «Импорт» на стенде: импорт идёт; Enter в поле ссылки во время импорта его не отменяет
+
+### G12 · Стенд, дока и итог дополнения · S · волна 9
+
+- Задачи: 12.5, 13.1, 13.2, 13.3
+- Зависит от: G11
+- Файлы: `CLAUDE.md`, `docs/content/{,en/}setup/telegram.md`, `docs/content/img/setup/**`
+- Требования: `telegram-import` → «Отмена импорта» (стенд); `user-docs` → «Импорт из Telegram»
+- Design: D11, D12
+- Контракты: —
+- Усиление проверок: 12.5 — «нет запросов после отмены» — подсчёт `fetch` / Worker в консоли стенда, а не на глаз;
+  VoiceOver агенту недоступен — пункт пользователю
+
 ## Волны
 
 1. G1, G2 — файлы не пересекаются
@@ -123,3 +186,7 @@
 3. G4, G7 — `usePickerView`/`AddView` против `PickerProvider`/`SettingsView`
 4. G5, G6 — `TelegramImport`/провайдер против `CreateSticker`; `AddView.tsx` правит только G4
 5. G8
+6. G9
+7. G10
+8. G11
+9. G12

@@ -54,22 +54,28 @@ const makeCanvas = (w: number, h: number): CanvasBox => {
  * несжатых кадров в памяти не больше, чем приёмник держит в очереди кодирования (его
  * окно).
  *
+ * Отмена проверяется перед каждым кадром: идущий кадр дописывается, следующий не
+ * захватывается.
+ *
  * @param source — открытый источник кадров
  * @param sink — приёмник прохода
  * @param box — холст в размере прохода
  * @param indices — номера кадров плана по порядку
  * @param decorate — дорисовка поверх кадра; undefined — без неё
+ * @param signal — отмена; undefined — без неё
  */
 const writeFrames = async (
   source: FrameSource,
   sink: FrameSink,
   { canvas, ctx }: CanvasBox,
   indices: Iterable<number>,
-  decorate?: Decorate
+  decorate?: Decorate,
+  signal?: AbortSignal
 ) => {
   const { width, height } = canvas;
 
   for (const index of indices) {
+    signal?.throwIfAborted();
     await source.draw(index, ctx, width, height);
     decorate?.(ctx, width, height);
     await sink.write(
@@ -81,12 +87,14 @@ const writeFrames = async (
 
 /**
  * Каркас прохода: приёмник в размере прохода, кадры плана через него и `sink.close()` при
- * любом исходе — и когда упала запись кадров, и когда упал `collect`.
+ * любом исходе — и когда упала запись кадров, и когда упал `collect`, и при отмене: Worker
+ * кодирования останавливается, а не доигрывает проход.
  *
  * @param source — открытый источник кадров
  * @param size — ширина и высота прохода
  * @param indices — номера кадров плана по порядку
  * @param decorate — дорисовка поверх кадра; undefined — без неё
+ * @param signal — отмена; undefined — без неё
  * @param collect — что забрать у приёмника после записи всех кадров
  * @returns результат `collect`
  */
@@ -95,12 +103,13 @@ const runPass = async <T>(
   [width, height]: [number, number],
   indices: Iterable<number>,
   decorate: Decorate | undefined,
+  signal: AbortSignal | undefined,
   collect: (sink: FrameSink) => T | Promise<T>
 ): Promise<T> => {
   const sink = createFrameSink({ width, height, isAnimated: source.plan.length > 1 });
 
   try {
-    await writeFrames(source, sink, makeCanvas(width, height), indices, decorate);
+    await writeFrames(source, sink, makeCanvas(width, height), indices, decorate, signal);
 
     return await collect(sink);
   } finally {
@@ -118,14 +127,21 @@ const runPass = async <T>(
  * @param source — открытый источник кадров
  * @param indices — номера пробных кадров плана
  * @param decorate — дорисовка поверх кадра; undefined — без неё
+ * @param signal — отмена; undefined — без неё
  * @returns вес пробы в байтах
  */
-const samplePass = (source: FrameSource, indices: number[], decorate?: Decorate) => {
+const samplePass = (
+  source: FrameSource,
+  indices: number[],
+  decorate?: Decorate,
+  signal?: AbortSignal
+) => {
   return runPass(
     source,
     [source.width, source.height],
     indices,
     decorate,
+    signal,
     async (sink) => {
       await sink.flush();
 
@@ -140,18 +156,27 @@ const samplePass = (source: FrameSource, indices: number[], decorate?: Decorate)
  * @param source — открытый источник кадров
  * @param side — предел большей стороны прохода
  * @param decorate — дорисовка поверх кадра; undefined — без неё
+ * @param signal — отмена; undefined — без неё
  * @returns готовый GIF прохода
  */
 const fullPass = (
   source: FrameSource,
   side: number,
-  decorate?: Decorate
+  decorate?: Decorate,
+  signal?: AbortSignal
 ): Promise<EncodedPass> => {
   const [width, height] = fit(source.width, source.height, side);
 
-  return runPass(source, [width, height], source.plan.keys(), decorate, async (sink) => {
-    return { bytes: await sink.finish(), width, height };
-  });
+  return runPass(
+    source,
+    [width, height],
+    source.plan.keys(),
+    decorate,
+    signal,
+    async (sink) => {
+      return { bytes: await sink.finish(), width, height };
+    }
+  );
 };
 
 export const detectKind = (blob: Blob, fileName = ''): SourceKind => {
@@ -169,8 +194,10 @@ export const toStickerGif = async (
   kind: SourceKind,
   opts: ToStickerGifOptions = {}
 ): Promise<GifResult> => {
-  const { decorate } = opts;
+  const { decorate, signal } = opts;
   const max = opts.max || STICKER_SIZE;
+
+  signal?.throwIfAborted();
 
   if (
     kind === 'image' &&
@@ -195,11 +222,12 @@ export const toStickerGif = async (
       frameCount: source.plan.length,
       side: Math.max(source.width, source.height),
       sample: (indices) => {
-        return samplePass(source, indices, decorate);
+        return samplePass(source, indices, decorate, signal);
       },
       encode: (side) => {
-        return fullPass(source, side, decorate);
+        return fullPass(source, side, decorate, signal);
       },
+      signal,
     });
 
     return { blob: new Blob([bytes], { type: 'image/gif' }), width, height };
