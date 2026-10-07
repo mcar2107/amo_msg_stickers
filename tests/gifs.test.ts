@@ -3,9 +3,25 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { DEFAULT_SETTINGS } from '../src/core/host';
 import { setLocale } from '../src/core/i18n/translate';
 import { BYTES_IN_MB as MB, httpError } from '../src/core/net';
-import { checkGifKey, fetchGifs } from '../src/core/sources/gifs';
+import { availableFeeds, checkGifKey, fetchGifs } from '../src/core/sources/gifs';
 
 import { fakeHost } from './helpers/fakeHost';
+
+/**
+ * Встроенный ключ KLIPY сборки: по умолчанию пуст, как в сборке без секрета, тест ставит
+ * свой. Геттер — чтобы модуль источников читал значение на каждый запрос.
+ */
+const builtin = vi.hoisted(() => {
+  return { key: '' };
+});
+
+vi.mock('../src/core/builtinKlipyKey', () => {
+  return {
+    get BUILTIN_KLIPY_KEY() {
+      return builtin.key;
+    },
+  };
+});
 
 const SETTINGS = { ...DEFAULT_SETTINGS, giphyKey: 'g', klipyKey: 'k' };
 
@@ -397,6 +413,7 @@ describe('fetchGifs: версия KLIPY для отправки по весу', 
 
 afterEach(() => {
   setLocale('ru');
+  builtin.key = '';
 });
 
 describe('fetchGifs: язык выдачи', () => {
@@ -542,5 +559,101 @@ describe('checkGifKey', () => {
     await expect(checkGifKey(fakeHost({ json: null }), 'klipy', 'k')).resolves.toBe(
       'unavailable'
     );
+  });
+});
+
+describe('встроенный ключ KLIPY', () => {
+  const BUILTIN = 'builtin-key';
+  const BUILTIN_UNAVAILABLE = 'Встроенный ключ KLIPY недоступен';
+  const NO_KEYS = { ...DEFAULT_SETTINGS };
+
+  /**
+   * Ключ, с которым ушёл первый запрос к KLIPY.
+   *
+   * @param host — фейковое окружение после запроса
+   * @returns значение параметра `key`
+   */
+  const requestKey = (host: ReturnType<typeof fakeHost>) => {
+    const url = new URL(vi.mocked(host.fetchJson).mock.calls[0]?.[0] || '');
+
+    return url.searchParams.get('key');
+  };
+
+  it('без своих ключей со встроенным — только KLIPY', () => {
+    builtin.key = BUILTIN;
+
+    expect(availableFeeds(NO_KEYS)).toEqual(['klipy']);
+  });
+
+  it('без своих ключей и без встроенного — источников нет', () => {
+    expect(availableFeeds(NO_KEYS)).toEqual([]);
+  });
+
+  it('свой ключ GIPHY и встроенный KLIPY — все три источника', () => {
+    builtin.key = BUILTIN;
+
+    expect(availableFeeds({ ...NO_KEYS, giphyKey: 'g' })).toEqual([
+      'giphy-gifs',
+      'giphy-stickers',
+      'klipy',
+    ]);
+  });
+
+  it('запрос без своего ключа идёт со встроенным', async () => {
+    builtin.key = BUILTIN;
+    const host = fakeHost({ json: { results: [] } });
+
+    await fetchGifs(host, NO_KEYS, 'klipy', '', null, 'ru');
+
+    expect(requestKey(host)).toBe(BUILTIN);
+  });
+
+  it('свой ключ важнее встроенного', async () => {
+    builtin.key = BUILTIN;
+    const host = fakeHost({ json: { results: [] } });
+
+    await fetchGifs(host, { ...NO_KEYS, klipyKey: 'own' }, 'klipy', 'кот', null, 'ru');
+
+    expect(requestKey(host)).toBe('own');
+  });
+
+  it.each([401, 403, 404, 429])(
+    'HTTP %i на встроенном — ошибка недоступности встроенного ключа',
+    async (status) => {
+      builtin.key = BUILTIN;
+
+      await expect(
+        fetchGifs(failingHost(httpError(status, 'x')), NO_KEYS, 'klipy', '', null, 'ru')
+      ).rejects.toThrow(BUILTIN_UNAVAILABLE);
+    }
+  );
+
+  it('в английском интерфейсе ошибка недоступности — по-английски', async () => {
+    builtin.key = BUILTIN;
+    setLocale('en');
+
+    await expect(
+      fetchGifs(failingHost(httpError(404, 'x')), NO_KEYS, 'klipy', '', null, 'en')
+    ).rejects.toThrow(/built-in KLIPY key/);
+  });
+
+  it('HTTP 404 на своём ключе — как есть, даже при встроенном', async () => {
+    builtin.key = BUILTIN;
+    const settings = { ...NO_KEYS, klipyKey: 'own' };
+
+    await expect(
+      fetchGifs(failingHost(httpError(404, 'bad')), settings, 'klipy', '', null, 'ru')
+    ).rejects.toThrow('HTTP 404 bad');
+  });
+
+  it.each([
+    ['HTTP 500', httpError(500, 'oops')],
+    ['сетевая ошибка', new Error('Сетевая ошибка')],
+  ])('%s на встроенном — как есть', async (_name, error) => {
+    builtin.key = BUILTIN;
+
+    await expect(
+      fetchGifs(failingHost(error), NO_KEYS, 'klipy', '', null, 'ru')
+    ).rejects.toThrow(error.message);
   });
 });

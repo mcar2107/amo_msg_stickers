@@ -42,8 +42,13 @@ export const EN: Messages = {
   'settings.group.gif': 'GIFs',
   'settings.group.telegram': 'Telegram',
   'settings.gif.oneKey': 'One of the two keys is enough to search GIFs. {docs}',
+  'settings.gif.builtinNote':
+    'KLIPY search works without a key, and a GIPHY key adds GIPHY sources. {docs}',
   'settings.giphy.where': 'Free at {link}.',
   'settings.klipy.where': 'Free test key in the Partner Panel: {link}.',
+  'settings.klipy.labelOptional': 'Your KLIPY API key (optional)',
+  'settings.klipy.whereOptional':
+    'Optional: KLIPY search works with the built-in key. You need your own if the built-in one is unavailable — get a free test key in the Partner Panel: {link}.',
   'settings.telegram.label': 'Telegram bot token (for import)',
   'settings.telegram.hint': 'Create any bot in {link}. {docs}',
   'settings.telegram.labelOptional': 'Your Telegram bot token (optional)',
@@ -130,6 +135,8 @@ export const EN: Messages = {
   'error.telegram.methodFailed': 'Telegram: {method} failed',
   'error.telegram.builtinUnavailable':
     'The built-in Telegram bot is unavailable. Enter your own bot token in settings',
+  'error.gifs.builtinUnavailable':
+    'The built-in KLIPY key is unavailable — enter your own in settings',
   'error.copyLink': 'Couldn’t copy the link',
   'error.net.notAllowed': 'URL is not on the allowed list',
   'error.net.tooBig': 'File is larger than {size} MB',

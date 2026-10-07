@@ -23,7 +23,7 @@ features:
   - title: Packs from Telegram
     details: Import a whole pack by its link, no setup needed.
   - title: GIF search
-    details: GIPHY and KLIPY with your own free key, recent GIFs always at hand.
+    details: KLIPY right after installation, GIPHY with your own free key, recent GIFs always at hand.
   - title: Send with a click
     details: A sticker goes out with a single click, and the other person doesn’t need to install anything.
 ---
@@ -51,7 +51,8 @@ as in the text.
 ## Getting started
 
 1. [Install](./install/) the extension or the userscript in your browser.
-2. To search GIFs, get a [free key](./setup/gif-keys) for KLIPY or GIPHY.
+2. GIF search in KLIPY works right away. To add GIPHY sources, get a [free key](./setup/gif-keys) for GIPHY.
 3. To import a pack from Telegram, [copy its link](./setup/telegram) — no bot or token needed.
 
-Your own stickers, recent ones and pack import from Telegram work right after installation, no keys needed.
+Your own stickers, recent ones, pack import from Telegram and GIF search in KLIPY work right after installation, no keys
+needed.

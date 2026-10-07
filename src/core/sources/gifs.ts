@@ -1,3 +1,4 @@
+import { BUILTIN_KLIPY_KEY } from '../builtinKlipyKey';
 import type { RemoteGif } from '../db.types';
 import type { Host, Settings } from '../host.types';
 import type { Locale, MessageKey } from '../i18n/i18n.types';
@@ -32,11 +33,22 @@ export const FEED_LABELS: Record<GifFeed, MessageKey> = {
   klipy: 'gifs.feed.klipy',
 };
 
+/**
+ * Ключ KLIPY для запроса: свой из «Настроек» важнее встроенного в сборку. Встроенный —
+ * знание модуля источников, а не настроек: в поле ввода и хранилище он не попадает.
+ *
+ * @param ownKey — ключ из «Настроек», пустой — не задан
+ * @returns ключ (пустой — KLIPY недоступен) и признак, что он встроенный
+ */
+const klipyKeyOf = (ownKey: string) => {
+  return { key: ownKey || BUILTIN_KLIPY_KEY, isBuiltin: !ownKey };
+};
+
 export const availableFeeds = ({ giphyKey, klipyKey }: Settings): GifFeed[] => {
   const feeds: GifFeed[] = [];
 
   if (giphyKey) feeds.push('giphy-gifs', 'giphy-stickers');
-  if (klipyKey) feeds.push('klipy');
+  if (klipyKeyOf(klipyKey).key) feeds.push('klipy');
 
   return feeds;
 };
@@ -235,6 +247,19 @@ const giphy = async (
   return { items, next: consumed < pagination.total_count ? String(consumed) : null };
 };
 
+/**
+ * Статусы, которыми источник отказывает ключу. Любой другой исход — не приговор ключу, а сбой
+ * проверки.
+ *
+ * KLIPY на неверный ключ отвечает 404 с «The provided API key is invalid.»: ключ — часть
+ * адреса его API. У GIPHY 404 в отказ не входит: неверный ключ он отклоняет 401, а 404 значил
+ * бы сбой адреса запроса, а не ключа.
+ */
+const KEY_REJECT_STATUSES: Record<GifProvider, readonly number[]> = {
+  giphy: [401, 403],
+  klipy: [401, 403, 404],
+};
+
 const klipy = async (
   host: Host,
   key: string,
@@ -288,6 +313,46 @@ const klipy = async (
   return { items, next: nextPos || null };
 };
 
+/**
+ * Отказ KLIPY встроенному ключу: статусы отказа ключу — ключ отозван или недействителен —
+ * и 429 — общий ключ упёрся в лимит. Ни то, ни другое пользователь не исправит, кроме как
+ * своим ключом.
+ */
+const BUILTIN_KLIPY_REFUSAL_STATUSES = [...KEY_REJECT_STATUSES.klipy, 429];
+
+/**
+ * Выдача KLIPY по своему или встроенному ключу. Отказ встроенному ключу показывается
+ * предложением указать свой, а не сырым `HTTP <код>`: код не подсказывает, что делать, а
+ * исправить такой отказ можно только своим ключом. Прочие ошибки и любые ошибки своего
+ * ключа — как есть.
+ *
+ * @param host — окружение
+ * @param ownKey — ключ из «Настроек», пустой — запрос по встроенному
+ * @param q — запрос поиска, пустой — тренды
+ * @param next — курсор следующей страницы
+ * @param locale — язык выдачи
+ * @returns страница выдачи
+ */
+const klipyFeed = async (
+  host: Host,
+  ownKey: string,
+  q: string,
+  next: string | null,
+  locale: Locale
+): Promise<GifPage> => {
+  const { key, isBuiltin } = klipyKeyOf(ownKey);
+
+  if (!isBuiltin) return klipy(host, key, q, next, locale);
+
+  try {
+    return await klipy(host, key, q, next, locale);
+  } catch (error) {
+    if (!BUILTIN_KLIPY_REFUSAL_STATUSES.includes(httpStatus(error) || 0)) throw error;
+
+    throw new Error(t('error.gifs.builtinUnavailable'));
+  }
+};
+
 export const fetchGifs = (
   host: Host,
   { giphyKey, klipyKey }: Settings,
@@ -306,26 +371,13 @@ export const fetchGifs = (
     }
 
     case 'klipy': {
-      return klipy(host, klipyKey, q, next, locale);
+      return klipyFeed(host, klipyKey, q, next, locale);
     }
 
     default: {
       throw new Error(`Unknown feed: ${String(feed)}`);
     }
   }
-};
-
-/**
- * Статусы, которыми источник отказывает ключу. Любой другой исход — не приговор ключу, а сбой
- * проверки.
- *
- * KLIPY на неверный ключ отвечает 404 с «The provided API key is invalid.»: ключ — часть
- * адреса его API. У GIPHY 404 в отказ не входит: неверный ключ он отклоняет 401, а 404 значил
- * бы сбой адреса запроса, а не ключа.
- */
-const KEY_REJECT_STATUSES: Record<GifProvider, readonly number[]> = {
-  giphy: [401, 403],
-  klipy: [401, 403, 404],
 };
 
 /**

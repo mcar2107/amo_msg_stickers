@@ -144,6 +144,12 @@ declare module 'page-agent:code' {
 declare const __TELEGRAM_BOT_TOKEN__: string;
 
 /**
+ * Встроенный ключ KLIPY — `define` сборки (`build.mjs`) из переменной `KLIPY_API_KEY`;
+ * пустая строка — сборка без него. Читает константу только `src/core/builtinKlipyKey.ts`.
+ */
+declare const __KLIPY_API_KEY__: string;
+
+/**
  * Расширение глобального `Window` возможно только через `interface`: у `type` нет
  * слияния объявлений.
  */

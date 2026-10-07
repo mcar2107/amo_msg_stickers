@@ -4,10 +4,12 @@ on:
   pull_request:
     branches: [master]
   workflow_call:
-    # Только токен встроенного бота: остальные секреты репозитория проверкам не нужны.
-    # Без него сборка выходит без встроенного токена.
+    # Только токен встроенного бота и встроенный ключ KLIPY: остальные секреты репозитория
+    # проверкам не нужны. Без них сборка выходит без встроенного токена и ключа.
     secrets:
       TELEGRAM_BOT_TOKEN:
+        required: false
+      KLIPY_API_KEY:
         required: false
 
 permissions:
@@ -50,11 +52,13 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/setup
-      # Токен встроенного Telegram-бота: сборка кладёт его в content script и userscript.
-      # Секрета нет (PR из форка, Dependabot) — пустая строка, сборка без встроенного бота.
+      # Токен встроенного Telegram-бота и встроенный ключ KLIPY: сборка кладёт их в content
+      # script и userscript. Секрета нет (PR из форка, Dependabot) — пустая строка, сборка
+      # без встроенного бота и ключа.
       - run: pnpm build
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          KLIPY_API_KEY: ${{ secrets.KLIPY_API_KEY }}
       # Версия записана только в package.json, сборка вставляет её в manifest и заголовок
       # userscript. Проверяется собранный файл, а не build.mjs: в релиз уходит он.
       - name: Версия сборки

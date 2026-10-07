@@ -6,6 +6,7 @@ import * as esbuild from 'esbuild';
 import postcss from 'postcss';
 import tailwindcss from 'tailwindcss';
 
+import { readKlipyKey } from './scripts/klipyKey.ts';
 import { readTelegramToken } from './scripts/telegramToken.ts';
 
 const isWatch = process.argv.includes('--watch');
@@ -23,6 +24,14 @@ const { version: VERSION } = JSON.parse(readFileSync('package.json', 'utf8'));
 const telegramBotToken = readTelegramToken(process.env.TELEGRAM_BOT_TOKEN);
 
 console.info(`встроенный токен Telegram: ${telegramBotToken ? 'есть' : 'нет'}`);
+
+/**
+ * Ключ KLIPY — так же до сборки и только наличием в логе: в бандле он публичен, но в лог
+ * CI значение не идёт.
+ */
+const klipyApiKey = readKlipyKey(process.env.KLIPY_API_KEY);
+
+console.info(`встроенный ключ KLIPY: ${klipyApiKey ? 'есть' : 'нет'}`);
 
 /**
  * Адреса локального amo добавляются только в dev-сборку (`pnpm watch`): боевая работает
@@ -256,10 +265,13 @@ const common = {
   legalComments: 'none',
   logLevel: 'info',
   /**
-   * В бандл токен попадает только там, где на константу есть ссылка, — в ядро content
-   * script и userscript; service worker и агент в мире страницы его не несут.
+   * В бандл токен и ключ KLIPY попадают только там, где на константу есть ссылка, — в ядро
+   * content script и userscript; service worker и агент в мире страницы их не несут.
    */
-  define: { __TELEGRAM_BOT_TOKEN__: JSON.stringify(telegramBotToken) },
+  define: {
+    __TELEGRAM_BOT_TOKEN__: JSON.stringify(telegramBotToken),
+    __KLIPY_API_KEY__: JSON.stringify(klipyApiKey),
+  },
   plugins: [tailwindPlugin, gifWorkerPlugin],
 };
 
