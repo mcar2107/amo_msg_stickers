@@ -116,7 +116,7 @@ You can copy the token again at any time: open @BotFather, choose the bot in�
 If “Doesn’t look like a bot token. Expected 123456:ABC…” appears under the field, the token wasn’t copied in full:
 copy it again following the [“Copy the token”](#own-bot-token) step.
 
-<!-- скрин: img/setup/settings-token.png — поле «Свой токен Telegram-бота (опционально)» и его подсказка -->
+<!-- скрин: img/setup/settings-token.png — поле «Свой токен Telegram-бота (необязательно)» и его подсказка -->
 
 Import the pack again following the [“Import the pack”](#import) step: with your own token it goes through your bot
 rather than the built-in one.

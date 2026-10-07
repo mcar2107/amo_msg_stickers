@@ -26,7 +26,7 @@ export const RU = {
   'add.telegram.inLibrary': 'Уже в библиотеке — импорт обновит пак',
   'add.telegram.loading': 'Загрузка пака…',
   'add.telegram.progress': '{done}/{total}',
-  'add.custom.caption': 'Подпись (опционально)',
+  'add.custom.caption': 'Подпись (необязательно)',
   'add.custom.captionPlaceholder': 'Текст на стикере',
   'add.custom.save': 'Сохранить в «Мои стикеры»',
   'add.custom.dropHint': 'Перетащите сюда картинку, GIF, видео или .tgs',
@@ -44,7 +44,7 @@ export const RU = {
   'settings.klipy.where': 'Бесплатный тестовый ключ — в Partner Panel: {link}.',
   'settings.telegram.label': 'Токен Telegram-бота (для импорта)',
   'settings.telegram.hint': 'Создайте любого бота в {link}. {docs}',
-  'settings.telegram.labelOptional': 'Свой токен Telegram-бота (опционально)',
+  'settings.telegram.labelOptional': 'Свой токен Telegram-бота (необязательно)',
   'settings.telegram.hintOptional':
     'Необязательно: импорт работает через встроенного бота. Свой нужен, если встроенный недоступен, — создайте его в {link}. {docs}',
   'settings.gif.placeholder': 'Вставьте ключ',
