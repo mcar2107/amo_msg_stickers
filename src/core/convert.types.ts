@@ -27,6 +27,12 @@ export type ToStickerGifOptions = {
    * Дорисовка поверх каждого кадра (например, подпись). undefined — без дорисовки.
    */
   decorate?: Decorate | undefined;
+
+  /**
+   * Отмена конвертации: проход обрывается перед следующим кадром, приёмник и источник
+   * закрываются, а наружу уходит `signal.reason`. undefined — без отмены.
+   */
+  signal?: AbortSignal | undefined;
 };
 
 export type SourceKind = 'tgs' | 'video' | 'image';

@@ -6,8 +6,11 @@ import { fetchGifs } from '../../../sources/gifs';
 import type { GifFeed } from '../../../sources/gifs.types';
 import { errorMessage } from '../PickerProvider/errorMessage';
 import { usePicker } from '../PickerProvider/usePicker';
+import { usePickerView } from '../usePickerView/usePickerView';
 
-import type { FeedLoading, GifFeedState } from './useGifFeed.types';
+import { feedFailureView } from './feedFailureView';
+import { shouldShowFeedError } from './shouldShowFeedError';
+import type { FeedLoading, GifFeedState, LastFeedFailure } from './useGifFeed.types';
 
 const GIF_SEARCH_DEBOUNCE_MS = 350;
 
@@ -53,7 +56,10 @@ const appendPage = (gifs: RemoteGif[], page: RemoteGif[]) => {
  * последнего ввода, подгрузка страниц при прокрутке. Выдача перезагружается на каждое
  * открытие пикера и на смену источника, запроса или ключей; ответ, пришедший после такой
  * смены или после закрытия, отбрасывается. Ошибка — в строке статуса с префиксом «GIF:»,
- * уже загруженная выдача при этом остаётся.
+ * уже загруженная выдача при этом остаётся; пока открыт экран, ошибка в статус не пишется
+ * (`shouldShowFeedError`). Пустая лента показывает ошибку последней загрузки на месте выдачи
+ * (`failure`) — и тогда, когда статус её не показал; новая загрузка и успех её снимают. Объявляет
+ * её скринридеру лента, только если статус её не показал: иначе она прозвучала бы дважды.
  *
  * @param feed — источник; `null` — ключей нет, лента не грузится
  * @param query — текст поля поиска как есть, без debounce
@@ -66,11 +72,13 @@ export const useGifFeed = (
   isOpen: boolean
 ): GifFeedState => {
   const { env, settings, showError } = usePicker();
+  const { screen } = usePickerView();
   const { giphyKey, klipyKey } = settings;
   const [term, setTerm] = useState(query.trim());
   const [gifs, setGifs] = useState<RemoteGif[]>([]);
   const [isNothingFound, setIsNothingFound] = useState(false);
   const [loading, setLoading] = useState<FeedLoading | null>(null);
+  const [lastFailure, setLastFailure] = useState<LastFeedFailure | null>(null);
   const [resetId, setResetId] = useState(0);
 
   /**
@@ -87,8 +95,14 @@ export const useGifFeed = (
    */
   const settingsRef = useRef(settings);
 
+  /**
+   * Экран читается в момент ошибки через ref: его смена не должна перезагружать ленту.
+   */
+  const screenRef = useRef(screen);
+
   useEffect(() => {
     settingsRef.current = settings;
+    screenRef.current = screen;
   });
 
   useEffect(() => {
@@ -106,6 +120,7 @@ export const useGifFeed = (
       if (!feed || (!shouldReset && isLoadingRef.current)) return;
       requestRef.current += 1;
       const request = requestRef.current;
+      const startScreen = screenRef.current;
 
       if (shouldReset) {
         nextRef.current = null;
@@ -118,6 +133,7 @@ export const useGifFeed = (
 
       isLoadingRef.current = true;
       setLoading(shouldReset ? 'first' : 'more');
+      setLastFailure(null);
 
       try {
         const page = await fetchGifs(
@@ -138,8 +154,18 @@ export const useGifFeed = (
 
         if (shouldReset && !page.items.length) setIsNothingFound(true);
       } catch (error) {
-        if (request === requestRef.current)
-          showError(t('status.gifFailed', { message: errorMessage(error) }));
+        const isLatest = request === requestRef.current;
+        const message = errorMessage(error);
+
+        const isInStatus = shouldShowFeedError({
+          isLatest,
+          startScreen,
+          screen: screenRef.current,
+        });
+
+        if (isLatest) setLastFailure({ message, isInStatus });
+
+        if (isInStatus) showError(t('status.gifFailed', { message }));
       } finally {
         if (request === requestRef.current) {
           isLoadingRef.current = false;
@@ -173,5 +199,11 @@ export const useGifFeed = (
     [load]
   );
 
-  return { gifs, term, loading, isNothingFound, resetId, checkScroll };
+  const failure = feedFailureView({
+    failure: lastFailure,
+    gifCount: gifs.length,
+    isLoading: loading !== null,
+  });
+
+  return { gifs, term, loading, isNothingFound, failure, resetId, checkScroll };
 };

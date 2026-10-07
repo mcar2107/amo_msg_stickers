@@ -2,12 +2,13 @@ import type { RemoteGif } from '../db.types';
 import type { Host, Settings } from '../host.types';
 import type { Locale, MessageKey } from '../i18n/i18n.types';
 import { t } from '../i18n/translate';
-import { isAllowedUrl } from '../net';
+import { httpStatus, isAllowedUrl } from '../net';
 import { MAX_GIF_BYTES } from '../sidePick';
 
 import {
   type GifFeed,
   type GifPage,
+  type GifProvider,
   type GiphyImage,
   type GiphyKind,
   isGiphyImage,
@@ -16,6 +17,7 @@ import {
   isTenorMedia,
   isTenorResponse,
   isTenorResult,
+  type KeyCheck,
   type SizePick,
   type TenorMedia,
 } from './gifs.types';
@@ -310,5 +312,100 @@ export const fetchGifs = (
     default: {
       throw new Error(`Unknown feed: ${String(feed)}`);
     }
+  }
+};
+
+/**
+ * Статусы, которыми источник отказывает ключу. Любой другой исход — не приговор ключу, а сбой
+ * проверки.
+ *
+ * KLIPY на неверный ключ отвечает 404 с «The provided API key is invalid.»: ключ — часть
+ * адреса его API. У GIPHY 404 в отказ не входит: неверный ключ он отклоняет 401, а 404 значил
+ * бы сбой адреса запроса, а не ключа.
+ */
+const KEY_REJECT_STATUSES: Record<GifProvider, readonly number[]> = {
+  giphy: [401, 403],
+  klipy: [401, 403, 404],
+};
+
+/**
+ * Адрес проверочного запроса: тренды одной GIF — самый дешёвый запрос, которому нужен ключ.
+ *
+ * @param provider — источник
+ * @param key — ключ API
+ * @returns адрес запроса
+ */
+const keyCheckUrl = (provider: GifProvider, key: string) => {
+  switch (provider) {
+    case 'giphy': {
+      const params = new URLSearchParams({
+        api_key: key,
+        limit: '1',
+        rating: GIPHY_RATING,
+      });
+
+      return `${GIPHY_BASE}/gifs/trending?${params}`;
+    }
+
+    case 'klipy': {
+      const params = new URLSearchParams({
+        key,
+        client_key: KLIPY_CLIENT_KEY,
+        limit: '1',
+      });
+
+      return `${KLIPY_BASE}/featured?${params}`;
+    }
+
+    default: {
+      throw new Error(`Unknown provider: ${String(provider)}`);
+    }
+  }
+};
+
+/**
+ * @param provider — источник
+ * @param response — ответ API
+ * @returns `true` — ответ формы выдачи источника
+ */
+const isFeedResponse = (provider: GifProvider, response: unknown) => {
+  switch (provider) {
+    case 'giphy': {
+      return isGiphyResponse(response);
+    }
+
+    case 'klipy': {
+      return isTenorResponse(response);
+    }
+
+    default: {
+      throw new Error(`Unknown provider: ${String(provider)}`);
+    }
+  }
+};
+
+/**
+ * Проверка ключа одним запросом трендов через `Host` — по той же сетевой политике, что и
+ * выдача. Не бросает: итог — только подсказка у поля, ключ уже сохранён. Статус отказа берётся
+ * из текста ошибки: граница service worker-а передаёт её текстом.
+ *
+ * @param host — окружение
+ * @param provider — источник ключа
+ * @param key — ключ API
+ * @returns итог проверки
+ */
+export const checkGifKey = async (
+  host: Host,
+  provider: GifProvider,
+  key: string
+): Promise<KeyCheck> => {
+  try {
+    const response = await host.fetchJson(keyCheckUrl(provider, key));
+
+    return isFeedResponse(provider, response) ? 'ok' : 'unavailable';
+  } catch (error) {
+    return KEY_REJECT_STATUSES[provider].includes(httpStatus(error) || 0)
+      ? 'rejected'
+      : 'unavailable';
   }
 };

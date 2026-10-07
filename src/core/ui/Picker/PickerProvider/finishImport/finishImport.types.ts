@@ -25,3 +25,8 @@ export type FinishImportOptions = {
    */
   showStatus: (text: string) => void;
 };
+
+/**
+ * Куда показать ошибку импорта: `field` — у поля ссылки на пак, `status` — в строке статуса.
+ */
+export type ImportErrorTarget = 'field' | 'status';

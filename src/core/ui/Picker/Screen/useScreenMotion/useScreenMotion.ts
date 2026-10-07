@@ -36,7 +36,7 @@ const SCREEN_EASING = 'ease-in-out';
  */
 export const useScreenMotion = (): ScreenMotion => {
   const { closeScreen } = usePickerView();
-  const screenRef = useRef<HTMLDivElement>(null);
+  const screenRef = useRef<HTMLElement>(null);
   const motionRef = useRef<Animation | null>(null);
   const isLeavingRef = useRef(false);
   const isMountedRef = useRef(true);

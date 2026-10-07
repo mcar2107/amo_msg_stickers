@@ -18,9 +18,20 @@ Start with KLIPY if you choose one service: it has a wider selection of GIFs
 3. Click “Show key” on the key and copy it.
 4. In amo, open the amo stickers panel with the sticker button in the message field, and click “Settings” at the
    bottom of the panel.
-5. Paste the key into the “KLIPY API key” field and click “Save”. “Saved” will appear at the bottom of the panel.
+5. Paste the key into the “KLIPY API key” field. The key saves on its own — as soon as you stop typing, leave the field
+   or press Enter.
 
 ![API Keys page in the KLIPY Partner Panel: a platform with an app, a hidden key with “Show key”, the “Testing” status and the “Add Platform” and “Create Key” buttons](../../img/setup/klipy-api-keys.png)
+
+When you leave the field or press Enter, amo stickers checks the key with a request to the service. The result is under
+the field:
+
+- “Checking the key…” — the check is running;
+- “The key works” — you’re all set;
+- “KLIPY rejected the key” — the key was copied partially or with extra characters: copy it again and paste it instead
+  of the old one;
+- “Couldn’t check the key” — the service didn’t respond: there is no network or the key hit the [request
+  limit](#limits). The key is saved, check the “GIFs” mode later.
 
 Check it: the “KLIPY” source has appeared in the “GIFs” mode: without a query, the feed shows trending GIFs; with a
 query, search results.
@@ -34,7 +45,8 @@ query, search results.
 3. Enter an app name and description — anything, for example `amo stickers` and `Stickers for amo`, — accept the
    terms and create the key.
 4. Copy the key from the list of apps on the dashboard.
-5. In the amo stickers “Settings”, paste the key into the “GIPHY API key” field and click “Save”.
+5. In the amo stickers “Settings”, paste the key into the “GIPHY API key” field. It saves on its own, and the check
+   result appears under the field — as with the KLIPY key, only with “GIPHY rejected the key” for a wrong key.
 
 <img src="../../img/setup/giphy-dashboard.png" alt="The “Create A New API Key” window in the GIPHY developer dashboard: the “API” type is selected, the “Next Step” button" width="550">
 
@@ -53,7 +65,8 @@ used by:
 
 - **search** — every time you stop typing in the search field;
 - **loading the next page** — when the feed is scrolled to the end, amo stickers loads the next batch of GIFs;
-- **trending** — the feed without a query when the “GIFs” mode opens.
+- **trending** — the feed without a query when the “GIFs” mode opens;
+- **key check** — one request when you change the key in “Settings”.
 
 The “GIPHY” and “GIPHY stickers” sources share one limit — the limit of the GIPHY key.
 

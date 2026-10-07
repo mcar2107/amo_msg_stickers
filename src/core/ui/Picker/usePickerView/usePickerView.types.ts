@@ -1,19 +1,14 @@
 import type { PickerMode } from '../../../pickerMode.types';
 
 /**
- * Экран с прокручиваемым телом: из него берётся метка тела `data-view`.
- */
-export type View = {
-  /**
-   * Экран поверх режима.
-   */
-  kind: PickerScreen;
-};
-
-/**
  * Экран поверх режима.
  */
 export type PickerScreen = 'add' | 'settings';
+
+/**
+ * Сегмент экрана «Добавить стикеры»: импорт пака из Telegram или свой стикер из файла.
+ */
+export type AddSegment = 'telegram' | 'custom';
 
 /**
  * Способ перехода ленты к разделу. `'smooth'` — лента на виду и едет плавно (клик по вкладке);
@@ -61,14 +56,26 @@ export type PickerViewValue = {
   anchor: SectionAnchor | null;
 
   /**
+   * Сегмент экрана «Добавить стикеры», выбранный последним. Живёт до перезагрузки страницы
+   * и переживает закрытие экрана и попапа.
+   */
+  addSegment: AddSegment;
+
+  /**
    * Переключает режим, закрывает экран и сохраняет режим для следующих открытий.
    */
   setMode: (mode: PickerMode) => void;
 
   /**
-   * Открывает экран поверх режима.
+   * Открывает экран поверх режима. Сегмент выбирает, на чём откроется «Добавить стикеры»;
+   * без него — сегмент, выбранный последним.
    */
-  openScreen: (screen: PickerScreen) => void;
+  openScreen: (screen: PickerScreen, segment?: AddSegment) => void;
+
+  /**
+   * Выбирает сегмент экрана «Добавить стикеры».
+   */
+  chooseSegment: (segment: AddSegment) => void;
 
   /**
    * Закрывает экран: под ним тот же режим с той же прокруткой.

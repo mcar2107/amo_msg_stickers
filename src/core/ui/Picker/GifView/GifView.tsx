@@ -42,11 +42,8 @@ export const GifView: FC<GifViewProps> = (props) => {
   const { openScreen } = usePickerView();
   const { feeds, feed, selectFeed } = useFeedChoice(settings);
   const [query, setQuery] = useState('');
-  const { gifs, term, loading, isNothingFound, resetId, checkScroll } = useGifFeed(
-    feed,
-    query,
-    isOpen
-  );
+  const { gifs, term, loading, isNothingFound, failure, resetId, checkScroll } =
+    useGifFeed(feed, query, isOpen);
   const { recent, remove, clear } = useRecentGifs(isOpen);
   const searchRef = useSearchFocus(isOpen);
   const { settingsRef, expectGifRemoval, expectRecentClear } = useGifRemovalFocus(
@@ -143,6 +140,12 @@ export const GifView: FC<GifViewProps> = (props) => {
         onRecentClear={handleRecentClear}
       >
         {isNothingFound && <EmptyState>{t('gifs.nothingFound')}</EmptyState>}
+
+        {failure && (
+          <EmptyState role={failure.shouldAnnounce ? 'alert' : undefined}>
+            {t('gifs.loadFailed', { message: failure.message })}
+          </EmptyState>
+        )}
       </MasonryGrid>
 
       <FeedAttribution feed={feed} />

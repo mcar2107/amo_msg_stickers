@@ -133,4 +133,65 @@ describe('encodeLadder', () => {
     expect(encode.mock.calls).toEqual([[512], [384]]);
     expect(result.width).toBe(384);
   });
+
+  it('прерванный signal до пробы — ни пробы, ни прохода', async () => {
+    const controller = new AbortController();
+    const sample = fakeSample(MB, 75);
+    const encode = fakeEncode({ 512: MB });
+
+    controller.abort();
+
+    await expect(
+      encodeLadder({
+        frameCount: 75,
+        side: 512,
+        sample,
+        encode,
+        signal: controller.signal,
+      })
+    ).rejects.toBe(controller.signal.reason);
+    expect(sample).not.toHaveBeenCalled();
+    expect(encode).not.toHaveBeenCalled();
+  });
+
+  it('отмена во время прохода не запускает следующий проход лестницы', async () => {
+    const controller = new AbortController();
+    const encode = vi.fn(async (side: number): Promise<EncodedPass> => {
+      controller.abort();
+
+      return { bytes: new Uint8Array(3 * MB), width: side, height: side };
+    });
+
+    await expect(
+      encodeLadder({
+        frameCount: 1,
+        side: 512,
+        sample: fakeSample(MB, 1),
+        encode,
+        signal: controller.signal,
+      })
+    ).rejects.toHaveProperty('name', 'AbortError');
+    expect(encode.mock.calls).toEqual([[512]]);
+  });
+
+  it('отмена во время пробы не запускает полный проход', async () => {
+    const controller = new AbortController();
+    const sample = vi.fn(async () => {
+      controller.abort();
+
+      return MB;
+    });
+    const encode = fakeEncode({ 512: MB });
+
+    await expect(
+      encodeLadder({
+        frameCount: 75,
+        side: 512,
+        sample,
+        encode,
+        signal: controller.signal,
+      })
+    ).rejects.toHaveProperty('name', 'AbortError');
+    expect(encode).not.toHaveBeenCalled();
+  });
 });

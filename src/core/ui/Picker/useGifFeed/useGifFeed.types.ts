@@ -1,4 +1,5 @@
 import type { RemoteGif } from '../../../db.types';
+import type { PickerScreen } from '../usePickerView/usePickerView.types';
 
 /**
  * Какая страница выдачи грузится: первая по запросу или следующая при прокрутке.
@@ -28,6 +29,12 @@ export type GifFeedState = {
   isNothingFound: boolean;
 
   /**
+   * Ошибка последней загрузки для показа на месте пустой выдачи; `null` — показывать нечего
+   * (`feedFailureView`).
+   */
+  failure: FeedFailure | null;
+
+  /**
    * Номер сброса выдачи: растёт на каждую перезагрузку с первой страницы — открытие пикера, смену
    * источника, запроса или ключей.
    */
@@ -38,4 +45,85 @@ export type GifFeedState = {
    * источник сообщил о продолжении.
    */
   checkScroll: (element: HTMLElement) => void;
+};
+
+export type ShouldShowFeedErrorOptions = {
+  /**
+   * Ошибка пришла на последний запрос ленты, а не на устаревший.
+   */
+  isLatest: boolean;
+
+  /**
+   * Экран поверх режима на старте загрузки; `null` — экрана не было.
+   */
+  startScreen: PickerScreen | null;
+
+  /**
+   * Экран поверх режима в момент ошибки; `null` — экрана нет.
+   */
+  screen: PickerScreen | null;
+};
+
+export type ShouldShowFeedFailureOptions = {
+  /**
+   * Текст ошибки последней загрузки; `null` — она прошла или ещё идёт.
+   */
+  failure: string | null;
+
+  /**
+   * Сколько GIF в выдаче.
+   */
+  gifCount: number;
+
+  /**
+   * Идёт ли загрузка.
+   */
+  isLoading: boolean;
+};
+
+/**
+ * Ошибка последней загрузки ленты.
+ */
+export type LastFeedFailure = {
+  /**
+   * Текст ошибки.
+   */
+  message: string;
+
+  /**
+   * Ошибку показала строка статуса (`shouldShowFeedError`).
+   */
+  isInStatus: boolean;
+};
+
+/**
+ * Ошибка на месте пустой выдачи.
+ */
+export type FeedFailure = {
+  /**
+   * Текст ошибки.
+   */
+  message: string;
+
+  /**
+   * Объявить ошибку скринридеру при появлении: строка статуса её не показала.
+   */
+  shouldAnnounce: boolean;
+};
+
+export type FeedFailureViewOptions = {
+  /**
+   * Ошибка последней загрузки; `null` — она прошла или ещё идёт.
+   */
+  failure: LastFeedFailure | null;
+
+  /**
+   * Сколько GIF в выдаче.
+   */
+  gifCount: number;
+
+  /**
+   * Идёт ли загрузка.
+   */
+  isLoading: boolean;
 };

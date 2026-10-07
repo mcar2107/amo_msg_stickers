@@ -39,4 +39,10 @@ export type EncodeLadderOptions = {
    * Полный проход по источнику: кодирует все кадры плана с большей стороной `side`.
    */
   encode: (side: number) => Promise<EncodedPass>;
+
+  /**
+   * Отмена: следующий проход не запускается, наружу уходит `signal.reason`. undefined — без
+   * отмены.
+   */
+  signal?: AbortSignal | undefined;
 };

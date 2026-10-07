@@ -1,5 +1,6 @@
 import { cva } from 'class-variance-authority';
 import type { FunctionComponent as FC, TargetedFocusEvent } from 'preact';
+import { useState } from 'preact/hooks';
 
 import type { PanelPhase } from '../../hoverPopup.types';
 import { t } from '../../i18n/translate';
@@ -7,15 +8,16 @@ import { t } from '../../i18n/translate';
 import { AddView } from './AddView/AddView';
 import { Footer } from './Footer/Footer';
 import { GifView } from './GifView/GifView';
+import { isTextField } from './isTextField/isTextField';
 import { ModePanel } from './ModePanel/ModePanel';
 import { usePicker } from './PickerProvider/usePicker';
 import { PreviewOverlay } from './Preview/PreviewOverlay/PreviewOverlay';
 import { PreviewProvider } from './Preview/PreviewProvider';
-import { Screen } from './Screen/Screen';
 import { SettingsView } from './SettingsView/SettingsView';
 import { StatusBar } from './StatusBar/StatusBar';
 import { StickersMode } from './StickersMode/StickersMode';
 import { useOpenLoad } from './useOpenLoad/useOpenLoad';
+import { hasScreenFooter } from './usePickerView/hasScreenFooter';
 import { usePickerView } from './usePickerView/usePickerView';
 import type { PickerScreen } from './usePickerView/usePickerView.types';
 import type { PickerProps } from './Picker.types';
@@ -76,6 +78,17 @@ const panelVariants = cva([...PANEL_CLASS, OPEN_ANIMATION_CLASS], {
  */
 const BODY_CLASS = 'relative flex min-h-0 flex-1 flex-col';
 
+/**
+ * Высота строки статуса — переменной CSS тела панели: её читает отступ тела экрана
+ * (`Screen`), а лента режима не меняет раскладку.
+ *
+ * @param height — высота строки статуса в пикселях
+ * @returns стиль тела панели
+ */
+const bodyStyle = (height: number) => {
+  return { '--status-inset': `${height}px` };
+};
+
 const renderScreen = (screen: PickerScreen) => {
   switch (screen) {
     case 'add': {
@@ -94,25 +107,6 @@ const renderScreen = (screen: PickerScreen) => {
   }
 };
 
-/**
- * Типы `input`, в которые печатают: фокус в них удерживает попап, пока идёт ввод.
- */
-const TEXT_INPUT_TYPES = new Set([
-  'text',
-  'search',
-  'password',
-  'url',
-  'email',
-  'tel',
-  'number',
-]);
-
-const isTextField = (target: EventTarget | null) => {
-  if (target instanceof HTMLTextAreaElement) return true;
-
-  return target instanceof HTMLInputElement && TEXT_INPUT_TYPES.has(target.type);
-};
-
 export const Picker: FC<PickerProps> = (props) => {
   const { phase, isDark, previewRoot, onClose } = props;
   const { setHold } = usePicker();
@@ -123,6 +117,7 @@ export const Picker: FC<PickerProps> = (props) => {
    */
   const isOpen = phase !== 'closed';
   const isCovered = screen !== null;
+  const [statusHeight, setStatusHeight] = useState(0);
 
   useOpenLoad(isOpen);
 
@@ -146,6 +141,10 @@ export const Picker: FC<PickerProps> = (props) => {
     if (isTextField(event.target)) setHold('field', false);
   };
 
+  const handleStatusHeightChange = (height: number) => {
+    setStatusHeight(height);
+  };
+
   return (
     <dialog
       open={isOpen}
@@ -156,7 +155,7 @@ export const Picker: FC<PickerProps> = (props) => {
       onFocusOut={handlePanelFocusOut}
     >
       <PreviewProvider phase={phase}>
-        <div className={BODY_CLASS}>
+        <div className={BODY_CLASS} style={bodyStyle(statusHeight)}>
           <ModePanel mode="stickers" isActive={mode === 'stickers'} isInert={isCovered}>
             <StickersMode isOpen={isOpen} />
           </ModePanel>
@@ -166,11 +165,15 @@ export const Picker: FC<PickerProps> = (props) => {
           </ModePanel>
 
           {/*
-           * `key` — смена экрана на экран монтирует новый, и появление проигрывается снова.
+           * Экраны — разные компоненты: смена экрана на экран монтирует новый, и его появление
+           * проигрывается снова.
            */}
-          {screen && <Screen key={screen}>{renderScreen(screen)}</Screen>}
+          {screen && renderScreen(screen)}
 
-          <StatusBar />
+          <StatusBar
+            isRaised={hasScreenFooter(screen)}
+            onHeightChange={handleStatusHeightChange}
+          />
         </div>
 
         <Footer />

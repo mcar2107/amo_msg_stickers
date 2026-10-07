@@ -8,6 +8,17 @@ export type GifFeed = 'giphy-gifs' | 'giphy-stickers' | 'klipy';
  */
 export type GiphyKind = 'gifs' | 'stickers';
 
+/**
+ * Источник GIF, у которого свой ключ API.
+ */
+export type GifProvider = RemoteGif['provider'];
+
+/**
+ * Итог проверки ключа: `ok` — источник отдал выдачу; `rejected` — источник отказал в доступе;
+ * `unavailable` — проверить не удалось (сеть, сбой источника, ответ не той формы).
+ */
+export type KeyCheck = 'ok' | 'rejected' | 'unavailable';
+
 export type GifPage = {
   /**
    * GIF текущей страницы выдачи.

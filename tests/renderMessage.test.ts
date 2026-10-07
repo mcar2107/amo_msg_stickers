@@ -65,7 +65,7 @@ describe('renderMessage', () => {
     expect(renderMessage('settings.telegram.hint', { link: LINK, docs: DOCS })).toEqual([
       'Создайте любого бота в\u00a0',
       LINK,
-      '. Токен хранится локально. ',
+      '. ',
       DOCS,
     ]);
 
@@ -74,7 +74,7 @@ describe('renderMessage', () => {
     expect(renderMessage('settings.telegram.hint', { link: LINK, docs: DOCS })).toEqual([
       'Create any bot in\u00a0',
       LINK,
-      '. The\u00a0token is\u00a0stored locally. ',
+      '. ',
       DOCS,
     ]);
   });

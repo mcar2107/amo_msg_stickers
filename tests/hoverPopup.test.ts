@@ -446,6 +446,35 @@ describe('createPopupHolds', () => {
     expect(holds.isHeld()).toBe(true);
   });
 
+  it('открытый экран удерживает попап и переживает закрытие панели', () => {
+    let released = 0;
+    const holds = createPopupHolds(() => {
+      released += 1;
+    });
+
+    holds.set('screen', true);
+    expect(holds.isHeld()).toBe(true);
+
+    holds.releasePanel();
+    expect(holds.isHeld()).toBe(true);
+    expect(released).toBe(0);
+
+    holds.set('screen', false);
+    expect(holds.isHeld()).toBe(false);
+    expect(released).toBe(1);
+  });
+
+  it('экран и фокус в поле: уход фокуса не отпускает попап, закрытие экрана — отпускает', () => {
+    const holds = createPopupHolds();
+
+    holds.set('screen', true);
+    holds.set('field', true);
+    holds.set('field', false);
+    expect(holds.isHeld()).toBe(true);
+    holds.set('screen', false);
+    expect(holds.isHeld()).toBe(false);
+  });
+
   it('закрытая панель снимает причину preview и сообщает о снятии', () => {
     let released = 0;
     const holds = createPopupHolds(() => {

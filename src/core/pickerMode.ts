@@ -1,4 +1,5 @@
-import type { ModeStorage, PickerMode } from './pickerMode.types';
+import type { PageStorage } from './pageStorage.types';
+import type { PickerMode } from './pickerMode.types';
 
 export const MODE_KEY = 'amo-stickers:mode';
 
@@ -27,7 +28,7 @@ const toPickerMode = (value: string | null): PickerMode | null => {
  * @param storage — хранилище страницы
  * @returns сохранённый режим; `null` — нет значения, значение не из допустимых или хранилище недоступно
  */
-export const readMode = (storage: ModeStorage): PickerMode | null => {
+export const readMode = (storage: PageStorage): PickerMode | null => {
   try {
     return toPickerMode(storage.getItem(MODE_KEY));
   } catch {
@@ -42,7 +43,7 @@ export const readMode = (storage: ModeStorage): PickerMode | null => {
  * @param storage — хранилище страницы
  * @param mode — режим для следующего открытия
  */
-export const writeMode = (storage: ModeStorage, mode: PickerMode) => {
+export const writeMode = (storage: PageStorage, mode: PickerMode) => {
   try {
     storage.setItem(MODE_KEY, mode);
   } catch {

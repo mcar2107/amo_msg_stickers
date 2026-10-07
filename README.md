@@ -71,7 +71,11 @@ gh workflow run chrome-web-store.yml --ref master -f tag=v0.16.0
 **Стенд.** `dev/harness.html` повторяет разметку поля ввода и ленты amo; вставка и «Отправить» в нём замоканы. Для
 стилей положите CSS страницы amo в `dev/amo.css` (в git не лежит).
 
+Ключи GIF и токен бота стенд берёт из `.env` в корне: `pnpm i` создаёт его из шаблона `.env.example`, если файла ещё
+нет. Сервер стенда `pnpm harness` (порт — переменная `PORT`) кладёт их в настройки и проксирует файлы стикеров
+Telegram: на стенде userscript работает без менеджера, а файлы Telegram отдаются без CORS.
+
 ```bash
-python3 -m http.server 8777 -b 127.0.0.1
-open http://127.0.0.1:8777/dev/harness.html
+pnpm harness
+open http://localhost:8777/dev/harness.html
 ```

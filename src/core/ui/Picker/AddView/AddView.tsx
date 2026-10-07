@@ -1,33 +1,151 @@
 import type { FunctionComponent as FC } from 'preact';
 
 import { t } from '../../../i18n/translate';
-import type { View } from '../usePickerView/usePickerView.types';
-import { ViewBody } from '../ViewBody/ViewBody';
-import { ViewHeader } from '../ViewHeader/ViewHeader';
-import { ViewTitle } from '../ViewHeader/ViewTitle/ViewTitle';
+import { Screen } from '../Screen/Screen';
+import { usePickerView } from '../usePickerView/usePickerView';
+import { useStickerDraft } from '../useStickerDraft/useStickerDraft';
+import { useTelegramImport } from '../useTelegramImport/useTelegramImport';
 
 import { CreateSticker } from './CreateSticker/CreateSticker';
+import { CreateStickerFooter } from './CreateSticker/CreateStickerFooter/CreateStickerFooter';
+import { SegmentForm } from './SegmentForm/SegmentForm';
+import { SegmentTab } from './SegmentTab/SegmentTab';
 import { TelegramImport } from './TelegramImport/TelegramImport';
-
-const ADD_VIEW: View = { kind: 'add' };
+import { TelegramImportFooter } from './TelegramImport/TelegramImportFooter/TelegramImportFooter';
 
 /**
- * Добавление стикеров: импорт пака из Telegram и свой стикер из файла.
+ * Добавление стикеров: сегменты «Telegram» (импорт пака) и «Свой стикер» (из файла).
+ *
+ * Хуки обеих форм вызываются здесь, а не в панелях: главная кнопка футера зависит от
+ * выбранного сегмента и состояния его формы. Панели смонтированы обе, поэтому введённая
+ * ссылка и черновик стикера переживают смену сегмента. Закрытие экрана сбрасывает черновик, а
+ * ссылку и ошибку её поля держит провайдер — до успешного импорта.
  */
 export const AddView: FC = () => {
+  const { addSegment } = usePickerView();
+  const {
+    link,
+    hasLink,
+    fieldError,
+    isPackMissing,
+    card,
+    changeLink,
+    isImporting,
+    startImport,
+    cancelImport,
+  } = useTelegramImport();
+  const {
+    fileName,
+    caption,
+    previewUrl,
+    size,
+    isSavable,
+    isConverting,
+    saveBlock,
+    pickFile,
+    changeCaption,
+    save,
+  } = useStickerDraft();
+  const isImportDisabled = isImporting || !hasLink || isPackMissing;
+
+  /**
+   * Enter в поле во время импорта отправляет форму и без кнопки отправки в футере — у формы с
+   * одним полем неявная отправка идёт и так; импорт он не отменяет и второй не запускает.
+   */
+  const handleTelegramSubmit = () => {
+    if (!isImportDisabled) void startImport();
+  };
+
+  const handleImportCancel = () => {
+    cancelImport();
+  };
+
+  const handleLinkChange = (value: string) => {
+    changeLink(value);
+  };
+
+  const handleCustomSubmit = () => {
+    void save();
+  };
+
+  const handleFilePick = (file: File | undefined) => {
+    pickFile(file);
+  };
+
+  const handleCaptionChange = (value: string) => {
+    changeCaption(value);
+  };
+
+  const renderFooter = () => {
+    switch (addSegment) {
+      case 'telegram': {
+        return (
+          <TelegramImportFooter
+            isImporting={isImporting}
+            isDisabled={isImportDisabled}
+            onCancel={handleImportCancel}
+          />
+        );
+      }
+
+      case 'custom': {
+        return (
+          <CreateStickerFooter
+            isDisabled={!isSavable}
+            saveBlock={saveBlock}
+            size={size}
+          />
+        );
+      }
+
+      default: {
+        const unknownSegment: never = addSegment;
+
+        throw new Error(`Unknown add segment: ${String(unknownSegment)}`);
+      }
+    }
+  };
+
   return (
-    <>
-      <ViewHeader>
-        <ViewTitle title={t('add.title')} />
-      </ViewHeader>
+    <Screen title={t('add.title')} footer={renderFooter()}>
+      <div
+        role="tablist"
+        aria-label={t('add.segments')}
+        className="mb-2 flex items-center gap-0.5"
+      >
+        <SegmentTab segment="telegram" title={t('add.segment.telegram')} />
 
-      <ViewBody view={ADD_VIEW}>
-        <div className="flex flex-col gap-2 px-0.5 pb-3 pt-1">
-          <TelegramImport />
+        <SegmentTab segment="custom" title={t('add.segment.custom')} />
+      </div>
 
-          <CreateSticker />
-        </div>
-      </ViewBody>
-    </>
+      <SegmentForm
+        segment="telegram"
+        isActive={addSegment === 'telegram'}
+        onSubmit={handleTelegramSubmit}
+      >
+        <TelegramImport
+          link={link}
+          fieldError={fieldError}
+          card={card}
+          isActive={addSegment === 'telegram'}
+          onLinkChange={handleLinkChange}
+        />
+      </SegmentForm>
+
+      <SegmentForm
+        segment="custom"
+        isActive={addSegment === 'custom'}
+        onSubmit={handleCustomSubmit}
+      >
+        <CreateSticker
+          fileName={fileName}
+          caption={caption}
+          previewUrl={previewUrl}
+          isConverting={isConverting}
+          onPick={handleFilePick}
+          onCaptionChange={handleCaptionChange}
+        />
+      </SegmentForm>
+    </Screen>
   );
 };

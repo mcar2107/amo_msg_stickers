@@ -2,8 +2,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { DEFAULT_SETTINGS } from '../src/core/host';
 import { setLocale } from '../src/core/i18n/translate';
-import { BYTES_IN_MB as MB } from '../src/core/net';
-import { fetchGifs } from '../src/core/sources/gifs';
+import { BYTES_IN_MB as MB, httpError } from '../src/core/net';
+import { checkGifKey, fetchGifs } from '../src/core/sources/gifs';
 
 import { fakeHost } from './helpers/fakeHost';
 
@@ -450,4 +450,97 @@ describe('fetchGifs: язык выдачи', () => {
       expect(requestParams(featuredHost).get('locale')).toBe(klipyLocale);
     }
   );
+});
+
+/**
+ * `Host`, у которого `fetchJson` бросает: отказ API, сеть или политика хостов.
+ *
+ * @param error — что бросает запрос
+ * @returns фейковое окружение
+ */
+const failingHost = (error: unknown) => {
+  return fakeHost({
+    onJson: () => {
+      throw error;
+    },
+  });
+};
+
+describe('checkGifKey', () => {
+  it('GIPHY: один запрос трендов с limit=1 и ключом', async () => {
+    const host = fakeHost({ json: giphyPage([]) });
+
+    await expect(checkGifKey(host, 'giphy', 'g-key')).resolves.toBe('ok');
+
+    expect(host.fetchJson).toHaveBeenCalledTimes(1);
+    const url = new URL(vi.mocked(host.fetchJson).mock.calls[0]?.[0] || '');
+
+    expect(`${url.origin}${url.pathname}`).toBe('https://api.giphy.com/v1/gifs/trending');
+    expect(url.searchParams.get('api_key')).toBe('g-key');
+    expect(url.searchParams.get('limit')).toBe('1');
+  });
+
+  it('KLIPY: один запрос featured с limit=1 и ключом', async () => {
+    const host = fakeHost({ json: { results: [], next: '' } });
+
+    await expect(checkGifKey(host, 'klipy', 'k-key')).resolves.toBe('ok');
+
+    expect(host.fetchJson).toHaveBeenCalledTimes(1);
+    const url = new URL(vi.mocked(host.fetchJson).mock.calls[0]?.[0] || '');
+
+    expect(`${url.origin}${url.pathname}`).toBe('https://api.klipy.com/v2/featured');
+    expect(url.searchParams.get('key')).toBe('k-key');
+    expect(url.searchParams.get('limit')).toBe('1');
+  });
+
+  it('HTTP 401 и 403 — ключ не принят', async () => {
+    await expect(
+      checkGifKey(failingHost(httpError(401, '')), 'giphy', 'g')
+    ).resolves.toBe('rejected');
+    await expect(
+      checkGifKey(failingHost(httpError(403, 'x')), 'klipy', 'k')
+    ).resolves.toBe('rejected');
+  });
+
+  it('KLIPY: HTTP 404 — ключ не принят, так KLIPY отвечает на неверный ключ', async () => {
+    const body =
+      '{"result":false,"errors":{"message":["The provided API key is invalid."]}}';
+
+    await expect(
+      checkGifKey(failingHost(httpError(404, body)), 'klipy', 'k')
+    ).resolves.toBe('rejected');
+  });
+
+  it('GIPHY: HTTP 404 — не удалось проверить, неверный ключ GIPHY отклоняет 401', async () => {
+    await expect(
+      checkGifKey(failingHost(httpError(404, '')), 'giphy', 'g')
+    ).resolves.toBe('unavailable');
+  });
+
+  it('статус разбирается из текста: ошибка с границы SW — не экземпляр от httpError', async () => {
+    const host = failingHost(new Error(httpError(401, 'Unauthorized').message));
+
+    await expect(checkGifKey(host, 'klipy', 'k')).resolves.toBe('rejected');
+  });
+
+  it('HTTP 500 — не удалось проверить', async () => {
+    await expect(
+      checkGifKey(failingHost(httpError(500, '')), 'giphy', 'g')
+    ).resolves.toBe('unavailable');
+  });
+
+  it('сетевая ошибка — не удалось проверить', async () => {
+    await expect(
+      checkGifKey(failingHost(new TypeError('Failed to fetch')), 'klipy', 'k')
+    ).resolves.toBe('unavailable');
+  });
+
+  it('битый ответ — не удалось проверить', async () => {
+    await expect(
+      checkGifKey(fakeHost({ json: { data: 'x' } }), 'giphy', 'g')
+    ).resolves.toBe('unavailable');
+    await expect(checkGifKey(fakeHost({ json: null }), 'klipy', 'k')).resolves.toBe(
+      'unavailable'
+    );
+  });
 });

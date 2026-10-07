@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
+import type { PageStorage } from '../src/core/pageStorage.types';
 import { MODE_KEY, readMode, writeMode } from '../src/core/pickerMode';
-import type { ModeStorage } from '../src/core/pickerMode.types';
 
 /**
  * Хранилище на объекте — как `localStorage`, без браузера.
@@ -11,7 +11,7 @@ import type { ModeStorage } from '../src/core/pickerMode.types';
  */
 const memoryStorage = (initial: Record<string, string> = {}) => {
   const data = new Map(Object.entries(initial));
-  const storage: ModeStorage = {
+  const storage: PageStorage = {
     getItem: (key) => {
       return data.get(key) || null;
     },
@@ -26,7 +26,7 @@ const memoryStorage = (initial: Record<string, string> = {}) => {
 /**
  * Хранилище, которое бросает на любом обращении — как `localStorage` под запретом сайта.
  */
-const THROWING_STORAGE: ModeStorage = {
+const THROWING_STORAGE: PageStorage = {
   getItem: () => {
     throw new DOMException('denied', 'SecurityError');
   },

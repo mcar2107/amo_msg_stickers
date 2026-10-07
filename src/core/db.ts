@@ -125,7 +125,13 @@ export const ensureCustomPack = async (): Promise<Pack> => {
   return pack;
 };
 
-const listStickers = async (packId: string): Promise<StickerRec[]> => {
+/**
+ * Стикеры одного пака в порядке добавления.
+ *
+ * @param packId — id пака
+ * @returns записи стикеров пака; у пака без стикеров — пустой список
+ */
+export const listStickers = async (packId: string): Promise<StickerRec[]> => {
   const index = (await store(STORE.stickers)).index(PACK_ID_INDEX);
   const stickers = await promisify<StickerRec[]>(index.getAll(packId));
 

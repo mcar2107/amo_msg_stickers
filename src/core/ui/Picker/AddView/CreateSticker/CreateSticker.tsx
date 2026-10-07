@@ -1,54 +1,50 @@
 import type { FunctionComponent as FC } from 'preact';
 
 import { t } from '../../../../i18n/translate';
-import { Button } from '../../Button/Button';
-import { TextInput } from '../../TextInput/TextInput';
-import { useStickerDraft } from '../../useStickerDraft/useStickerDraft';
+import { Field } from '../../Field/Field';
 
+import { DraftPreview } from './DraftPreview/DraftPreview';
 import { DropZone } from './DropZone/DropZone';
-import { StickerPreview } from './StickerPreview/StickerPreview';
+import type { CreateStickerProps } from './CreateSticker.types';
+
+const CAPTION_FIELD_ID = 'picker-add-custom-caption';
 
 /**
- * Форма своего стикера. Возвращает фрагмент, а не обёртку: заголовок, зона загрузки,
- * подпись, превью и кнопка — строки общей формы вкладки «Добавить стикеры» с её
- * отступами.
+ * Панель сегмента «Свой стикер»: зона загрузки с превью и подпись. Фрагмент, а не обёртка:
+ * строки ложатся в форму сегмента с её отступами. Черновик держит `AddView` — сохранение
+ * стоит в футере экрана, вне панели, и черновик переживает смену сегмента.
+ *
+ * Своего заголовка у панели нет: её называет вкладка сегмента, а лишняя строка не дала бы
+ * сегменту поместиться в панель без прокрутки.
  */
-export const CreateSticker: FC = () => {
-  const { fileName, caption, previewUrl, isSavable, pickFile, changeCaption, save } =
-    useStickerDraft();
+export const CreateSticker: FC<CreateStickerProps> = (props) => {
+  const { fileName, caption, previewUrl, isConverting, onPick, onCaptionChange } = props;
 
   const handleZonePick = (file: File | undefined) => {
-    pickFile(file);
+    onPick(file);
   };
 
   const handleCaptionInput = (value: string) => {
-    changeCaption(value);
-  };
-
-  const handleSaveClick = () => {
-    void save();
+    onCaptionChange(value);
   };
 
   return (
     <>
-      <h3 className="mt-1.5 text-xsm font-bold">{t('add.custom.title')}</h3>
-
-      <DropZone fileName={fileName} onPick={handleZonePick} />
-
-      <TextInput
-        type="text"
-        value={caption}
-        placeholder={t('add.custom.caption')}
-        onInput={handleCaptionInput}
+      <DropZone
+        fileName={fileName}
+        preview={
+          <DraftPreview url={previewUrl} caption={caption.trim()} isBusy={isConverting} />
+        }
+        onPick={handleZonePick}
       />
 
-      {previewUrl && <StickerPreview url={previewUrl} />}
-
-      <div className="flex items-center gap-1.5">
-        <Button variant="primary" isDisabled={!isSavable} onClick={handleSaveClick}>
-          {t('add.custom.save')}
-        </Button>
-      </div>
+      <Field
+        id={CAPTION_FIELD_ID}
+        label={t('add.custom.caption')}
+        value={caption}
+        placeholder={t('add.custom.captionPlaceholder')}
+        onInput={handleCaptionInput}
+      />
     </>
   );
 };
