@@ -11,9 +11,11 @@ import type { CellSend } from './useCellSend.types';
  * ячейки остаются доступными.
  *
  * @param item — что отправляет ячейка
+ * @param packId — пак раздела, из которого отправляют: успешная отправка поднимает его в
+ *   порядке паков; undefined — раздел не пака («Недавние», GIF)
  * @returns занятость ячейки и отправка
  */
-export const useCellSend = (item: SendItem): CellSend => {
+export const useCellSend = (item: SendItem, packId?: string): CellSend => {
   const { send } = usePicker();
   const [isBusy, setIsBusy] = useState(false);
 
@@ -21,11 +23,11 @@ export const useCellSend = (item: SendItem): CellSend => {
     setIsBusy(true);
 
     try {
-      await send(item);
+      await send(item, packId);
     } finally {
       setIsBusy(false);
     }
-  }, [send, item]);
+  }, [send, item, packId]);
 
   return { isBusy, sendItem };
 };

@@ -73,6 +73,29 @@ const promisify = <T>(req: IDBRequest): Promise<T> => {
   });
 };
 
+/**
+ * Ждёт `abort` наравне с `error`: транзакция, прерванная без ошибки запроса (сбой коммита по квоте), иначе оставила
+ * бы промис неразрешённым навсегда.
+ *
+ * @param tx — транзакция IndexedDB
+ * @returns завершение транзакции; отклоняется ошибкой транзакции при сбое или прерывании
+ */
+const txDone = (tx: IDBTransaction): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    tx.oncomplete = () => {
+      return resolve();
+    };
+
+    tx.onerror = () => {
+      return reject(tx.error);
+    };
+
+    tx.onabort = () => {
+      return reject(tx.error);
+    };
+  });
+};
+
 const store = async (name: StoreName, mode: IDBTransactionMode = 'readonly') => {
   const db = await openDb();
 
@@ -101,6 +124,51 @@ export const getPack = async (id: string): Promise<Pack | undefined> => {
 
 export const putPack = async (pack: Pack) => {
   await promisify((await store(STORE.packs, 'readwrite')).put(pack));
+};
+
+/**
+ * Отмечает использование пака текущим временем. Чтение и запись — одна транзакция: запись пака, которую другая вкладка
+ * сделала между ними (повторный импорт), не затирается прежней копией.
+ *
+ * @param packId — id пака
+ * @returns завершение записи; пака нет (удалён в другой вкладке) — ничего не пишется, промис выполняется без ошибки
+ */
+export const touchPack = async (packId: string) => {
+  const db = await openDb();
+  const tx = db.transaction(STORE.packs, 'readwrite');
+  const packs = tx.objectStore(STORE.packs);
+  const req = packs.get(packId);
+
+  req.onsuccess = () => {
+    const pack = req.result as Pack | undefined;
+
+    if (pack) packs.put({ ...pack, usedAt: Date.now() });
+  };
+
+  await txDone(tx);
+};
+
+/**
+ * Ставит паку обложку. Чтение и запись — одна транзакция: отметка использования, сделанная во время импорта, не
+ * затирается копией записи, которую импорт держит с начала.
+ *
+ * @param packId — id пака
+ * @param coverId — id стикера-обложки
+ * @returns завершение записи; пака нет — ничего не пишется, промис выполняется без ошибки
+ */
+export const setPackCover = async (packId: string, coverId: string) => {
+  const db = await openDb();
+  const tx = db.transaction(STORE.packs, 'readwrite');
+  const packs = tx.objectStore(STORE.packs);
+  const req = packs.get(packId);
+
+  req.onsuccess = () => {
+    const pack = req.result as Pack | undefined;
+
+    if (pack) packs.put({ ...pack, coverId });
+  };
+
+  await txDone(tx);
 };
 
 export const ensureCustomPack = async (): Promise<Pack> => {
@@ -181,15 +249,7 @@ export const deletePack = async (packId: string) => {
 
   tx.objectStore(STORE.packs).delete(packId);
   for (const { id } of stickers) tx.objectStore(STORE.stickers).delete(id);
-  await new Promise<void>((resolve, reject) => {
-    tx.oncomplete = () => {
-      return resolve();
-    };
-
-    tx.onerror = () => {
-      return reject(tx.error);
-    };
-  });
+  await txDone(tx);
 };
 
 export const getSticker = async (id: string): Promise<StickerRec | undefined> => {

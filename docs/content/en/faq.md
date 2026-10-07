@@ -89,3 +89,12 @@ Click “…” in the pack header above its stickers and choose “Copy link
 to the clipboard, and “Pack link copied” appears at the bottom of the panel. You can send it in a chat or paste it on the
 “Add stickers” screen on another device. “My stickers” has no menu, and a pack without a Telegram set name has no “Copy link”
 item.
+
+## Why packs changed places
+
+In the “Stickers” mode, “Recent” and “My stickers” always come first, followed by packs from Telegram: the one you last
+sent a sticker from is at the top. A newly imported pack goes first among Telegram packs right away. Sending a sticker
+from “Recent” doesn’t change the pack order, and neither does importing a pack that is already in the library again.
+
+The order is updated the next time you open the panel: while it’s open, packs stay in place. Packs can’t be rearranged
+manually.

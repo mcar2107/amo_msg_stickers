@@ -38,9 +38,9 @@ const CELL_CLASS = [
  * отправляют стикер — меню открывают только правый клик, клавиша меню и `Shift+F10`.
  */
 export const StickerCell: FC<StickerCellProps> = (props) => {
-  const { id, item, url, emoji, name, removeKind, onRemove } = props;
+  const { id, item, packId, url, emoji, name, removeKind, onRemove } = props;
   const target = { url, emoji, name: name.preview };
-  const { isBusy, sendItem } = useCellSend(item);
+  const { isBusy, sendItem } = useCellSend(item, packId);
   const { opening, open, close } = useContextMenu();
   const preview = useCellPreview({ target, isBusy });
 

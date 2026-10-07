@@ -8,6 +8,7 @@ import {
   listStickers,
   putPack,
   putSticker,
+  setPackCover,
 } from '../src/core/db';
 import type { Pack, StickerRec } from '../src/core/db.types';
 import type { Host } from '../src/core/host.types';
@@ -55,6 +56,7 @@ vi.mock('../src/core/db', () => {
     getPack: vi.fn(async () => {}),
     putPack: vi.fn(async () => {}),
     putSticker: vi.fn(async () => {}),
+    setPackCover: vi.fn(async () => {}),
     deletePack: vi.fn(async () => {}),
     deleteSticker: vi.fn(async () => {}),
     listStickers: vi.fn(async () => {
@@ -298,6 +300,124 @@ describe('importTelegramSet', () => {
 
     await expect(importByLink(fakeHost({}), TOKEN, 'не ссылка', vi.fn())).rejects.toThrow(
       "Couldn't parse the link. Expected t.me/addstickers/Name"
+    );
+  });
+});
+
+describe('importTelegramSet: место пака в порядке', () => {
+  const STARTED_AT = 5000;
+  const SET = { name: 'Pack', title: 'Пак', stickers: [sticker('a'), sticker('b')] };
+
+  /**
+   * Подменяется только `Date`: таймеры остаются настоящими, и асинхронный импорт идёт как обычно.
+   */
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(STARTED_AT);
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  /**
+   * Записи пака из всех вызовов `putPack`.
+   *
+   * @returns записанные паки по порядку
+   */
+  const writtenPacks = () => {
+    return vi.mocked(putPack).mock.calls.map(([pack]) => {
+      return pack;
+    });
+  };
+
+  /**
+   * `createdAt` записанных стикеров по порядку.
+   *
+   * @returns время добавления каждого стикера
+   */
+  const stickerTimes = () => {
+    return vi.mocked(putSticker).mock.calls.map(([{ createdAt }]) => {
+      return createdAt;
+    });
+  };
+
+  it('новый пак пишется с usedAt — временем импорта', async () => {
+    await importTelegramSet(fakeHost({ onJson: botApi(SET) }), TOKEN, SET, vi.fn());
+
+    expect(writtenPacks().length).toBeGreaterThan(0);
+
+    for (const pack of writtenPacks()) {
+      expect(pack).toMatchObject({ createdAt: STARTED_AT, usedAt: STARTED_AT });
+    }
+  });
+
+  it('повторный импорт сохраняет createdAt и usedAt прежней записи', async () => {
+    const previous: Pack = {
+      id: 'tg:Pack',
+      title: 'Пак',
+      source: 'telegram',
+      createdAt: 1,
+      usedAt: 300,
+    };
+
+    vi.mocked(getPack).mockResolvedValueOnce(previous);
+    await importTelegramSet(fakeHost({ onJson: botApi(SET) }), TOKEN, SET, vi.fn());
+
+    expect(writtenPacks().length).toBeGreaterThan(0);
+
+    for (const pack of writtenPacks()) {
+      expect(pack).toMatchObject({ createdAt: 1, usedAt: 300 });
+    }
+  });
+
+  it('повторный импорт неиспользованного пака не даёт ему usedAt', async () => {
+    const previous: Pack = {
+      id: 'tg:Pack',
+      title: 'Пак',
+      source: 'telegram',
+      createdAt: 1,
+    };
+
+    vi.mocked(getPack).mockResolvedValueOnce(previous);
+    await importTelegramSet(fakeHost({ onJson: botApi(SET) }), TOKEN, SET, vi.fn());
+
+    expect(writtenPacks().length).toBeGreaterThan(0);
+
+    for (const pack of writtenPacks()) {
+      expect(pack.createdAt).toBe(1);
+      expect(pack).not.toHaveProperty('usedAt');
+    }
+  });
+
+  it('createdAt стикеров — от начала импорта плюс индекс, и у повторного импорта', async () => {
+    vi.mocked(getPack).mockResolvedValueOnce({
+      id: 'tg:Pack',
+      title: 'Пак',
+      source: 'telegram',
+      createdAt: 1,
+      usedAt: 300,
+    });
+    await importTelegramSet(fakeHost({ onJson: botApi(SET) }), TOKEN, SET, vi.fn());
+
+    expect(stickerTimes()).toEqual([STARTED_AT, STARTED_AT + 1]);
+  });
+
+  it('обложка пишется отдельно от записи пака: отметка во время импорта не затирается', async () => {
+    vi.mocked(getPack).mockResolvedValueOnce({
+      id: 'tg:Pack',
+      title: 'Пак',
+      source: 'telegram',
+      createdAt: 1,
+      usedAt: 300,
+    });
+    await importTelegramSet(fakeHost({ onJson: botApi(SET) }), TOKEN, SET, vi.fn());
+
+    expect(writtenPacks()).toHaveLength(1);
+    expect(setPackCover).toHaveBeenCalledOnce();
+    expect(setPackCover).toHaveBeenCalledWith(
+      'tg:Pack',
+      vi.mocked(putSticker).mock.calls[0]?.[0].id
     );
   });
 });

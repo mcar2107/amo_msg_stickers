@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
 
-import { listPacks } from '../../../db';
+import { listPacks, touchPack } from '../../../db';
 import type { Pack, SendItem } from '../../../db.types';
 import { DEFAULT_SETTINGS } from '../../../host';
 import type { Settings } from '../../../host.types';
 import { t } from '../../../i18n/translate';
+import { orderPacks, packSnapshot } from '../../../packOrder';
 import { useObjectUrls } from '../useObjectUrls/useObjectUrls';
 import { usePickerViewState } from '../usePickerView/usePickerViewState';
 
@@ -13,6 +14,7 @@ import type {
   PickerStateOptions,
   PickerStateValue,
   PickerStatus,
+  RefreshPacksOptions,
 } from './PickerProvider.types';
 import { usePackImport } from './usePackImport';
 
@@ -54,8 +56,24 @@ export const usePickerState = (options: PickerStateOptions): PickerStateValue =>
     setSettings(next);
   }, [env, enqueueSettings]);
 
-  const refreshPacks = useCallback(async () => {
-    setPacks(await listPacks());
+  /**
+   * Показанный порядок паков Telegram — в `ref`, а не в состоянии: рендеру он не нужен. `null` — порядок ещё не
+   * показывался.
+   */
+  const packOrderRef = useRef<string[] | null>(null);
+
+  /**
+   * Снимок обновляется и без пересчёта: новый пак, вставший первым, остаётся на своём месте до следующего открытия,
+   * даже если другая вкладка отметит использование другого нового пака.
+   */
+  const refreshPacks = useCallback(async ({ isReorder }: RefreshPacksOptions = {}) => {
+    const ordered = orderPacks(
+      await listPacks(),
+      isReorder ? null : packOrderRef.current
+    );
+
+    packOrderRef.current = packSnapshot(ordered);
+    setPacks(ordered);
   }, []);
 
   const showStatus = useCallback((text: string) => {
@@ -91,7 +109,7 @@ export const usePickerState = (options: PickerStateOptions): PickerStateValue =>
   }, []);
 
   const send = useCallback(
-    async (item: SendItem) => {
+    async (item: SendItem, packId?: string) => {
       showStatus(t('status.sending'));
 
       try {
@@ -100,6 +118,20 @@ export const usePickerState = (options: PickerStateOptions): PickerStateValue =>
         onClose();
       } catch (error) {
         showError(errorMessage(error) || t('status.sendFailed'));
+
+        return;
+      }
+
+      if (!packId) return;
+
+      /**
+       * Сбой отметки — только в консоль: стикер уже отправлен, и ошибка порядка паков поверх
+       * «отправлено» сбила бы с толку.
+       */
+      try {
+        await touchPack(packId);
+      } catch (error) {
+        console.warn('[amo-stickers] pack usage mark failed', packId, error);
       }
     },
     [onSend, onClose, showStatus, showError, clearStatus]
