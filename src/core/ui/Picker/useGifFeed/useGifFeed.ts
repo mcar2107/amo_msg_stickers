@@ -8,9 +8,9 @@ import { errorMessage } from '../PickerProvider/errorMessage';
 import { usePicker } from '../PickerProvider/usePicker';
 import { usePickerView } from '../usePickerView/usePickerView';
 
+import { feedFailureView } from './feedFailureView';
 import { shouldShowFeedError } from './shouldShowFeedError';
-import { shouldShowFeedFailure } from './shouldShowFeedFailure';
-import type { FeedLoading, GifFeedState } from './useGifFeed.types';
+import type { FeedLoading, GifFeedState, LastFeedFailure } from './useGifFeed.types';
 
 const GIF_SEARCH_DEBOUNCE_MS = 350;
 
@@ -58,7 +58,8 @@ const appendPage = (gifs: RemoteGif[], page: RemoteGif[]) => {
  * смены или после закрытия, отбрасывается. Ошибка — в строке статуса с префиксом «GIF:»,
  * уже загруженная выдача при этом остаётся; пока открыт экран, ошибка в статус не пишется
  * (`shouldShowFeedError`). Пустая лента показывает ошибку последней загрузки на месте выдачи
- * (`failure`) — и тогда, когда статус её не показал; новая загрузка и успех её снимают.
+ * (`failure`) — и тогда, когда статус её не показал; новая загрузка и успех её снимают. Объявляет
+ * её скринридеру лента, только если статус её не показал: иначе она прозвучала бы дважды.
  *
  * @param feed — источник; `null` — ключей нет, лента не грузится
  * @param query — текст поля поиска как есть, без debounce
@@ -77,7 +78,7 @@ export const useGifFeed = (
   const [gifs, setGifs] = useState<RemoteGif[]>([]);
   const [isNothingFound, setIsNothingFound] = useState(false);
   const [loading, setLoading] = useState<FeedLoading | null>(null);
-  const [lastFailure, setLastFailure] = useState<string | null>(null);
+  const [lastFailure, setLastFailure] = useState<LastFeedFailure | null>(null);
   const [resetId, setResetId] = useState(0);
 
   /**
@@ -156,10 +157,15 @@ export const useGifFeed = (
         const isLatest = request === requestRef.current;
         const message = errorMessage(error);
 
-        if (isLatest) setLastFailure(message);
+        const isInStatus = shouldShowFeedError({
+          isLatest,
+          startScreen,
+          screen: screenRef.current,
+        });
 
-        if (shouldShowFeedError({ isLatest, startScreen, screen: screenRef.current }))
-          showError(t('status.gifFailed', { message }));
+        if (isLatest) setLastFailure({ message, isInStatus });
+
+        if (isInStatus) showError(t('status.gifFailed', { message }));
       } finally {
         if (request === requestRef.current) {
           isLoadingRef.current = false;
@@ -193,13 +199,11 @@ export const useGifFeed = (
     [load]
   );
 
-  const failure = shouldShowFeedFailure({
+  const failure = feedFailureView({
     failure: lastFailure,
     gifCount: gifs.length,
     isLoading: loading !== null,
-  })
-    ? lastFailure
-    : null;
+  });
 
   return { gifs, term, loading, isNothingFound, failure, resetId, checkScroll };
 };

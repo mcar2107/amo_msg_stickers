@@ -29,10 +29,10 @@ export type GifFeedState = {
   isNothingFound: boolean;
 
   /**
-   * Текст ошибки последней загрузки для показа на месте пустой выдачи; `null` — показывать
-   * нечего (`shouldShowFeedFailure`).
+   * Ошибка последней загрузки для показа на месте пустой выдачи; `null` — показывать нечего
+   * (`feedFailureView`).
    */
-  failure: string | null;
+  failure: FeedFailure | null;
 
   /**
    * Номер сброса выдачи: растёт на каждую перезагрузку с первой страницы — открытие пикера, смену
@@ -69,6 +69,53 @@ export type ShouldShowFeedFailureOptions = {
    * Текст ошибки последней загрузки; `null` — она прошла или ещё идёт.
    */
   failure: string | null;
+
+  /**
+   * Сколько GIF в выдаче.
+   */
+  gifCount: number;
+
+  /**
+   * Идёт ли загрузка.
+   */
+  isLoading: boolean;
+};
+
+/**
+ * Ошибка последней загрузки ленты.
+ */
+export type LastFeedFailure = {
+  /**
+   * Текст ошибки.
+   */
+  message: string;
+
+  /**
+   * Ошибку показала строка статуса (`shouldShowFeedError`).
+   */
+  isInStatus: boolean;
+};
+
+/**
+ * Ошибка на месте пустой выдачи.
+ */
+export type FeedFailure = {
+  /**
+   * Текст ошибки.
+   */
+  message: string;
+
+  /**
+   * Объявить ошибку скринридеру при появлении: строка статуса её не показала.
+   */
+  shouldAnnounce: boolean;
+};
+
+export type FeedFailureViewOptions = {
+  /**
+   * Ошибка последней загрузки; `null` — она прошла или ещё идёт.
+   */
+  failure: LastFeedFailure | null;
 
   /**
    * Сколько GIF в выдаче.

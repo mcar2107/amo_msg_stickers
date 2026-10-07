@@ -142,8 +142,8 @@ export const GifView: FC<GifViewProps> = (props) => {
         {isNothingFound && <EmptyState>{t('gifs.nothingFound')}</EmptyState>}
 
         {failure && (
-          <EmptyState role="alert">
-            {t('gifs.loadFailed', { message: failure })}
+          <EmptyState role={failure.shouldAnnounce ? 'alert' : undefined}>
+            {t('gifs.loadFailed', { message: failure.message })}
           </EmptyState>
         )}
       </MasonryGrid>
