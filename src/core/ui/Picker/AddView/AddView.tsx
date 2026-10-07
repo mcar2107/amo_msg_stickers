@@ -23,8 +23,16 @@ import { TelegramImportFooter } from './TelegramImport/TelegramImportFooter/Tele
  */
 export const AddView: FC = () => {
   const { addSegment } = usePickerView();
-  const { link, hasLink, fieldError, changeLink, isImporting, progress, startImport } =
-    useTelegramImport();
+  const {
+    link,
+    hasLink,
+    fieldError,
+    isPackMissing,
+    changeLink,
+    isImporting,
+    progress,
+    startImport,
+  } = useTelegramImport();
   const {
     fileName,
     caption,
@@ -37,7 +45,7 @@ export const AddView: FC = () => {
     changeCaption,
     save,
   } = useStickerDraft();
-  const isImportDisabled = isImporting || !hasLink;
+  const isImportDisabled = isImporting || !hasLink || isPackMissing;
 
   const handleTelegramSubmit = () => {
     if (!isImportDisabled) void startImport();

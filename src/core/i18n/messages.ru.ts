@@ -85,6 +85,7 @@ export const RU = {
   'status.packAdded': 'Пак «{title}» добавлен',
   'status.packLinkCopied': 'Ссылка на пак скопирована',
   'status.importProgress': '«{title}»: {done}/{total}',
+  'status.importCanceled': 'Импорт отменён',
   'status.sending': 'Отправляю…',
   'status.sendFailed': 'Ошибка отправки',
   'status.convertFailed': 'Не получилось: {message}',

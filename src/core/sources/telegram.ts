@@ -37,7 +37,7 @@ const TG_API = 'https://api.telegram.org';
 /**
  * Префикс id пака и стикера: отделяет импорт из Telegram от своих стикеров в одной базе.
  */
-const TG_ID_PREFIX = 'tg:';
+export const TG_ID_PREFIX = 'tg:';
 
 /**
  * У Telegram статичные стикеры до 512 КБ, `.tgs` до 64 КБ, видео до 256 КБ; лимит — с

@@ -1,3 +1,4 @@
+import type { PackCard } from '../PickerProvider/packCardView/packCardView.types';
 import type { ImportCount } from '../PickerProvider/PickerProvider.types';
 
 export type TelegramImportState = {
@@ -13,9 +14,20 @@ export type TelegramImportState = {
   hasLink: boolean;
 
   /**
-   * Ошибка значения поля ссылки; `null` — ошибки нет.
+   * Ошибка значения поля ссылки, в том числе ответ Telegram, что пака нет; `null` — ошибки нет.
    */
   fieldError: string | null;
+
+  /**
+   * Telegram ответил, что пака из поля нет: «Импорт» недоступна, пока ссылку не исправят.
+   */
+  isPackMissing: boolean;
+
+  /**
+   * Карточка пака под полем: во время импорта — импортируемый пак и ход, иначе превью пака из
+   * поля; `null` — карточки нет.
+   */
+  card: PackCard | null;
 
   /**
    * Меняет введённую ссылку и снимает ошибку поля.
@@ -38,4 +50,10 @@ export type TelegramImportState = {
    * или, если поля не видно, в статус; по успеху открывается вкладка пака.
    */
   startImport: () => Promise<void>;
+
+  /**
+   * Отменяет идущий импорт: библиотека как до него, в статусе «Импорт отменён», ссылка и
+   * карточка остаются.
+   */
+  cancelImport: () => void;
 };

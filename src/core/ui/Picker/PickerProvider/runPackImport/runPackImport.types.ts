@@ -8,9 +8,15 @@ export type PackImportRun = {
   link: string;
 
   /**
-   * Импортирует пак по ссылке: запросы к Telegram, конвертация и запись в базу.
+   * Отмена импорта: её `signal` уходит в импорт, а исход после отмены — `onCancel`.
    */
-  importSet: (link: string) => Promise<Pack>;
+  signal: AbortSignal;
+
+  /**
+   * Импортирует пак по ссылке: запросы к Telegram, конвертация и запись в базу. Отменённый
+   * импорт откатывается и отклоняется.
+   */
+  importSet: (link: string, signal: AbortSignal) => Promise<Pack>;
 
   /**
    * Перечитывает паки: вкладки должны совпасть с библиотекой и после успеха, и после ошибки.
@@ -36,6 +42,12 @@ export type PackImportRun = {
    * Импорт не удался или не начался: ссылка без имени пака — всегда у поля.
    */
   onError: (message: string, target: ImportErrorTarget) => void;
+
+  /**
+   * Импорт отменён, библиотека откачена, паки перечитаны. Не ошибка: ни `onError`, ни
+   * `onSuccess` не зовутся.
+   */
+  onCancel: () => void;
 
   /**
    * Начатый импорт завершился любым исходом.

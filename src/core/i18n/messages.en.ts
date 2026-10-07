@@ -87,6 +87,7 @@ export const EN: Messages = {
   'status.packAdded': 'Pack “{title}” added',
   'status.packLinkCopied': 'Pack link copied',
   'status.importProgress': '“{title}”: {done}/{total}',
+  'status.importCanceled': 'Import canceled',
   'status.sending': 'Sending…',
   'status.sendFailed': 'Failed to send',
   'status.convertFailed': 'Failed: {message}',

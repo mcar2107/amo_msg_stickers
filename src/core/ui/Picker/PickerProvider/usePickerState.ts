@@ -113,6 +113,7 @@ export const usePickerState = (options: PickerStateOptions): PickerStateValue =>
     settings,
     screen,
     addSegment,
+    packs,
     refreshPacks,
     showStatus,
     showError,

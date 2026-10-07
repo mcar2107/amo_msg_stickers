@@ -34,18 +34,21 @@ const PACK: Pack = { id: 'tg:cats', title: 'Коты', source: 'telegram', creat
  */
 const run = (
   target: ImportErrorTarget,
-  importSet: (link: string) => Promise<Pack>,
+  importSet: (link: string, signal: AbortSignal) => Promise<Pack>,
   link = LINK
 ) => {
   const calls: string[] = [];
   const importSetMock = vi.fn(importSet);
+  const controller = new AbortController();
 
   return {
     calls,
+    controller,
     importSet: importSetMock,
     start: () => {
       return runPackImport({
         link,
+        signal: controller.signal,
         importSet: importSetMock,
         refreshPacks: async () => {
           calls.push('refresh');
@@ -61,6 +64,9 @@ const run = (
         },
         onError: (message, errorTarget) => {
           calls.push(`error ${errorTarget} ${message}`);
+        },
+        onCancel: () => {
+          calls.push('cancel');
         },
         onFinish: () => {
           calls.push('finish');
@@ -117,7 +123,7 @@ describe('runPackImport', () => {
 
     await start();
 
-    expect(importSet).toHaveBeenCalledWith(LINK);
+    expect(importSet).toHaveBeenCalledWith(LINK, expect.any(AbortSignal));
     expect(calls).toEqual(['start', 'refresh', 'success tg:cats', 'finish']);
   });
 
@@ -152,6 +158,7 @@ describe('runPackImport', () => {
 
     await runPackImport({
       link: LINK,
+      signal: new AbortController().signal,
       importSet: async () => {
         target = 'status';
 
@@ -166,6 +173,7 @@ describe('runPackImport', () => {
       onError: (message, errorTarget) => {
         calls.push(`${errorTarget} ${message}`);
       },
+      onCancel: () => {},
       onFinish: () => {},
     });
 
@@ -180,5 +188,33 @@ describe('runPackImport', () => {
     await start();
 
     expect(calls).toContain('error field обрыв');
+  });
+
+  it('отмена — паки перечитаны, исход onCancel, а не ошибка и не успех', async () => {
+    const { calls, controller, importSet, start } = run(
+      'field',
+      async (_link, signal) => {
+        controller.abort();
+
+        throw signal.reason;
+      }
+    );
+
+    await start();
+
+    expect(importSet.mock.calls[0]?.[1]).toBe(controller.signal);
+    expect(calls).toEqual(['start', 'refresh', 'cancel', 'finish']);
+  });
+
+  it('отмена с чужой ошибкой после неё — всё равно отмена', async () => {
+    const { calls, controller, start } = run('status', async () => {
+      controller.abort();
+
+      throw new Error('обрыв сети');
+    });
+
+    await start();
+
+    expect(calls).toEqual(['start', 'refresh', 'cancel', 'finish']);
   });
 });

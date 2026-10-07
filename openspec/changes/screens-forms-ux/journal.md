@@ -112,3 +112,12 @@
 - Аудит: ok с первого круга.
 - Долг: CLAUDE.md про прямой импорт `convert.ts` (13.1); `mockImplementation` putSticker в telegram.test.ts:795 → `mockImplementationOnce`; convert.test.ts:115 не проверяет, что `openFrameSource` не вызван; `break` по `signal.aborted` в catch не наблюдается тестами.
 - Для G10: usePackImport пока мимо packPreview и без signal — K11/K12 подключаются в 11.3, 12.3.
+
+### G10 · Провайдер: превью и отмена
+
+- `usePackImport`: превью по смене имени с паузой 300 мс через `packPreview`, импорт берёт набор из кэша, `AbortController` и `cancelImport`; `runPackImport` — исход `onCancel` по `signal.aborted`, статус `status.importCanceled`.
+- Чистые `packCardView/`: `shouldRequestPreview`, `previewView`, `packCard` (снимок при импорте, иначе превью); K13: `card`, `isPackMissing`, `cancelImport`.
+- «Пак не найден» выводится из ответа превью по имени, держится, пока имя то же.
+- Отступления: AddView.tsx — `isImportDisabled` учитывает `isPackMissing`; `TG_ID_PREFIX` экспортирован из telegram.ts; «в библиотеке» — по списку паков при показе, а не `getPack` (D11 и 11.3 поправлены координатором).
+- Аудит: круг 1 — critical (устаревал признак «в библиотеке»), круг 2 — ok.
+- Долг: связка эффекта, паузы и снимка — только стенд (G11); `failedPreview` ловит и сбои вокруг запроса в одном `try`.
