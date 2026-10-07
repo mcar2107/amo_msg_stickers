@@ -301,7 +301,6 @@ export const usePackImport = (options: PackImportOptions): PackImportState => {
     card: packCard({ isImporting, snapshot, progress, preview }),
     changeLink,
     isImporting,
-    progress,
     importPack,
     cancelImport,
   };

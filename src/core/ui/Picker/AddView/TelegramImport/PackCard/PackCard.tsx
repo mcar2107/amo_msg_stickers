@@ -87,7 +87,7 @@ export const PackCard: FC<PackCardProps> = (props) => {
           className="h-1 overflow-hidden rounded-[2px] bg-cadetGray-30/[.12] dark:bg-white-0/[.06]"
         >
           <div
-            className="h-full bg-blue-50 transition-[width] duration-lg ease-[ease] dark:bg-beige-70"
+            className="h-full bg-blue-50 motion-safe:transition-[width] motion-safe:duration-lg motion-safe:ease-[ease] dark:bg-beige-70"
             style={{ width: `${percent}%` }}
           />
         </div>
