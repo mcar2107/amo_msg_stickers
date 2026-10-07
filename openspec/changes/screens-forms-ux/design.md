@@ -131,7 +131,7 @@ shadow root уникальны в своём дереве. Альтернати�
 ### D9. Проверка ключей и токена
 
 `checkGifKey(host, provider, key)` в `sources/gifs.ts` — один запрос трендов с `limit=1` (GIPHY `gifs/trending`,
-KLIPY `featured`) по той же сетевой политике; ответ формы выдачи — `ok`; `httpStatus(error)` 401 или 403 — `rejected`;
+KLIPY `featured`) по той же сетевой политике; ответ формы выдачи — `ok`; `httpStatus(error)` 401 или 403 (у KLIPY ещё и 404 — им он отвечает на неверный ключ) — `rejected`;
 остальное — `unavailable`. `isBotTokenFormat(token)` в `sources/telegram.ts` — `^\d+:[\w-]+$`. Обе — чистые, с
 тестами.
 
