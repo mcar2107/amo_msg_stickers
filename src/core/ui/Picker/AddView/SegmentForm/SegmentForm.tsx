@@ -11,7 +11,7 @@ import type { SegmentFormProps } from './SegmentForm.types';
  * Невыбранная панель скрыта `hidden`, а не размонтирована: введённая ссылка и черновик
  * стикера переживают смену сегмента. Раскладка полей — во вложенном блоке: класс `flex` на
  * самой форме перебил бы `display: none` атрибута `hidden`. Сегмент — одна группа полей, и
- * между ними 12 px, как между полями группы «Настроек» (D10).
+ * между ними 12 px, как между полями группы «Настроек».
  */
 export const SegmentForm: FC<SegmentFormProps> = (props) => {
   const { segment, isActive, onSubmit, children } = props;

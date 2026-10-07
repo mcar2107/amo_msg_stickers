@@ -43,7 +43,7 @@ export const TelegramImport: FC<TelegramImportProps> = (props) => {
       <h3 className="mt-1.5 text-xsm font-bold">{t('add.telegram.title')}</h3>
 
       {/*
-       * Инструкция — описание поля ссылки: от него 4 px, как внутри поля (D10).
+       * Инструкция — описание поля ссылки: от него 4 px, как внутри поля.
        */}
       <div className="flex flex-col gap-1">
         <Field

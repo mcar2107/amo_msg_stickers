@@ -30,7 +30,7 @@ const TELEGRAM_GROUP_ID = 'settings-group-telegram';
 const GIF_NOTE_ID = 'settings-gif-note';
 
 /**
- * Отступы D10: 4 px — внутри поля и заголовка группы с её пояснением, 12 px — между полями
+ * Отступы: 4 px — внутри поля и заголовка группы с её пояснением, 12 px — между полями
  * группы (с 4 px соседние поля сливались в одно), 16 px — между группами (`gap-4` формы).
  */
 const GROUP_CLASS = 'flex flex-col gap-3';
