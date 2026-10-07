@@ -14,9 +14,10 @@ import type { FieldProps } from './Field.types';
 const DESCRIPTION_CLASS = 'm-0 text-xs leading-[1.4]';
 
 /**
- * Цвет результата проверки — по тону: принятое значение зелёное, отклонённое — цвета ошибки.
+ * Цвет описания поля — по тону: принятое значение зелёное, отклонённое и ошибка поля — цвета
+ * ошибки.
  */
-const resultVariants = cva(DESCRIPTION_CLASS, {
+const descriptionVariants = cva(DESCRIPTION_CLASS, {
   variants: {
     tone: {
       valid: 'text-green-10',
@@ -106,13 +107,13 @@ export const Field: FC<FieldProps> = (props) => {
       </div>
 
       {hasError && (
-        <p id={ids.error} className={`${DESCRIPTION_CLASS} text-red-30`}>
+        <p id={ids.error} className={descriptionVariants({ tone: 'invalid' })}>
           {error}
         </p>
       )}
 
       {hasResult && (
-        <p id={ids.result} className={resultVariants({ tone: tone || 'none' })}>
+        <p id={ids.result} className={descriptionVariants({ tone: tone || 'none' })}>
           {result}
         </p>
       )}
