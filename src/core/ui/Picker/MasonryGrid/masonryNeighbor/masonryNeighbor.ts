@@ -4,24 +4,25 @@ import type { MasonryTile } from '../splitColumns/splitColumns.types';
 import type { MasonryItemTile, TileIdOf } from './masonryNeighbor.types';
 
 /**
- * Первая плитка той же колонки, идя от `from` с шагом `delta`.
+ * Ближайшая плитка элемента, идя от `from` с шагом `delta`: соседи стоят рядом с текущей, и
+ * поиск проходит только плитки между ними.
  *
- * @param items — плитки элементов в порядке выдачи
+ * @param tiles — плитки раскладки в порядке выдачи
  * @param from — номер текущей плитки
- * @param delta — `-1` — вверх, `1` — вниз
- * @returns плитка той же колонки или `null`
+ * @param delta — `-1` — назад по выдаче, `1` — вперёд
+ * @param column — колонка соседа; `null` — любая
+ * @returns плитка элемента или `null`
  */
-const sameColumn = <T>(
-  items: readonly MasonryItemTile<T>[],
+const nearestItem = <T>(
+  tiles: readonly MasonryTile<T>[],
   from: number,
-  delta: -1 | 1
+  delta: -1 | 1,
+  column: number | null
 ): MasonryItemTile<T> | null => {
-  const { column } = items[from] || {};
+  for (let index = from + delta; index >= 0 && index < tiles.length; index += delta) {
+    const tile = tiles[index];
 
-  for (let index = from + delta; index >= 0 && index < items.length; index += delta) {
-    const tile = items[index];
-
-    if (tile && tile.column === column) return tile;
+    if (tile?.kind === 'item' && (column === null || tile.column === column)) return tile;
   }
 
   return null;
@@ -48,34 +49,31 @@ export const masonryNeighbor = <T>(
   direction: PreviewDirection,
   idOf: TileIdOf<T>
 ): MasonryItemTile<T> | null => {
-  const items = tiles.filter((tile): tile is MasonryItemTile<T> => {
-    return tile.kind === 'item';
-  });
-  const index = items.findIndex(({ sectionId, item }) => {
-    return idOf(sectionId, item) === id;
-  });
+  for (const [index, tile] of tiles.entries()) {
+    if (tile.kind !== 'item' || idOf(tile.sectionId, tile.item) !== id) continue;
 
-  if (index < 0) return null;
+    switch (direction) {
+      case 'left': {
+        return nearestItem(tiles, index, -1, null);
+      }
 
-  switch (direction) {
-    case 'left': {
-      return items[index - 1] || null;
-    }
+      case 'right': {
+        return nearestItem(tiles, index, 1, null);
+      }
 
-    case 'right': {
-      return items[index + 1] || null;
-    }
+      case 'up': {
+        return nearestItem(tiles, index, -1, tile.column);
+      }
 
-    case 'up': {
-      return sameColumn(items, index, -1);
-    }
+      case 'down': {
+        return nearestItem(tiles, index, 1, tile.column);
+      }
 
-    case 'down': {
-      return sameColumn(items, index, 1);
-    }
-
-    default: {
-      throw new Error(`Неизвестное направление: ${String(direction)}`);
+      default: {
+        throw new Error(`Неизвестное направление: ${String(direction)}`);
+      }
     }
   }
+
+  return null;
 };
