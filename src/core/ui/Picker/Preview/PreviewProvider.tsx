@@ -13,6 +13,7 @@ import { usePickerView } from '../usePickerView/usePickerView';
 
 import { watchHoldRelease } from './holdRelease/holdRelease';
 import type { PreviewDirection } from './previewDirection/previewDirection.types';
+import { useCurrentCellMark } from './useCurrentCellMark/useCurrentCellMark';
 import { PreviewActionsContext } from './PreviewActionsContext';
 import { PreviewContext } from './PreviewContext';
 import type {
@@ -157,6 +158,8 @@ export const PreviewProvider: FC<PreviewProviderProps> = (props) => {
       return latest === current ? stepped : latest;
     });
   }, []);
+
+  useCurrentCellMark(preview);
 
   useEffect(() => {
     setHold('preview', isOpen);

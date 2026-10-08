@@ -19,8 +19,12 @@
    * Кольцо внутри границы элемента (`outline-offset` меньше нуля): снаружи его обрезали бы
    * края прокручиваемых лент и полосы вкладок, а контур, в отличие от `box-shadow`, рисуется
    * поверх картинки ячейки.
+   *
+   * Тем же кольцом отмечена ячейка ленты, которую показывает закреплённый предпросмотр
+   * (`data-preview-current`, `useCurrentCellMark`): фокус в это время в диалоге предпросмотра.
    */
-  :is(button, a):focus-visible {
+  :is(button, a):focus-visible,
+  [data-preview-current] {
     @apply outline outline-2 -outline-offset-2 outline-blue-50 dark:outline-beige-70;
   }
 
