@@ -6,15 +6,9 @@ import { gifCellId, gifKey } from '../../MasonryGrid/gifCellId';
 import { cellRemovalTargets, resolveFocusTarget } from '../../removalFocus/removalFocus';
 import type { FocusSection, FocusTarget } from '../../removalFocus/removalFocus.types';
 import { useRemovalFocus } from '../../useRemovalFocus/useRemovalFocus';
+import { RECENT_GIF_SECTION_ID } from '../gifSections/gifSections';
 
 import type { GifRemovalFocus } from './useGifRemovalFocus.types';
-
-/**
- * Раздел недавних в выборе фокуса. Остальные разделы ленты GIF не нужны: убрать можно только
- * недавнюю GIF, а вкладок разделов, на которые ушёл бы фокус, у ленты GIF нет. Совпадает с id
- * раздела недавних в ленте (`gifSections`): из него и ключа собран id кнопки ячейки.
- */
-const RECENT_ID = 'recent';
 
 /**
  * Фокус после «Убрать из недавних» и «Очистить» в ленте GIF: соседняя недавняя GIF
@@ -33,10 +27,14 @@ export const useGifRemovalFocus = (
 ): GifRemovalFocus => {
   const settingsRef = useRef<HTMLButtonElement>(null);
 
+  /**
+   * В выборе фокуса — только раздел недавних: убрать можно только недавнюю GIF, а вкладок
+   * разделов, на которые ушёл бы фокус, у ленты GIF нет.
+   */
   const feed = useMemo((): FocusSection[] => {
     return [
       {
-        id: RECENT_ID,
+        id: RECENT_GIF_SECTION_ID,
         items: recent.map((gif) => {
           return { key: gifKey(gif) };
         }),
@@ -68,7 +66,7 @@ export const useGifRemovalFocus = (
 
   const expectGifRemoval = useCallback(
     (gif: RemoteGif) => {
-      expectRemoval(cellRemovalTargets(feed, RECENT_ID, gifKey(gif)));
+      expectRemoval(cellRemovalTargets(feed, RECENT_GIF_SECTION_ID, gifKey(gif)));
     },
     [expectRemoval, feed]
   );
