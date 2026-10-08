@@ -123,21 +123,24 @@ export const PreviewLayer: FC<PreviewLayerProps> = (props) => {
   /**
    * Стрелка гасит действие по умолчанию и на краю ленты: иначе она прокрутила бы страницу amo под
    * предпросмотром. Шаг фокус не трогает — он остаётся на кнопке «Закрыть предпросмотр» или на
-   * слое.
+   * слое. Стрелка с модификатором — не шаг: Alt+← и Cmd+← браузер отдаёт навигации по истории, и
+   * их действие по умолчанию остаётся.
    */
   const handleContentKeyDown = (event: KeyboardEvent) => {
+    const { key, altKey, ctrlKey, metaKey, shiftKey } = event;
+
     event.stopPropagation();
 
-    if (event.key === 'Escape') {
+    if (key === 'Escape') {
       event.preventDefault();
       closeWith('escape');
 
       return;
     }
 
-    const direction = previewDirection(event.key);
+    const direction = previewDirection(key);
 
-    if (!direction) return;
+    if (!direction || altKey || ctrlKey || metaKey || shiftKey) return;
 
     event.preventDefault();
     onStep(direction);
