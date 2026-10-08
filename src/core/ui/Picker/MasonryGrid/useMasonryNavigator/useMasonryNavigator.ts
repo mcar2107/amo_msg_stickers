@@ -2,6 +2,7 @@ import type { RefObject } from 'preact';
 import { useCallback, useRef } from 'preact/hooks';
 
 import type { RemoteGif } from '../../../../db.types';
+import { gifCellName } from '../../cellName/cellName';
 import type { PreviewNavigator } from '../../Preview/PreviewProvider.types';
 import { gifPreviewTarget } from '../../Preview/previewTarget/previewTarget';
 import { revealFeedCell } from '../../revealFeedCell/revealFeedCell';
@@ -46,7 +47,9 @@ export const useMasonryNavigator = (
         height
       );
 
-      return button ? { target: gifPreviewTarget(item), source: button } : null;
+      return button
+        ? { target: gifPreviewTarget(item, gifCellName(item)), source: button }
+        : null;
     },
     [scrollRef]
   );

@@ -1,5 +1,4 @@
 import type { RemoteGif } from '../../../../db.types';
-import { gifCellName } from '../../cellName/cellName';
 import type { CellNames } from '../../cellName/cellName.types';
 import type { PreviewTarget } from '../PreviewProvider.types';
 
@@ -25,10 +24,11 @@ export const stickerPreviewTarget = (
  * навигатор ленты, как у стикера.
  *
  * @param gif — GIF ячейки
+ * @param name — имена ячейки
  * @returns цель предпросмотра
  */
-export const gifPreviewTarget = (gif: RemoteGif): PreviewTarget => {
+export const gifPreviewTarget = (gif: RemoteGif, name: CellNames): PreviewTarget => {
   const { url, previewUrl } = gif;
 
-  return { url, previewUrl, name: gifCellName(gif).preview };
+  return { url, previewUrl, name: name.preview };
 };

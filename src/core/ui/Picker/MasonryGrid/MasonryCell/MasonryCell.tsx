@@ -54,7 +54,7 @@ export const MasonryCell: FC<MasonryCellProps> = (props) => {
   const name = gifCellName(gif);
   const { isBusy, sendItem } = useCellSend(item);
   const { opening, open, close } = useContextMenu();
-  const preview = useCellPreview({ target: gifPreviewTarget(gif), isBusy });
+  const preview = useCellPreview({ target: gifPreviewTarget(gif, name), isBusy });
 
   const handleCellClick = () => {
     void sendItem();
