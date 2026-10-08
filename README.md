@@ -22,6 +22,7 @@
 [установить userscript](https://github.com/mcar2107/amo_msg_stickers/releases/latest/download/amo-stickers.user.js).
 
 [Документация](https://mcar2107.github.io/amo_msg_stickers/) ·
+[Как пользоваться](https://mcar2107.github.io/amo_msg_stickers/usage) ·
 [Частые вопросы](https://mcar2107.github.io/amo_msg_stickers/faq) ·
 [Политика конфиденциальности](https://mcar2107.github.io/amo_msg_stickers/privacy) ·
 [Сообщить о проблеме](https://github.com/mcar2107/amo_msg_stickers/issues)

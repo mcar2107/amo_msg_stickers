@@ -60,6 +60,16 @@ What to do:
 
 More about limits and keys — in [“GIF keys”](./setup/gif-keys#limits).
 
+## “The message field has text or attachments”
+
+A sticker is normally sent as a separate message and doesn’t touch the message field. If amo has changed the page and
+this way doesn’t work, amo stickers sends the sticker through the message field — as a file you attached yourself.
+Then the field must be empty, otherwise the sticker would be sent together with your text. Send or delete what you
+typed and try again. The error “Finish editing the message first” is the same case while you are editing a message:
+save or cancel the edit.
+
+If the error appears every time, report it in [issues on GitHub](https://github.com/mcar2107/amo_msg_stickers/issues).
+
 ## Keys and token are gone after updating from the archive
 
 The browser tells extensions from an archive apart by the folder they are loaded from. If you unpack the new version
@@ -67,7 +77,7 @@ into a different folder, the browser installs it as a new extension — wi
 and your own bot token if you set one, and from then on update the extension in the same folder — following the steps in
 [“Updating”](./update#archive). Stickers and packs aren’t lost: they are stored on the amo site, not in the extension.
 
-## How to view a sticker or GIF larger
+## How to view a sticker or GIF larger {#preview}
 
 Press and hold the main mouse button on a sticker or GIF in the feed for more than 300 ms: an enlarged picture appears
 over the whole page, and animation plays. Without releasing the button, move the cursor over other stickers or GIFs:
