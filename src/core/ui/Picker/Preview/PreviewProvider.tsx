@@ -93,7 +93,7 @@ export const PreviewProvider: FC<PreviewProviderProps> = (props) => {
         source,
         isLeaving: false,
         navigate: null,
-        isStepped: false,
+        stepCount: 0,
       });
     },
     [unwatchRelease, close]
@@ -120,7 +120,7 @@ export const PreviewProvider: FC<PreviewProviderProps> = (props) => {
         source,
         isLeaving: false,
         navigate,
-        isStepped: false,
+        stepCount: 0,
       });
     },
     [unwatchRelease]
@@ -141,7 +141,11 @@ export const PreviewProvider: FC<PreviewProviderProps> = (props) => {
 
     if (!next) return;
 
-    const stepped: PreviewState = { ...current, ...next, isStepped: true };
+    const stepped: PreviewState = {
+      ...current,
+      ...next,
+      stepCount: current.stepCount + 1,
+    };
 
     /**
      * Следующее нажатие может прийти до рендера: оно шагает уже от новой ячейки.

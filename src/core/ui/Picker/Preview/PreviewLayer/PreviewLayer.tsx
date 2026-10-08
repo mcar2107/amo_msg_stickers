@@ -190,10 +190,12 @@ export const PreviewLayer: FC<PreviewLayerProps> = (props) => {
 
         {/**
          * Смену имени диалога скринридеры не читают, поэтому имя показанной ячейки объявляет
-         * live region — только после шага: при открытии диалог объявляется своим именем.
+         * live region — только после шага: при открытии диалог объявляется своим именем. `key` по
+         * счётчику шагов пересоздаёт узел с именем: у соседа с тем же именем текст не меняется, и
+         * без нового узла шаг прозвучал бы как край.
          */}
         <div aria-live="polite" className="sr-only">
-          {preview.isStepped ? target.name : ''}
+          {preview.stepCount > 0 && <span key={preview.stepCount}>{target.name}</span>}
         </div>
 
         {isPinned && (
