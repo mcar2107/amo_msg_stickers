@@ -54,10 +54,10 @@ export const useStickerNavigator = (
 
       const { row, item } = neighbor;
       const { sectionId, top, height } = row;
-      const { key, sticker, name } = item;
+      const { sticker, name } = item;
       const button = revealFeedCell(
         scrollRef.current,
-        cellId(sectionId, key),
+        feedCellId(sectionId, item),
         top,
         height
       );
