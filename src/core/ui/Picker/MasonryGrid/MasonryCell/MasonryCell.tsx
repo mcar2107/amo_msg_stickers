@@ -12,6 +12,7 @@ import { CellMenu } from '../../Menu/CellMenu/CellMenu';
 import type { CellMenuRemove } from '../../Menu/CellMenu/CellMenu.types';
 import { isMenuKey } from '../../Menu/menuKey/menuKey';
 import { useContextMenu } from '../../Menu/useContextMenu/useContextMenu';
+import { gifPreviewTarget } from '../../Preview/previewTarget/previewTarget';
 import { useCellPreview } from '../../useCellPreview/useCellPreview';
 import { useCellSend } from '../../useCellSend/useCellSend';
 
@@ -53,8 +54,7 @@ export const MasonryCell: FC<MasonryCellProps> = (props) => {
   const name = gifCellName(gif);
   const { isBusy, sendItem } = useCellSend(item);
   const { opening, open, close } = useContextMenu();
-  const target = { url: gif.url, previewUrl, name: name.preview };
-  const preview = useCellPreview({ target, isBusy });
+  const preview = useCellPreview({ target: gifPreviewTarget(gif), isBusy });
 
   const handleCellClick = () => {
     void sendItem();

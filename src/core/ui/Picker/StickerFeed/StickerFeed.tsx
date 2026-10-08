@@ -1,6 +1,7 @@
 import type { FunctionComponent as FC } from 'preact';
 
 import { packLink } from '../../../packLink';
+import { PreviewNavigationContext } from '../Preview/PreviewNavigationContext';
 import { SectionHeader } from '../SectionHeader/SectionHeader';
 import { FEED_PANEL_ID, sectionTabId } from '../SectionTabs/sectionTabIds';
 import type { RowRange, StickerRow } from '../stickerLayout/stickerLayout.types';
@@ -10,6 +11,7 @@ import type {
 } from '../StickersMode/feedSections/feedSections.types';
 
 import { FeedRow } from './FeedRow/FeedRow';
+import { useStickerNavigator } from './useStickerNavigator/useStickerNavigator';
 import type { StickerFeedProps } from './StickerFeed.types';
 
 /**
@@ -20,7 +22,8 @@ const FEED_CLASS = 'feed-scroll min-h-0 flex-1 overflow-y-auto px-2';
 
 /**
  * Лента разделов режима «Стикеры»: контейнер высотой во всю ленту и в нём абсолютно поставленные
- * ряды окна — остальные ряды в документ не попадают.
+ * ряды окна — остальные ряды в документ не попадают. Ячейки получают навигатор ленты: закреплённый
+ * предпросмотр ячейки стрелками переходит к соседям по раскладке.
  */
 export const StickerFeed: FC<StickerFeedProps> = (props) => {
   const {
@@ -34,6 +37,7 @@ export const StickerFeed: FC<StickerFeedProps> = (props) => {
     onPackDelete,
     onRecentClear,
   } = props;
+  const navigate = useStickerNavigator(layout, scrollRef);
   const byId = new Map<string, FeedSection>();
 
   for (const section of sections) byId.set(section.id, section);
@@ -102,12 +106,14 @@ export const StickerFeed: FC<StickerFeedProps> = (props) => {
       className={FEED_CLASS}
       onScroll={handleFeedScroll}
     >
-      <div className="relative" style={{ height: layout?.total || 0 }}>
-        {layout &&
-          ranges.flatMap((range) => {
-            return renderRange(layout.rows, range);
-          })}
-      </div>
+      <PreviewNavigationContext.Provider value={navigate}>
+        <div className="relative" style={{ height: layout?.total || 0 }}>
+          {layout &&
+            ranges.flatMap((range) => {
+              return renderRange(layout.rows, range);
+            })}
+        </div>
+      </PreviewNavigationContext.Provider>
     </div>
   );
 };

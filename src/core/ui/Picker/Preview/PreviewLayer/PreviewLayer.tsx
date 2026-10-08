@@ -5,6 +5,7 @@ import { t } from '../../../../i18n/translate';
 import { CloseIcon } from '../CloseIcon/CloseIcon';
 import { previewAttributes, shouldReturnFocus } from '../previewA11y/previewA11y';
 import type { PreviewCloseReason } from '../previewA11y/previewA11y.types';
+import { previewDirection } from '../previewDirection/previewDirection';
 import { PreviewImage } from '../PreviewImage/PreviewImage';
 import { usePreviewFlight } from '../usePreviewFlight/usePreviewFlight';
 
@@ -28,7 +29,9 @@ const overlayVariants = cva('absolute inset-0', {
 });
 
 /**
- * Подложка — полупрозрачная и размытая, чтобы страница читалась под предпросмотром. Прозрачность
+ * Подложка — лёгкая пелена без размытия: лента пикера под предпросмотром должна читаться — по ней
+ * переключают стрелки, и видно, где стоит показанная ячейка, а размытие стёрло бы стикеры и GIF
+ * ленты. Пелены хватает, чтобы картинка и эмодзи предпросмотра отделялись от страницы. Прозрачность
  * нарастает только у неё: картинка вылетает из ячейки сразу видимой (`previewMotion`), а не
  * проявляется вместе с подложкой.
  *
@@ -39,7 +42,7 @@ const overlayVariants = cva('absolute inset-0', {
 const backdropVariants = cva(
   [
     'absolute inset-0',
-    'bg-white-0/90 backdrop-blur-sm dark:bg-gray-10/90',
+    'bg-white-0/40 dark:bg-gray-10/40',
     'motion-safe:transition-opacity motion-safe:duration-base [@starting-style]:opacity-0',
   ],
   {
@@ -90,10 +93,11 @@ const CLOSE_BUTTON_CLASS = [
  * shadow root вне дерева панели и контекста `PreviewProvider` не видит. Закреплённый — диалог
  * с фокусом на кнопке «Закрыть предпросмотр»: Escape закрывает только его (нажатие не
  * всплывает на страницу), клик закрывает и не доходит до страницы под ним, уход фокуса
- * наружу закрывает без возврата фокуса. Удержание фокус не трогает.
+ * наружу закрывает без возврата фокуса, стрелки переключают на соседнюю ячейку ленты.
+ * Удержание фокус не трогает.
  */
 export const PreviewLayer: FC<PreviewLayerProps> = (props) => {
-  const { preview, onClose, onLeaveEnd } = props;
+  const { preview, onClose, onStep, onLeaveEnd } = props;
   const { flightRef, emojiRef, closeButtonRef } = usePreviewFlight({
     preview,
     onLeaveEnd,
@@ -116,13 +120,27 @@ export const PreviewLayer: FC<PreviewLayerProps> = (props) => {
     onClose();
   };
 
+  /**
+   * Стрелка гасит действие по умолчанию и на краю ленты: иначе она прокрутила бы страницу amo под
+   * предпросмотром. Шаг фокус не трогает — он остаётся на кнопке «Закрыть предпросмотр» или на
+   * слое.
+   */
   const handleContentKeyDown = (event: KeyboardEvent) => {
     event.stopPropagation();
 
-    if (event.key !== 'Escape') return;
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      closeWith('escape');
+
+      return;
+    }
+
+    const direction = previewDirection(event.key);
+
+    if (!direction) return;
 
     event.preventDefault();
-    closeWith('escape');
+    onStep(direction);
   };
 
   const handleContentClick = (event: MouseEvent) => {
@@ -168,6 +186,14 @@ export const PreviewLayer: FC<PreviewLayerProps> = (props) => {
           <div ref={flightRef} className="size-full">
             <PreviewImage key={target.url} target={target} />
           </div>
+        </div>
+
+        {/**
+         * Смену имени диалога скринридеры не читают, поэтому имя показанной ячейки объявляет
+         * live region — только после шага: при открытии диалог объявляется своим именем.
+         */}
+        <div aria-live="polite" className="sr-only">
+          {preview.isStepped ? target.name : ''}
         </div>
 
         {isPinned && (

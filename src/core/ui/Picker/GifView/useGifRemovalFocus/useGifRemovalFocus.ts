@@ -11,7 +11,8 @@ import type { GifRemovalFocus } from './useGifRemovalFocus.types';
 
 /**
  * Раздел недавних в выборе фокуса. Остальные разделы ленты GIF не нужны: убрать можно только
- * недавнюю GIF, а вкладок разделов, на которые ушёл бы фокус, у ленты GIF нет.
+ * недавнюю GIF, а вкладок разделов, на которые ушёл бы фокус, у ленты GIF нет. Совпадает с id
+ * раздела недавних в ленте (`gifSections`): из него и ключа собран id кнопки ячейки.
  */
 const RECENT_ID = 'recent';
 
@@ -58,7 +59,7 @@ export const useGifRemovalFocus = (
       )
         return fallback;
 
-      return root.getElementById(gifCellId(target.key)) || fallback;
+      return root.getElementById(gifCellId(target.sectionId, target.key)) || fallback;
     },
     [searchRef]
   );

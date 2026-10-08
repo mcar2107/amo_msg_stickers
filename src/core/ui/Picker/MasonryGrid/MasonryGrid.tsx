@@ -2,6 +2,7 @@ import type { FunctionComponent as FC, TargetedEvent } from 'preact';
 import { useMemo } from 'preact/hooks';
 
 import type { RemoteGif } from '../../../db.types';
+import { PreviewNavigationContext } from '../Preview/PreviewNavigationContext';
 import { useFeedEntry } from '../useFeedEntry/useFeedEntry';
 
 import { GridHeader } from './GridHeader/GridHeader';
@@ -10,6 +11,7 @@ import { splitColumns, visibleTiles } from './splitColumns/splitColumns';
 import type { MasonrySection, MasonryTile } from './splitColumns/splitColumns.types';
 import { COLUMN_COUNT, columnWidth, GRID_GAP, tileBox } from './tileBox/tileBox';
 import { useGridWindow } from './useGridWindow/useGridWindow';
+import { useMasonryNavigator } from './useMasonryNavigator/useMasonryNavigator';
 import { gifCellId, gifKey } from './gifCellId';
 import type { MasonryGridProps } from './MasonryGrid.types';
 
@@ -29,7 +31,8 @@ const SKELETON_CLASS = 'absolute rounded-lg bg-cadetGray-30/[.12] dark:bg-white-
  * Tab и скринридера совпадает с порядком выдачи, а не идёт колонка за колонкой. В документе
  * только плитки видимой области и по её высоте запаса сверху и снизу — GIF вне экрана не
  * декодируются и не проигрываются. Содержимое после ленты (подсказка, подпись источника) —
- * `children` под её плитками.
+ * `children` под её плитками. Ячейки получают навигатор ленты: закреплённый предпросмотр ячейки
+ * стрелками переходит к соседним плиткам по раскладке.
  */
 export const MasonryGrid: FC<MasonryGridProps> = (props) => {
   const { sections, resetKey, children, onScroll, onRecentRemove, onRecentClear } = props;
@@ -50,6 +53,7 @@ export const MasonryGrid: FC<MasonryGridProps> = (props) => {
     return splitColumns(masonry, { count: COLUMN_COUNT, width: column, gap: GRID_GAP });
   }, [sections, column]);
 
+  const navigate = useMasonryNavigator(layout?.tiles || null, scrollRef);
   const tiles = layout ? visibleTiles(layout.tiles, scrollTop, viewport, viewport) : [];
   const recentId = sections.find(({ isRecent }) => {
     return isRecent;
@@ -80,7 +84,7 @@ export const MasonryGrid: FC<MasonryGridProps> = (props) => {
         return (
           <MasonryCell
             key={`${sectionId}:${key}`}
-            id={isRecent ? gifCellId(key) : undefined}
+            id={gifCellId(sectionId, key)}
             gif={item}
             box={tileBox(tile, column)}
             onRemove={isRecent ? handleRecentRemove : undefined}
@@ -126,9 +130,11 @@ export const MasonryGrid: FC<MasonryGridProps> = (props) => {
 
   return (
     <div ref={scrollRef} className={GRID_CLASS} onScroll={handleGridScroll}>
-      <div className="relative" style={{ height: layout?.total || 0 }}>
-        {tiles.map(renderTile)}
-      </div>
+      <PreviewNavigationContext.Provider value={navigate}>
+        <div className="relative" style={{ height: layout?.total || 0 }}>
+          {tiles.map(renderTile)}
+        </div>
+      </PreviewNavigationContext.Provider>
 
       {children}
     </div>

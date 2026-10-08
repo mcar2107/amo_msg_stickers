@@ -13,13 +13,15 @@ export const gifKey = (gif: RemoteGif): string => {
 };
 
 /**
- * id кнопки ячейки недавней GIF: по нему фокус находит соседнюю ячейку после «Убрать из
- * недавних». id есть только у недавних — та же GIF может стоять и в выдаче, а id в shadow root
- * пикера не должны повторяться.
+ * id кнопки ячейки GIF: по нему фокус находит соседнюю недавнюю GIF после «Убрать из недавних»,
+ * а закреплённый предпросмотр — ячейку, на которую переключился стрелкой. Ключ GIF уникален
+ * только в разделе — та же GIF стоит и в недавних, и в выдаче, — а id в shadow root пикера
+ * не должны повторяться, поэтому в id входит и раздел.
  *
+ * @param sectionId — раздел ячейки
  * @param key — ключ GIF из `gifKey`
  * @returns id кнопки ячейки
  */
-export const gifCellId = (key: string): string => {
-  return `picker-gif-cell-${key}`;
+export const gifCellId = (sectionId: string, key: string): string => {
+  return `picker-gif-cell-${sectionId}-${key}`;
 };

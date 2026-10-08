@@ -2,6 +2,8 @@ import type { ComponentChildren } from 'preact';
 
 import type { PanelPhase } from '../../../hoverPopup.types';
 
+import type { PreviewDirection } from './previewDirection/previewDirection.types';
+
 /**
  * Что показывает предпросмотр.
  */
@@ -26,6 +28,30 @@ export type PreviewTarget = {
    */
   name: string;
 };
+
+/**
+ * Ячейка, на которую переключается закреплённый предпросмотр.
+ */
+export type PreviewStep = {
+  /**
+   * Что показывать.
+   */
+  target: PreviewTarget;
+
+  /**
+   * Кнопка ячейки: в неё возвращается картинка и на неё встаёт фокус при закрытии.
+   */
+  source: HTMLElement;
+};
+
+/**
+ * Сосед ячейки ленты в направлении шага; `null` — край ленты, переключать некуда. Лента сама
+ * прокручивается к соседу, чтобы он был виден целиком.
+ */
+export type PreviewNavigator = (
+  source: HTMLElement,
+  direction: PreviewDirection
+) => PreviewStep | null;
 
 /**
  * Как открыт предпросмотр: `hold` живёт, пока держат кнопку мыши, `pinned` — пока его не
@@ -58,6 +84,18 @@ export type PreviewState = {
    * не принимает.
    */
   isLeaving: boolean;
+
+  /**
+   * Навигатор ленты, из которой открыт закреплённый предпросмотр; `null` — стрелки его не
+   * переключают: предпросмотр удержания и превью вне ленты.
+   */
+  navigate: PreviewNavigator | null;
+
+  /**
+   * Предпросмотр переключён стрелкой хоть раз: имя ячейки объявляется скринридеру только после
+   * шага — при открытии диалог объявляется своим именем.
+   */
+  isStepped: boolean;
 };
 
 export type PreviewContextValue = {
@@ -78,9 +116,20 @@ export type PreviewContextValue = {
   swapHold: (target: PreviewTarget, source: HTMLElement) => void;
 
   /**
-   * Открывает закреплённый предпросмотр.
+   * Открывает закреплённый предпросмотр. С навигатором ленты его переключают стрелки, без него —
+   * нет.
    */
-  openPinned: (target: PreviewTarget, source: HTMLElement) => void;
+  openPinned: (
+    target: PreviewTarget,
+    source: HTMLElement,
+    navigate?: PreviewNavigator | null
+  ) => void;
+
+  /**
+   * Переключает открытый закреплённый предпросмотр с навигатором на соседнюю ячейку. На краю
+   * ленты, у предпросмотра удержания, без навигатора и у уходящего ничего не меняется.
+   */
+  step: (direction: PreviewDirection) => void;
 
   /**
    * Закрывает предпросмотр: слой доигрывает уход, а не пропадает сразу. Закрытый и уже

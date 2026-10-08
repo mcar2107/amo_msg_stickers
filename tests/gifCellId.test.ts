@@ -32,7 +32,11 @@ describe('gifKey', () => {
 });
 
 describe('gifCellId', () => {
-  it('id кнопки ячейки строится из ключа GIF', () => {
-    expect(gifCellId('giphy:42')).toBe('picker-gif-cell-giphy:42');
+  it('id кнопки ячейки строится из раздела и ключа GIF', () => {
+    expect(gifCellId('recent', 'giphy:42')).toBe('picker-gif-cell-recent-giphy:42');
+  });
+
+  it('та же GIF в недавних и в выдаче получает разные id', () => {
+    expect(gifCellId('recent', 'giphy:42')).not.toBe(gifCellId('feed', 'giphy:42'));
   });
 });
