@@ -64,10 +64,10 @@ const ROWS: StickerRow<string>[] = buildStickerLayout(
  * @param direction — направление шага
  * @returns id соседа; `null` — соседа нет
  */
-const neighbourId = (id: string, direction: PreviewDirection): string | null => {
-  const neighbour = stickerNeighbor(ROWS, id, direction, idOf);
+const neighborId = (id: string, direction: PreviewDirection): string | null => {
+  const neighbor = stickerNeighbor(ROWS, id, direction, idOf);
 
-  return neighbour && idOf(neighbour.row.sectionId, neighbour.item);
+  return neighbor && idOf(neighbor.row.sectionId, neighbor.item);
 };
 
 describe('stickerNeighbor', () => {
@@ -98,7 +98,7 @@ describe('stickerNeighbor', () => {
   ] as const)(
     '%s, %s → %s: порядок ленты через границы разделов',
     (id, direction, expected) => {
-      expect(neighbourId(id, direction)).toBe(expected);
+      expect(neighborId(id, direction)).toBe(expected);
     }
   );
 
@@ -114,7 +114,7 @@ describe('stickerNeighbor', () => {
   ] as const)(
     '%s, %s → %s: соседний ряд, колонка прижата к его длине',
     (id, direction, expected) => {
-      expect(neighbourId(id, direction)).toBe(expected);
+      expect(neighborId(id, direction)).toBe(expected);
     }
   );
 
@@ -125,21 +125,21 @@ describe('stickerNeighbor', () => {
     ['tg:a/a5', 'right'],
     ['tg:a/a5', 'down'],
   ] as const)('%s, %s — край ленты, соседа нет', (id, direction) => {
-    expect(neighbourId(id, direction)).toBeNull();
+    expect(neighborId(id, direction)).toBeNull();
   });
 
   it('ячейки нет в раскладке — соседа нет', () => {
-    expect(neighbourId('custom/r0', 'right')).toBeNull();
+    expect(neighborId('custom/r0', 'right')).toBeNull();
     expect(stickerNeighbor([], 'recent/r0', 'right', idOf)).toBeNull();
   });
 
   it('сосед несёт свой ряд — по нему считается прокрутка', () => {
-    const neighbour = stickerNeighbor(ROWS, 'custom/c4', 'right', idOf);
+    const neighbor = stickerNeighbor(ROWS, 'custom/c4', 'right', idOf);
     const packRow = ROWS.find(({ sectionId, items }) => {
       return sectionId === 'tg:a' && items.length > 0;
     });
 
-    expect(neighbour?.row).toBe(packRow);
-    expect(neighbour?.item).toBe('a0');
+    expect(neighbor?.row).toBe(packRow);
+    expect(neighbor?.item).toBe('a0');
   });
 });

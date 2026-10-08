@@ -67,10 +67,10 @@ const TILES: MasonryTile<Item>[] = splitColumns(
  * @param direction — направление шага
  * @returns id соседа; `null` — соседа нет
  */
-const neighbourId = (id: string, direction: PreviewDirection): string | null => {
-  const neighbour = masonryNeighbor(TILES, id, direction, idOf);
+const neighborId = (id: string, direction: PreviewDirection): string | null => {
+  const neighbor = masonryNeighbor(TILES, id, direction, idOf);
 
-  return neighbour && idOf(neighbour.sectionId, neighbour.item);
+  return neighbor && idOf(neighbor.sectionId, neighbor.item);
 };
 
 describe('masonryNeighbor', () => {
@@ -103,7 +103,7 @@ describe('masonryNeighbor', () => {
   ] as const)(
     '%s, %s → %s: порядок выдачи через границу разделов',
     (id, direction, expected) => {
-      expect(neighbourId(id, direction)).toBe(expected);
+      expect(neighborId(id, direction)).toBe(expected);
     }
   );
 
@@ -118,7 +118,7 @@ describe('masonryNeighbor', () => {
     ['trends/g0', 'up', 'recent/g4'],
     ['recent/g4', 'up', 'recent/g2'],
   ] as const)('%s, %s → %s: плитка той же колонки', (id, direction, expected) => {
-    expect(neighbourId(id, direction)).toBe(expected);
+    expect(neighborId(id, direction)).toBe(expected);
   });
 
   it.each([
@@ -129,16 +129,16 @@ describe('masonryNeighbor', () => {
     ['trends/t2', 'down'],
     ['trends/t1', 'down'],
   ] as const)('%s, %s — край ленты, заглушки и заголовки не в счёт', (id, direction) => {
-    expect(neighbourId(id, direction)).toBeNull();
+    expect(neighborId(id, direction)).toBeNull();
   });
 
   it('ячейки нет в раскладке — соседа нет', () => {
-    expect(neighbourId('trends/g1', 'right')).toBeNull();
+    expect(neighborId('trends/g1', 'right')).toBeNull();
     expect(masonryNeighbor([], 'recent/g0', 'right', idOf)).toBeNull();
   });
 
   it('сосед — плитка с геометрией: по ней считается прокрутка', () => {
-    const neighbour = masonryNeighbor(TILES, 'recent/g4', 'down', idOf);
+    const neighbor = masonryNeighbor(TILES, 'recent/g4', 'down', idOf);
     const tile = TILES.find((candidate) => {
       return (
         candidate.kind === 'item' &&
@@ -146,6 +146,6 @@ describe('masonryNeighbor', () => {
       );
     });
 
-    expect(neighbour).toBe(tile);
+    expect(neighbor).toBe(tile);
   });
 });
