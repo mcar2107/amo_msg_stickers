@@ -211,7 +211,8 @@ src/
                         ошибкой загрузки (`feedFailureView`);
                         MasonryGrid/ — виртуальная лента GIF колонками, соседняя плитка (`masonryNeighbor/`) и
                         навигатор предпросмотра (`useMasonryNavigator/`); revealScrollTop/ и revealFeedCell/ —
-                        прокрутка ленты к ячейке шага предпросмотра и её кнопка;
+                        прокрутка ленты к ячейке шага предпросмотра и её кнопка; elementById/ — элемент по id в
+                        корне узла (shadow root пикера): ячейка шага и цели фокуса после удаления;
                         SectionHeader/ — заголовок раздела и его действие, пункты меню пака (`CopyPackLinkItem/`,
                         `DeletePackItem/`); Menu/ — контекстные меню ячейки и пака, useConfirmPress/ —
                         подтверждение повторным нажатием; Preview/ — предпросмотр: провайдер

@@ -1,3 +1,4 @@
+import { elementById } from '../elementById/elementById';
 import { revealScrollTop } from '../revealScrollTop/revealScrollTop';
 
 /**
@@ -22,12 +23,9 @@ export const revealFeedCell = (
   top: number,
   height: number
 ): HTMLElement | null => {
-  const root = scroller?.getRootNode();
+  if (!scroller) return null;
 
-  if (!scroller || !(root instanceof DocumentFragment || root instanceof Document))
-    return null;
-
-  const button = root.getElementById(id);
+  const button = elementById(scroller, id);
 
   if (!button) return null;
 

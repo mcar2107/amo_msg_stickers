@@ -2,6 +2,7 @@ import type { RefObject } from 'preact';
 import { useCallback, useMemo, useRef } from 'preact/hooks';
 
 import type { RemoteGif } from '../../../../db.types';
+import { elementById } from '../../elementById/elementById';
 import { gifCellId, gifKey } from '../../MasonryGrid/gifCellId';
 import { cellRemovalTargets, resolveFocusTarget } from '../../removalFocus/removalFocus';
 import type { FocusSection, FocusTarget } from '../../removalFocus/removalFocus.types';
@@ -49,15 +50,10 @@ export const useGifRemovalFocus = (
       if (!fallback) return null;
 
       const target = resolveFocusTarget(targets, nextFeed);
-      const root = fallback.getRootNode();
 
-      if (
-        target?.kind !== 'cell' ||
-        !(root instanceof DocumentFragment || root instanceof Document)
-      )
-        return fallback;
+      if (target?.kind !== 'cell') return fallback;
 
-      return root.getElementById(gifCellId(target.sectionId, target.key)) || fallback;
+      return elementById(fallback, gifCellId(target.sectionId, target.key)) || fallback;
     },
     [searchRef]
   );
