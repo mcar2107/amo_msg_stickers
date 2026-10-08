@@ -1,6 +1,7 @@
 import type { RefObject } from 'preact';
 import { useCallback } from 'preact/hooks';
 
+import { elementById } from '../../elementById/elementById';
 import { resolveFocusTarget } from '../../removalFocus/removalFocus';
 import type { FocusTarget } from '../../removalFocus/removalFocus.types';
 import { sectionTabId } from '../../SectionTabs/sectionTabIds';
@@ -13,20 +14,20 @@ import type { FeedSection } from '../feedSections/feedSections.types';
  * Элемент цели в shadow root пикера. Ячейка могла не попасть в окно ленты — тогда фокус
  * уходит на вкладку её раздела: полоса вкладок в документе целиком.
  *
- * @param root — shadow root пикера или документ
+ * @param scroller — прокручиваемый элемент ленты: цель ищется в его корне
  * @param target — цель фокуса
  * @returns элемент для фокуса; `null` — его нет в документе
  */
 const targetElement = (
-  root: DocumentFragment | Document,
+  scroller: HTMLElement,
   target: FocusTarget
 ): HTMLElement | null => {
   const { kind, sectionId } = target;
-  const tab = root.getElementById(sectionTabId(sectionId));
+  const tab = elementById(scroller, sectionTabId(sectionId));
 
   switch (kind) {
     case 'cell': {
-      return root.getElementById(cellId(sectionId, target.key)) || tab;
+      return elementById(scroller, cellId(sectionId, target.key)) || tab;
     }
 
     case 'tab': {
@@ -57,13 +58,12 @@ export const useStickerRemovalFocus = (
 ): ExpectRemoval => {
   const focusElement = useCallback(
     (targets: FocusTarget[], feed: FeedSection[]) => {
-      const root = scrollRef.current?.getRootNode();
+      const scroller = scrollRef.current;
       const target = resolveFocusTarget(targets, feed);
 
-      if (!target || !(root instanceof DocumentFragment || root instanceof Document))
-        return null;
+      if (!target || !scroller) return null;
 
-      return targetElement(root, target);
+      return targetElement(scroller, target);
     },
     [scrollRef]
   );

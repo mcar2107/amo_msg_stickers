@@ -31,14 +31,19 @@ const themeVariants = cva('', {
  */
 export const PreviewOverlay: FC<PreviewOverlayProps> = (props) => {
   const { container, isDark } = props;
-  const { preview, close, finishLeave } = usePreview();
+  const { preview, step, close, finishLeave } = usePreview();
 
   return (
     <PreviewPortal container={container}>
       <style>{css}</style>
 
       <div className={themeVariants({ isDark })}>
-        <PreviewLayer preview={preview} onClose={close} onLeaveEnd={finishLeave} />
+        <PreviewLayer
+          preview={preview}
+          onClose={close}
+          onStep={step}
+          onLeaveEnd={finishLeave}
+        />
       </div>
     </PreviewPortal>
   );

@@ -9,6 +9,7 @@ import { CellSpinner } from '../CellSpinner/CellSpinner';
 import { CellMenu } from '../Menu/CellMenu/CellMenu';
 import { isMenuKey } from '../Menu/menuKey/menuKey';
 import { useContextMenu } from '../Menu/useContextMenu/useContextMenu';
+import { stickerPreviewTarget } from '../Preview/previewTarget/previewTarget';
 import { useCellPreview } from '../useCellPreview/useCellPreview';
 import { useCellSend } from '../useCellSend/useCellSend';
 
@@ -39,7 +40,7 @@ const CELL_CLASS = [
  */
 export const StickerCell: FC<StickerCellProps> = (props) => {
   const { id, item, packId, url, emoji, name, removeKind, onRemove } = props;
-  const target = { url, emoji, name: name.preview };
+  const target = stickerPreviewTarget(url, emoji, name);
   const { isBusy, sendItem } = useCellSend(item, packId);
   const { opening, open, close } = useContextMenu();
   const preview = useCellPreview({ target, isBusy });

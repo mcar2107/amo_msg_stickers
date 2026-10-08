@@ -7,6 +7,12 @@ import type { FeedLoading } from '../../useGifFeed/useGifFeed.types';
 import type { GifSectionsInput } from './gifSections.types';
 
 /**
+ * id раздела недавних GIF. Он входит в id кнопки ячейки (`gifCellId`), и по нему же ячейку ищет
+ * фокус после «Убрать из недавних» (`useGifRemovalFocus`).
+ */
+export const RECENT_GIF_SECTION_ID = 'recent';
+
+/**
  * Заглушек на всю ленту при первой загрузке: пустая область до ответа источника читается
  * как «ничего нет», а восемь плиток закрывают видимую высоту ленты.
  */
@@ -58,7 +64,7 @@ export const gifSections = (input: GifSectionsInput): GifSection[] => {
 
   if (hasRecent)
     sections.push({
-      id: 'recent',
+      id: RECENT_GIF_SECTION_ID,
       title: t('gifs.recent'),
       items: recent,
       skeletons: 0,

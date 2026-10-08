@@ -1,13 +1,25 @@
 import type { FunctionComponent as FC } from 'preact';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'preact/hooks';
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'preact/hooks';
 
 import { usePicker } from '../PickerProvider/usePicker';
 import { usePickerView } from '../usePickerView/usePickerView';
 
 import { watchHoldRelease } from './holdRelease/holdRelease';
+import type { PreviewDirection } from './previewDirection/previewDirection.types';
+import { useCurrentCellMark } from './useCurrentCellMark/useCurrentCellMark';
+import { PreviewActionsContext } from './PreviewActionsContext';
 import { PreviewContext } from './PreviewContext';
 import type {
+  PreviewActions,
   PreviewContextValue,
+  PreviewNavigator,
   PreviewProviderProps,
   PreviewState,
   PreviewTarget,
@@ -34,6 +46,16 @@ export const PreviewProvider: FC<PreviewProviderProps> = (props) => {
   const { setHold } = usePicker();
   const { mode, screen } = usePickerView();
   const [preview, setPreview] = useState<PreviewState | null>(null);
+  /**
+   * Текущее состояние для `step`: навигатор зовётся вне функции обновления. Синхронно после
+   * рендера, а не эффектом после отрисовки: зажатая стрелка шлёт нажатия чаще кадров.
+   */
+  const previewRef = useRef(preview);
+
+  useLayoutEffect(() => {
+    previewRef.current = preview;
+  }, [preview]);
+
   /**
    * Уходящий предпросмотр считается закрытым: слой ещё на экране, но удержания попапа нет.
    */
@@ -68,7 +90,14 @@ export const PreviewProvider: FC<PreviewProviderProps> = (props) => {
     (target: PreviewTarget, source: HTMLElement) => {
       unwatchRelease();
       unwatchReleaseRef.current = watchHoldRelease(window, close);
-      setPreview({ target, mode: 'hold', source, isLeaving: false });
+      setPreview({
+        target,
+        mode: 'hold',
+        source,
+        isLeaving: false,
+        navigate: null,
+        stepCount: 0,
+      });
     },
     [unwatchRelease, close]
   );
@@ -76,18 +105,61 @@ export const PreviewProvider: FC<PreviewProviderProps> = (props) => {
   const swapHold = useCallback((target: PreviewTarget, source: HTMLElement) => {
     setPreview((current) => {
       return current?.mode === 'hold' && !current.isLeaving
-        ? { target, mode: 'hold', source, isLeaving: false }
+        ? { ...current, target, source }
         : current;
     });
   }, []);
 
   const openPinned = useCallback(
-    (target: PreviewTarget, source: HTMLElement) => {
+    (
+      target: PreviewTarget,
+      source: HTMLElement,
+      navigate: PreviewNavigator | null = null
+    ) => {
       unwatchRelease();
-      setPreview({ target, mode: 'pinned', source, isLeaving: false });
+      setPreview({
+        target,
+        mode: 'pinned',
+        source,
+        isLeaving: false,
+        navigate,
+        stepCount: 0,
+      });
     },
     [unwatchRelease]
   );
+
+  /**
+   * Навигатор зовётся вне функции обновления состояния: он прокручивает ленту, а функция
+   * обновления должна быть чистой. Шаг применяется, только если предпросмотр за это время не
+   * сменился — не закрыт и не открыт заново.
+   */
+  const step = useCallback((direction: PreviewDirection) => {
+    const current = previewRef.current;
+
+    if (!current || current.mode !== 'pinned' || current.isLeaving || !current.navigate)
+      return;
+
+    const next = current.navigate(current.source, direction);
+
+    if (!next) return;
+
+    const stepped: PreviewState = {
+      ...current,
+      ...next,
+      stepCount: current.stepCount + 1,
+    };
+
+    /**
+     * Следующее нажатие может прийти до рендера: оно шагает уже от новой ячейки.
+     */
+    previewRef.current = stepped;
+    setPreview((latest) => {
+      return latest === current ? stepped : latest;
+    });
+  }, []);
+
+  useCurrentCellMark(preview);
 
   useEffect(() => {
     setHold('preview', isOpen);
@@ -108,9 +180,21 @@ export const PreviewProvider: FC<PreviewProviderProps> = (props) => {
     close();
   }, [mode, screen, close]);
 
-  const value = useMemo<PreviewContextValue>(() => {
-    return { preview, openHold, swapHold, openPinned, close, finishLeave };
-  }, [preview, openHold, swapHold, openPinned, close, finishLeave]);
+  /**
+   * Методы ячеек — отдельным контекстом со стабильным значением: в общем значении с `preview`
+   * каждый шаг (и автоповтор зажатой стрелки) перерисовывал бы все ячейки ленты.
+   */
+  const actions = useMemo<PreviewActions>(() => {
+    return { openHold, swapHold, openPinned };
+  }, [openHold, swapHold, openPinned]);
 
-  return <PreviewContext.Provider value={value}>{children}</PreviewContext.Provider>;
+  const value = useMemo<PreviewContextValue>(() => {
+    return { preview, step, close, finishLeave };
+  }, [preview, step, close, finishLeave]);
+
+  return (
+    <PreviewActionsContext.Provider value={actions}>
+      <PreviewContext.Provider value={value}>{children}</PreviewContext.Provider>
+    </PreviewActionsContext.Provider>
+  );
 };

@@ -2,18 +2,14 @@ import type { RefObject } from 'preact';
 import { useCallback, useMemo, useRef } from 'preact/hooks';
 
 import type { RemoteGif } from '../../../../db.types';
+import { elementById } from '../../elementById/elementById';
 import { gifCellId, gifKey } from '../../MasonryGrid/gifCellId';
 import { cellRemovalTargets, resolveFocusTarget } from '../../removalFocus/removalFocus';
 import type { FocusSection, FocusTarget } from '../../removalFocus/removalFocus.types';
 import { useRemovalFocus } from '../../useRemovalFocus/useRemovalFocus';
+import { RECENT_GIF_SECTION_ID } from '../gifSections/gifSections';
 
 import type { GifRemovalFocus } from './useGifRemovalFocus.types';
-
-/**
- * Раздел недавних в выборе фокуса. Остальные разделы ленты GIF не нужны: убрать можно только
- * недавнюю GIF, а вкладок разделов, на которые ушёл бы фокус, у ленты GIF нет.
- */
-const RECENT_ID = 'recent';
 
 /**
  * Фокус после «Убрать из недавних» и «Очистить» в ленте GIF: соседняя недавняя GIF
@@ -32,10 +28,14 @@ export const useGifRemovalFocus = (
 ): GifRemovalFocus => {
   const settingsRef = useRef<HTMLButtonElement>(null);
 
+  /**
+   * В выборе фокуса — только раздел недавних: убрать можно только недавнюю GIF, а вкладок
+   * разделов, на которые ушёл бы фокус, у ленты GIF нет.
+   */
   const feed = useMemo((): FocusSection[] => {
     return [
       {
-        id: RECENT_ID,
+        id: RECENT_GIF_SECTION_ID,
         items: recent.map((gif) => {
           return { key: gifKey(gif) };
         }),
@@ -50,15 +50,10 @@ export const useGifRemovalFocus = (
       if (!fallback) return null;
 
       const target = resolveFocusTarget(targets, nextFeed);
-      const root = fallback.getRootNode();
 
-      if (
-        target?.kind !== 'cell' ||
-        !(root instanceof DocumentFragment || root instanceof Document)
-      )
-        return fallback;
+      if (target?.kind !== 'cell') return fallback;
 
-      return root.getElementById(gifCellId(target.key)) || fallback;
+      return elementById(fallback, gifCellId(target.sectionId, target.key)) || fallback;
     },
     [searchRef]
   );
@@ -67,7 +62,7 @@ export const useGifRemovalFocus = (
 
   const expectGifRemoval = useCallback(
     (gif: RemoteGif) => {
-      expectRemoval(cellRemovalTargets(feed, RECENT_ID, gifKey(gif)));
+      expectRemoval(cellRemovalTargets(feed, RECENT_GIF_SECTION_ID, gifKey(gif)));
     },
     [expectRemoval, feed]
   );

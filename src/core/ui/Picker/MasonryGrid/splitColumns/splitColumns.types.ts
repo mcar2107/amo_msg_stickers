@@ -86,7 +86,7 @@ type TileBox = {
 /**
  * Плитка элемента выдачи.
  */
-type ItemTile<T> = TileBox & {
+export type ItemTile<T> = TileBox & {
   /**
    * Вид плитки.
    */
