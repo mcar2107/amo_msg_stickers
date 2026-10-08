@@ -57,9 +57,9 @@ A right click on a sticker or GIF (or the context menu key, or Shift+F10)
 - “Delete sticker” — on a sticker from “My stickers” and from a pack;
 - “Remove from recent” — on recent stickers and GIFs.
 
-The section header has a “…” button: for a Telegram pack it holds “Copy link” and “Delete pack”, for recent ones —
-“Clear”.
+A Telegram pack header has a “…” button with “Copy link” and “Delete pack”, and the recent header has a “Clear”
+button.
 
-Deleting a sticker, deleting a pack and clearing recent items need confirmation: after the first click, the item
+Deleting a sticker, deleting a pack and clearing recent items need confirmation: after the first click, the label
 changes to “Really delete?” or “Really clear?” — click it again within a couple of seconds. “Remove from recent” works
 right away.
