@@ -56,3 +56,5 @@ as in the text.
 
 Your own stickers, recent ones, pack import from Telegram and GIF search in KLIPY work right after installation, no keys
 needed.
+
+How to send stickers, make your own and remove the ones you don’t need — see [“How to use”](./usage).

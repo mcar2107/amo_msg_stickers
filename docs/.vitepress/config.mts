@@ -79,6 +79,7 @@ export default defineConfig({
       themeConfig: {
         nav: [
           { text: 'Установка', link: '/install/' },
+          { text: 'Как пользоваться', link: '/usage' },
           { text: 'Настройка', link: '/setup/gif-keys' },
           { text: 'Частые вопросы', link: '/faq' },
         ],
@@ -93,6 +94,7 @@ export default defineConfig({
               { text: 'Приложение amo', link: '/install/desktop' },
             ],
           },
+          { text: 'Как пользоваться', link: '/usage' },
           {
             text: 'Настройка',
             items: [
@@ -134,6 +136,7 @@ export default defineConfig({
       themeConfig: {
         nav: [
           { text: 'Installation', link: '/en/install/' },
+          { text: 'How to use', link: '/en/usage' },
           { text: 'Setup', link: '/en/setup/gif-keys' },
           { text: 'FAQ', link: '/en/faq' },
         ],
@@ -151,6 +154,7 @@ export default defineConfig({
               { text: 'amo app', link: '/en/install/desktop' },
             ],
           },
+          { text: 'How to use', link: '/en/usage' },
           {
             text: 'Setup',
             items: [
