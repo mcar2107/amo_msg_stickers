@@ -15,7 +15,8 @@ Click a sticker or GIF, and it goes to the chat right away as a separate
 message field and the attached files stay in place: the sticker doesn’t take them.
 
 If you are replying to a message — the reply bar is shown above the message field — the sticker is sent as a reply to
-it, and the reply bar disappears, as after a regular send.
+it, and the reply bar disappears, as after a regular send. Rarely, if amo hasn’t loaded the message you
+are replying to yet, the sticker is sent without a quote, and the reply bar stays.
 
 The recipient gets the sticker as a GIF image even without amo stickers. Those who have it see the sticker without a
 message bubble, as in Telegram.
@@ -39,8 +40,8 @@ amo stickers tries to keep the file within 2 MB: if it is heavier, the si
 ## GIFs
 
 The “GIFs” mode has a search field and a feed. Without a query, the feed shows recent GIFs and trending ones below
-them; with a query — only the search results. Above the feed are the sources: “KLIPY” works right away, “GIPHY” and
-“GIPHY stickers” appear with a GIPHY key — see [“GIF keys”](./setup/gif-keys) for details.
+them; with a query — only the search results. Without a GIPHY key, search goes to KLIPY;
+with a GIPHY key, a source switch with “KLIPY”, “GIPHY” and “GIPHY stickers” appears above the feed — see [“GIF keys”](./setup/gif-keys) for details.
 
 A GIF heavier than 2 MB is compressed before sending the same way as a custom sticker; the rest are sent as is.
 
