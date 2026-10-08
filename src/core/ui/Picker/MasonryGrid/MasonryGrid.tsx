@@ -12,7 +12,7 @@ import type { MasonrySection, MasonryTile } from './splitColumns/splitColumns.ty
 import { COLUMN_COUNT, columnWidth, GRID_GAP, tileBox } from './tileBox/tileBox';
 import { useGridWindow } from './useGridWindow/useGridWindow';
 import { useMasonryNavigator } from './useMasonryNavigator/useMasonryNavigator';
-import { gifCellId, gifKey } from './gifCellId';
+import { gifItemCellId, gifKey } from './gifCellId';
 import type { MasonryGridProps } from './MasonryGrid.types';
 
 /**
@@ -84,7 +84,7 @@ export const MasonryGrid: FC<MasonryGridProps> = (props) => {
         return (
           <MasonryCell
             key={`${sectionId}:${key}`}
-            id={gifCellId(sectionId, key)}
+            id={gifItemCellId(sectionId, item)}
             gif={item}
             box={tileBox(tile, column)}
             onRemove={isRecent ? handleRecentRemove : undefined}

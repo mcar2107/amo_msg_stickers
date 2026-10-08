@@ -1,7 +1,8 @@
+import type { CellIdOf } from '../../cellIdOf/cellIdOf.types';
 import type { PreviewDirection } from '../../Preview/previewDirection/previewDirection.types';
 import type { MasonryTile } from '../splitColumns/splitColumns.types';
 
-import type { MasonryItemTile, TileIdOf } from './masonryNeighbor.types';
+import type { MasonryItemTile } from './masonryNeighbor.types';
 
 /**
  * Ближайшая плитка элемента, идя от `from` с шагом `delta`: соседи стоят рядом с текущей, и
@@ -47,7 +48,7 @@ export const masonryNeighbor = <T>(
   tiles: readonly MasonryTile<T>[],
   id: string,
   direction: PreviewDirection,
-  idOf: TileIdOf<T>
+  idOf: CellIdOf<T>
 ): MasonryItemTile<T> | null => {
   for (const [index, tile] of tiles.entries()) {
     if (tile.kind !== 'item' || idOf(tile.sectionId, tile.item) !== id) continue;

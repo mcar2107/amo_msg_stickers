@@ -12,8 +12,3 @@ export type MasonryItemTile<T> = Extract<
     kind: 'item';
   }
 >;
-
-/**
- * id кнопки ячейки по разделу и элементу: та же GIF стоит и в недавних, и в выдаче.
- */
-export type TileIdOf<T> = (sectionId: string, item: T) => string;

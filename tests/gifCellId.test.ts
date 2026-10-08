@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
 import type { RemoteGif } from '../src/core/db.types';
-import { gifCellId, gifKey } from '../src/core/ui/Picker/MasonryGrid/gifCellId';
+import {
+  gifCellId,
+  gifItemCellId,
+  gifKey,
+} from '../src/core/ui/Picker/MasonryGrid/gifCellId';
 
 /**
  * GIF провайдера с номером.
@@ -38,5 +42,11 @@ describe('gifCellId', () => {
 
   it('та же GIF в недавних и в выдаче получает разные id', () => {
     expect(gifCellId('recent', 'giphy:42')).not.toBe(gifCellId('feed', 'giphy:42'));
+  });
+});
+
+describe('gifItemCellId', () => {
+  it('id кнопки ячейки по GIF совпадает с id по её ключу', () => {
+    expect(gifItemCellId('feed', gif('giphy', '42'))).toBe(gifCellId('feed', 'giphy:42'));
   });
 });

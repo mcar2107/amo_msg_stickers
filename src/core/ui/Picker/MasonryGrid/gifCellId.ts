@@ -25,3 +25,15 @@ export const gifKey = (gif: RemoteGif): string => {
 export const gifCellId = (sectionId: string, key: string): string => {
   return `picker-gif-cell-${sectionId}-${key}`;
 };
+
+/**
+ * id кнопки ячейки GIF по разделу и самой GIF: им ячейку подписывает лента и по нему же её
+ * находит шаг закреплённого предпросмотра.
+ *
+ * @param sectionId — раздел ячейки
+ * @param gif — GIF ячейки
+ * @returns id кнопки ячейки
+ */
+export const gifItemCellId = (sectionId: string, gif: RemoteGif): string => {
+  return gifCellId(sectionId, gifKey(gif));
+};

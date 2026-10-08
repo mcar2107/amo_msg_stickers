@@ -1,11 +1,6 @@
 import type { StickerRow } from '../../stickerLayout/stickerLayout.types';
 
 /**
- * id кнопки ячейки по разделу и элементу: ключ стикера уникален только в разделе.
- */
-export type CellIdOf<T> = (sectionId: string, item: T) => string;
-
-/**
  * Соседняя ячейка ленты стикеров.
  */
 export type StickerNeighbor<T> = {

@@ -1,7 +1,8 @@
+import type { CellIdOf } from '../../cellIdOf/cellIdOf.types';
 import type { PreviewDirection } from '../../Preview/previewDirection/previewDirection.types';
 import type { StickerRow } from '../../stickerLayout/stickerLayout.types';
 
-import type { CellIdOf, StickerNeighbor } from './stickerNeighbor.types';
+import type { StickerNeighbor } from './stickerNeighbor.types';
 
 /**
  * Ближайший ряд со стикерами, идя от `from` с шагом `delta`: заголовки, подсказки пустых

@@ -5,20 +5,9 @@ import type { RemoteGif } from '../../../../db.types';
 import type { PreviewNavigator } from '../../Preview/PreviewProvider.types';
 import { gifPreviewTarget } from '../../Preview/previewTarget/previewTarget';
 import { revealFeedCell } from '../../revealFeedCell/revealFeedCell';
-import { gifCellId, gifKey } from '../gifCellId';
+import { gifItemCellId } from '../gifCellId';
 import { masonryNeighbor } from '../masonryNeighbor/masonryNeighbor';
 import type { MasonryTile } from '../splitColumns/splitColumns.types';
-
-/**
- * id кнопки ячейки ленты GIF по разделу и GIF.
- *
- * @param sectionId — раздел ячейки
- * @param gif — GIF ячейки
- * @returns id кнопки
- */
-const tileCellId = (sectionId: string, gif: RemoteGif): string => {
-  return gifCellId(sectionId, gifKey(gif));
-};
 
 /**
  * Навигатор ленты GIF для закреплённого предпросмотра: соседняя плитка по раскладке, прокрутка
@@ -45,14 +34,14 @@ export const useMasonryNavigator = (
 
       if (!current) return null;
 
-      const tile = masonryNeighbor(current, source.id, direction, tileCellId);
+      const tile = masonryNeighbor(current, source.id, direction, gifItemCellId);
 
       if (!tile) return null;
 
       const { sectionId, item, top, height } = tile;
       const button = revealFeedCell(
         scrollRef.current,
-        tileCellId(sectionId, item),
+        gifItemCellId(sectionId, item),
         top,
         height
       );
