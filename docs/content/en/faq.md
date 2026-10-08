@@ -79,7 +79,7 @@ Another way: right-click a sticker or GIF (or press the context menu key or�
 preview doesn’t close on its own. Close it with the Escape key, by clicking anywhere on the page or with the “Close
 preview” button. Escape closes only the preview, and the panel stays open. You can’t switch stickers with the cursor
 in this preview, but you can with the arrow keys: left and right show the previous and next sticker or GIF in the feed,
-including the next section, up and down show the sticker in the row above or below, or the GIF in the same column.
+across sections, up and down show the sticker in the row above or below, or the GIF in the same column.
 The feed under the preview scrolls to the one shown, and after closing, the focus lands on it.
 
 If holding doesn’t open the preview, keep the cursor still while you hold the button: moving it by more than 6
