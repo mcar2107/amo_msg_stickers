@@ -1,7 +1,7 @@
 import { useContext } from 'preact/hooks';
 
 import { PreviewNavigationContext } from '../Preview/PreviewNavigationContext';
-import { usePreview } from '../Preview/usePreview';
+import { usePreviewActions } from '../Preview/usePreviewActions';
 import { usePressPreview } from '../usePressPreview/usePressPreview';
 
 import type { CellPreview, UseCellPreviewOptions } from './useCellPreview.types';
@@ -19,7 +19,7 @@ import type { CellPreview, UseCellPreviewOptions } from './useCellPreview.types'
  */
 export const useCellPreview = (options: UseCellPreviewOptions): CellPreview => {
   const { target, isBusy } = options;
-  const { openHold, swapHold, openPinned } = usePreview();
+  const { openHold, swapHold, openPinned } = usePreviewActions();
   const navigate = useContext(PreviewNavigationContext);
 
   const handleCellHold = (source: HTMLElement) => {

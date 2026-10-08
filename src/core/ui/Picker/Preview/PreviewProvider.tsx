@@ -13,8 +13,10 @@ import { usePickerView } from '../usePickerView/usePickerView';
 
 import { watchHoldRelease } from './holdRelease/holdRelease';
 import type { PreviewDirection } from './previewDirection/previewDirection.types';
+import { PreviewActionsContext } from './PreviewActionsContext';
 import { PreviewContext } from './PreviewContext';
 import type {
+  PreviewActions,
   PreviewContextValue,
   PreviewNavigator,
   PreviewProviderProps,
@@ -175,9 +177,21 @@ export const PreviewProvider: FC<PreviewProviderProps> = (props) => {
     close();
   }, [mode, screen, close]);
 
-  const value = useMemo<PreviewContextValue>(() => {
-    return { preview, openHold, swapHold, openPinned, step, close, finishLeave };
-  }, [preview, openHold, swapHold, openPinned, step, close, finishLeave]);
+  /**
+   * Методы ячеек — отдельным контекстом со стабильным значением: в общем значении с `preview`
+   * каждый шаг (и автоповтор зажатой стрелки) перерисовывал бы все ячейки ленты.
+   */
+  const actions = useMemo<PreviewActions>(() => {
+    return { openHold, swapHold, openPinned };
+  }, [openHold, swapHold, openPinned]);
 
-  return <PreviewContext.Provider value={value}>{children}</PreviewContext.Provider>;
+  const value = useMemo<PreviewContextValue>(() => {
+    return { preview, step, close, finishLeave };
+  }, [preview, step, close, finishLeave]);
+
+  return (
+    <PreviewActionsContext.Provider value={actions}>
+      <PreviewContext.Provider value={value}>{children}</PreviewContext.Provider>
+    </PreviewActionsContext.Provider>
+  );
 };

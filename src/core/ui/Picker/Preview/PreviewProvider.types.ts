@@ -99,12 +99,11 @@ export type PreviewState = {
   stepCount: number;
 };
 
-export type PreviewContextValue = {
-  /**
-   * Открытый предпросмотр; `null` — закрыт.
-   */
-  preview: PreviewState | null;
-
+/**
+ * Методы открытия предпросмотра для ячеек. Значение стабильно: шаг и смена предпросмотра ячейки
+ * ленты не перерисовывают.
+ */
+export type PreviewActions = {
   /**
    * Открывает предпросмотр на время удержания кнопки.
    */
@@ -125,6 +124,16 @@ export type PreviewContextValue = {
     source: HTMLElement,
     navigate?: PreviewNavigator | null
   ) => void;
+};
+
+/**
+ * Состояние предпросмотра и методы слоя — для оверлея.
+ */
+export type PreviewContextValue = {
+  /**
+   * Открытый предпросмотр; `null` — закрыт.
+   */
+  preview: PreviewState | null;
 
   /**
    * Переключает открытый закреплённый предпросмотр с навигатором на соседнюю ячейку. На краю
@@ -152,7 +161,7 @@ export type PreviewProviderProps = {
   phase: PanelPhase;
 
   /**
-   * Дерево панели, в котором работает `usePreview`.
+   * Дерево панели, в котором работают `usePreview` и `usePreviewActions`.
    */
   children: ComponentChildren;
 };
