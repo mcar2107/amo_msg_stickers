@@ -139,3 +139,13 @@
   max-width: 100%;
   height: auto;
 }
+
+/**
+ * Узкие кадры в ряд: VitePress делает `img` блочными, и два скрина панели иначе встали бы
+ * столбиком с пустой половиной колонки.
+ */
+.vp-doc .media-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}

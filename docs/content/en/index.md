@@ -45,16 +45,12 @@ see the sticker without a message bubble, like in Telegram.
 
 The interface follows the amo language: English or Russian. The theme is light or dark, as in amo.
 
-Screenshots in this guide were taken with the Russian interface. With amo in English, buttons and screens are labeled
+Screenshots and videos in this guide were taken with the Russian interface. With amo in English, buttons and screens are labeled
 as in the text.
 
 ## Getting started
 
-1. [Install](./install/) the extension or the userscript in your browser.
-2. GIF search in KLIPY works right away. To add GIPHY sources, get a [free key](./setup/gif-keys) for GIPHY.
-3. To import a pack from Telegram, [copy its link](./setup/telegram) — no bot or token needed.
-
-Your own stickers, recent ones, pack import from Telegram and GIF search in KLIPY work right after installation, no keys
-needed.
-
-How to send stickers, make your own and remove the ones you don’t need — see [“How to use”](./usage).
+1. [Install](./install/) the extension or the userscript.
+2. Your own stickers, [pack import from Telegram](./setup/telegram) and KLIPY GIF search work right away, no keys
+   needed. A [GIPHY key](./setup/gif-keys) adds GIPHY sources.
+3. Everything else — in [“How to use”](./usage).

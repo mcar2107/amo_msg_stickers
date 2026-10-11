@@ -1,66 +1,60 @@
 # How to use
 
-## Sticker panel
+## Panel
 
-The sticker button sits in the message field next to the emoji button. Hover over it, and the panel opens; move the
-cursor away from the button and the panel, and it closes. Click the button, and the panel stays open even if you move
-the cursor away; close it by clicking the button again, by clicking outside the panel or with the Escape key.
+The sticker button is in the message field, next to the emoji button. Hovering opens the panel, a click pins it: then
+it closes only with another click on the button, a click outside or Escape.
 
-At the bottom of the panel are the “Stickers” and “GIFs” mode switch and the “Settings” button. The panel opens in the
-mode you used last time.
+<img src="../img/usage/panel.png" alt="The amo stickers panel in the Stickers mode: tabs for Recent, My stickers and packs, the + button, and Stickers, GIFs and Settings at the bottom" width="364">
+
+Tabs: “Recent” (up to 40 stickers), “My stickers” and packs from Telegram — the one you last sent from comes first.
+Packs are reordered the next time the panel opens, not under your cursor.
 
 ## Sending
 
-Click a sticker or GIF, and it goes to the chat right away as a separate message. The text you are typing in the
-message field and the attached files stay in place: the sticker doesn’t take them.
+Click a sticker or GIF, and it’s sent as a separate message: the text and attachments in the message field stay
+in place. If the reply bar is shown above the field, the sticker is sent as a reply.
 
-If you are replying to a message — the reply bar is shown above the message field — the sticker is sent as a reply to
-it, and the reply bar disappears, as after a regular send. Rarely, if amo hasn’t loaded the message you
-are replying to yet, the sticker is sent without a quote, and the reply bar stays.
-
-The recipient gets the sticker as a GIF image even without amo stickers. Those who have it see the sticker without a
-message bubble, as in Telegram.
+A recipient without amo stickers gets a regular GIF, one with amo stickers sees a sticker without a bubble,
+as in Telegram.
 
 ## Custom sticker {#custom}
 
-You can make a sticker from an image, GIF, video or animated Telegram sticker (`.tgs`).
+<video width="364" autoplay loop muted playsinline aria-label="The Create sticker tile → Choose file → the caption “Привет!” → Save to “My stickers”: the sticker appears in My stickers">
+  <source src="../img/usage/custom-sticker.webm" type="video/webm">
+  <source src="../img/usage/custom-sticker.mp4" type="video/mp4">
+</video>
 
-1. In the “Stickers” mode, click “+” to the right of the section tabs or the “Create sticker” tile at the end of the
-   “My stickers” section — the “Add stickers” screen opens.
-2. At the top of the screen, choose “Custom sticker” if “Telegram” is open.
-3. Click “Choose file” or drop a file onto the upload area. A preview of the finished sticker appears; click it to see
-   it larger.
-4. If you want, type a caption in the “Caption (optional)” field — it is drawn on the sticker.
-5. Click **Save to “My stickers”**.
-
-While amo stickers is building the sticker, “Building the sticker…” is shown next to the button, and once the sticker
-is ready — its size and weight. The sticker fits into 512 px on the longer side, animation is up to 4 seconds long, and
-amo stickers tries to keep the file within 2 MB: if it is heavier, the side gets smaller.
+An image, GIF, video or `.tgs` will do, and you can drop the file too. The caption is drawn on the sticker. The sticker
+fits into 512 px, animation is cut to 4 seconds, and if the file is heavier than 2 MB, its side is reduced.
 
 ## GIFs
 
-The “GIFs” mode has a search field and a feed. Without a query, the feed shows recent GIFs and trending ones below
-them; with a query — only the search results. Without a GIPHY key, search goes to KLIPY;
-with a GIPHY key, a source switch with “KLIPY”, “GIPHY” and “GIPHY stickers” appears above the feed — see [“GIF keys”](./setup/gif-keys) for details.
+KLIPY search works without a key, a [GIPHY key](./setup/gif-keys) adds the “GIPHY” and “GIPHY stickers” sources. Without
+a query, the feed shows recent GIFs and trending ones. A GIF heavier than 2 MB is recompressed before sending.
 
-A GIF heavier than 2 MB is compressed before sending the same way as a custom sticker; the rest are sent as is.
+## Preview {#preview}
 
-## Recent
+<video width="364" autoplay loop muted playsinline aria-label="A sticker is held down with the mouse button and shown large over the page; the cursor moves over other stickers with the button held, and the preview follows; the button is released and the preview closes">
+  <source src="../img/usage/preview.webm" type="video/webm">
+  <source src="../img/usage/preview.mp4" type="video/mp4">
+</video>
 
-Sent stickers go to the “Recent” section of the “Stickers” mode, and GIFs go to the recent ones of the “GIFs” mode. Each
-holds up to 40 items, and sending an item again moves it to the top.
+Press and hold a sticker or GIF to see it large. Keep holding and move the cursor over the feed to switch the preview.
+Release — it closes, and nothing is sent. If it doesn’t open, keep the cursor still. On a touch screen, use “Preview”
+in the menu.
+The preview opened from the menu closes with Escape or a click, and the arrow keys switch stickers and GIFs in it.
 
 ## Menu and deleting {#menu}
 
-A right click on a sticker or GIF (or the context menu key, or Shift+F10) opens the menu:
+<div class="media-row">
+<img src="../img/usage/menu.png" alt="Sticker context menu: Preview and Delete sticker" width="300">
+<img src="../img/usage/pack-menu.png" alt="The … menu in a pack header: Copy link and Delete pack" width="300">
+</div>
 
-- “Preview” — on every item; see [“How to view a sticker or GIF larger”](./faq#preview) for details;
-- “Delete sticker” — on a sticker from “My stickers” and from a pack;
-- “Remove from recent” — on recent stickers and GIFs.
+Open the menu of a sticker or GIF with a right click, the menu key or Shift+F10; recent items have “Remove from recent”
+in it. A pack header has “…”: “Copy link” gives a link to [import](./setup/telegram) the pack on another device.
+The recent header has “Clear”.
 
-A Telegram pack header has a “…” button with “Copy link” and “Delete pack”, and the recent header has a “Clear”
-button.
-
-Deleting a sticker, deleting a pack and clearing recent items need confirmation: after the first click, the label
-changes to “Really delete?” or “Really clear?” — click it again within a couple of seconds. “Remove from recent” works
-right away.
+Confirm deleting and clearing with a second press within a couple of seconds — the first one changes the label
+to “Really delete?”.
