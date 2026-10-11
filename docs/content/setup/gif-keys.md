@@ -21,7 +21,7 @@
 
 Готово, если в режиме «GIF» рядом с «KLIPY» появились «GIPHY» и «GIPHY стикеры»:
 
-![Режим «GIF» amo stickers: выбран источник «KLIPY», в ленте — результаты поиска по запросу «ганвест»](../img/setup/gif-mode-klipy.png)
+![Режим «GIF» amo stickers: выбран источник «KLIPY», в ленте — результаты поиска по запросу «ганвест», под ней — подпись «Powered by KLIPY»](../img/setup/gif-mode-klipy.png)
 
 ## Свой ключ KLIPY {#own-klipy}
 

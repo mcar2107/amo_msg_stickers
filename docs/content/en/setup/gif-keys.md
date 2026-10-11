@@ -22,7 +22,7 @@ is saved.
 
 You’re done when “GIPHY” and “GIPHY stickers” appear next to “KLIPY” in the “GIFs” mode:
 
-![amo stickers “GIFs” mode: the “KLIPY” source is selected, the feed shows search results for a query](../../img/setup/gif-mode-klipy.png)
+![amo stickers “GIFs” mode: the “KLIPY” source is selected, the feed shows search results for a query, “Powered by KLIPY” under it](../../img/setup/gif-mode-klipy.png)
 
 ## Your own KLIPY key {#own-klipy}
 
