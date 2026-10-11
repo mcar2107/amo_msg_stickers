@@ -3,7 +3,7 @@
 ## There is no sticker button
 
 1. **Reload the amo tab** — a tab opened before the installation won’t have the button.
-2. **Is amo open in a browser?** amo stickers works on `*.amo.tm`, not in the [amo app](./install/desktop).
+2. **Is amo open in a browser?** amo stickers works on `*.amo.tm`.
 3. **Is amo stickers turned on?** The extension — on <CopyCode text="chrome://extensions" />, the script —
    in the script manager dashboard. The script is on but doesn’t work — see the next question.
 
