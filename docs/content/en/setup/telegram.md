@@ -12,7 +12,7 @@ the built-in amo stickers bot downloads the pack.
 
 `https://t.me/addstickers/Name`, an emoji pack link `t.me/addemoji/Name` or just the pack name will do.
 
-<img src="../../img/setup/telegram-pack-link.png" alt="A pack window in Telegram for macOS: the “…” menu is open with the “Share” item — behind it is the chat selection window with the copy link button" width="480">
+<img src="../../img/setup/telegram-pack-link.png" alt="A pack window in Telegram for macOS over the “Sticker Sets” list: the “…” menu is open with the “Share” and “Delete” items" width="480">
 
 ## 2. Import the pack {#import}
 

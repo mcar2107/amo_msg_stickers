@@ -12,7 +12,7 @@
 
 Подойдёт `https://t.me/addstickers/Имя`, ссылка на пак эмодзи `t.me/addemoji/Имя` или одно имя пака.
 
-<img src="../img/setup/telegram-pack-link.png" alt="Окно пака в Telegram для macOS: открыто меню «…» с пунктом «Поделиться» — за ним окно выбора чата с кнопкой копирования ссылки" width="480">
+<img src="../img/setup/telegram-pack-link.png" alt="Окно пака в Telegram для macOS поверх списка «Наборы стикеров»: открыто меню «…» с пунктами «Поделиться» и «Удалить»" width="480">
 
 ## 2. Импортируйте пак {#import}
 
