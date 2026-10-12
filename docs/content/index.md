@@ -39,7 +39,7 @@ amo stickers добавляет в веб-версию amo кнопку сти�
 Стикер отправляется кликом. Собеседник получит его картинкой GIF, даже если amo stickers у него нет; у кого он есть,
 тот видит стикер без пузыря сообщения, как в Telegram.
 
-<video autoplay loop muted playsinline aria-label="Панель стикеров над строкой ввода amo: отправка стикера и GIF кликом">
+<video autoplay loop muted playsinline aria-label="Панель стикеров в amo: наведение на кнопку открывает её, стикер уходит без пузыря, удержание открывает предпросмотр, GIF находится поиском и уходит кликом">
   <source src="./img/home/demo.webm" type="video/webm">
   <source src="./img/home/demo.mp4" type="video/mp4">
 </video>

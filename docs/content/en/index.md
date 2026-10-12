@@ -38,7 +38,7 @@ amo stickers adds a sticker button to the amo web app. Hover over it or cl
 A sticker is sent with a click. The other person gets it as a GIF image even without amo stickers; those who have it
 see the sticker without a message bubble, like in Telegram.
 
-<video autoplay loop muted playsinline aria-label="Sticker panel above the amo message field: sending a sticker and a GIF with a click">
+<video autoplay loop muted playsinline aria-label="The sticker panel in amo: hovering the button opens it, a sticker is sent without a bubble, holding one opens a preview, a GIF is found by search and sent with a click">
   <source src="../img/home/demo.webm" type="video/webm">
   <source src="../img/home/demo.mp4" type="video/mp4">
 </video>
