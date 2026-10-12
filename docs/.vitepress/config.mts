@@ -79,6 +79,7 @@ export default defineConfig({
       themeConfig: {
         nav: [
           { text: 'Установка', link: '/install/' },
+          { text: 'Как пользоваться', link: '/usage' },
           { text: 'Настройка', link: '/setup/gif-keys' },
           { text: 'Частые вопросы', link: '/faq' },
         ],
@@ -90,9 +91,9 @@ export default defineConfig({
               { text: 'Chrome, Edge, Яндекс Браузер, Opera', link: '/install/chromium' },
               { text: 'Firefox', link: '/install/firefox' },
               { text: 'Safari', link: '/install/safari' },
-              { text: 'Приложение amo', link: '/install/desktop' },
             ],
           },
+          { text: 'Как пользоваться', link: '/usage' },
           {
             text: 'Настройка',
             items: [
@@ -134,6 +135,7 @@ export default defineConfig({
       themeConfig: {
         nav: [
           { text: 'Installation', link: '/en/install/' },
+          { text: 'How to use', link: '/en/usage' },
           { text: 'Setup', link: '/en/setup/gif-keys' },
           { text: 'FAQ', link: '/en/faq' },
         ],
@@ -148,9 +150,9 @@ export default defineConfig({
               },
               { text: 'Firefox', link: '/en/install/firefox' },
               { text: 'Safari', link: '/en/install/safari' },
-              { text: 'amo app', link: '/en/install/desktop' },
             ],
           },
+          { text: 'How to use', link: '/en/usage' },
           {
             text: 'Setup',
             items: [

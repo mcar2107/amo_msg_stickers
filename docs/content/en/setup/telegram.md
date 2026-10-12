@@ -1,124 +1,73 @@
 # Import from Telegram
 
-You can add a whole Telegram sticker pack to amo stickers: the stickers will become GIFs and appear in the feed as a
-separate section. Static, animated (`.tgs`) and video stickers are converted.
-
-You don’t need to set anything up to import: amo stickers downloads the pack through the Telegram Bot API with a
-built-in bot. You only need your own bot if the built-in one is unavailable — an error during import will tell you
-(see [“Your own bot”](#own-bot)).
+A Telegram pack is added whole — static, animated (`.tgs`) and video stickers become GIFs. Nothing to set up:
+the built-in amo stickers bot downloads the pack.
 
 ## 1. Copy the pack link {#pack-link}
 
-**Click a sticker from the pack in a Telegram chat, open the “⋮” menu in the pack window and choose “Copy Link”.**
+**Click a sticker from the pack in a Telegram chat, open the “⋮” menu in the pack window → “Copy Link”.**
 
-The path is the same in the Telegram desktop app, the web version and on the phone; in some apps the menu is marked
-“…” rather than “⋮”. Telegram for macOS has no “Copy Link” item in the menu: choose “Share” and click the copy link
-button in the top right corner of the chat selection window. You can also copy the link to a pack you have already
-added from the settings: “Settings” → “Stickers and Emoji” → click the pack → the “⋮” menu → “Copy Link”.
+- Telegram for macOS has no such item: “Share” → the copy link button in the top right corner.
+- A pack you have already added: “Settings” → “Stickers and Emoji” → the pack → “⋮” → “Copy Link”.
 
-The link looks like this: `https://t.me/addstickers/Name`. A link to an emoji pack (`t.me/addemoji/Name`) or just the
-pack name — the part of the link after the last `/` — works too.
+`https://t.me/addstickers/Name`, an emoji pack link `t.me/addemoji/Name` or just the pack name will do.
 
 <img src="../../img/setup/telegram-pack-link.png" alt="A pack window in Telegram for macOS: the “…” menu is open with the “Share” item — behind it is the chat selection window with the copy link button" width="480">
 
 ## 2. Import the pack {#import}
 
-1. In amo stickers, open the “Stickers” mode and click “+” to the right of the section tabs — the “Add stickers”
-   screen will open.
-2. At the top of the screen, choose “Telegram” if “Custom sticker” is open. Paste the link into the “Pack link” field —
-   a pack card will appear under the field with the pack name and the number of stickers. If the pack is already
-   imported, the card says that importing will update it. Click “Import” or press Enter. The first time the screen
-   opens, a short guide on getting the pack link is expanded under the field; after that it’s collapsed — expand it with
-   the “?” button next to the field.
-3. Wait for the import to finish: the pack card shows a progress bar and a sticker count, for example **12/40**,
-   and at the end the bottom of the panel shows **Pack “Pack name” added**. If you leave the “Add stickers” screen,
-   the count goes on at the bottom of the panel. While the import is running, the panel doesn’t close if you move
-   the cursor away from it.
+In the “Stickers” mode, click “+” → “Telegram”, paste the link and click “Import”.
 
-![The “Add stickers” screen, “Telegram” tab: a pack link in the “Pack link” field, under it the “Hot Cherry” pack card with a progress bar and the count 14/34, and the “Cancel” button in the footer](../../img/setup/telegram-import.png)
+<img src="../../img/setup/telegram-import.png" alt="The “Add stickers” screen, the “Telegram” tab: a pack link in the “Pack link” field, under it the “Hot Cherry” pack card with a progress bar and the 14/34 count, the “Cancel” button in the footer" width="364">
 
-The pack will appear as a separate tab in the “Stickers” mode. The stickers of each pack are converted once during
-import — after that they are sent right away.
-
-Changed your mind? Click “Cancel”: while the import is running, it takes the place of the “Import” button. Your library
-stays as it was before the import: a new pack won’t appear, and a pack imported earlier keeps its previous stickers.
-The bottom of the panel shows **Import canceled**, and the link stays in the field — you can start the import again.
+The pack appears as a separate tab. The card under the field shows the pack name and sticker count before the import,
+and for a pack you already have — that importing will update it. You can leave the screen — the progress moves
+to the bottom of the panel. “Cancel” returns the library to how it was before the import.
 
 ## If it didn’t work
 
-An import error appears under the “Pack link” field, or at the bottom of the panel if you’ve left the “Add stickers”
-screen. If no pack card appears under the field, you can still import: if something is wrong, the import will show
-an error.
+The error appears under the link field or, if you left the screen, at the bottom of the panel.
 
-- **“The built-in Telegram bot is unavailable. Enter your own bot token in settings”** — Telegram refused the
-  built-in bot: it hit the request limit or its token was revoked. Try the import again later or set up
+- **“The built-in Telegram bot is unavailable…”** — the bot hit its limit or was revoked. Try later or set
+  up [your own bot](#own-bot).
+- **“Enter the bot token in settings”** — a build without the built-in bot (for example, from source): you need
   [your own bot](#own-bot).
-- **“Enter the bot token in settings”** — your amo stickers build has no built-in bot, for example it was built from
-  source. Set up [your own bot](#own-bot).
-- **“Couldn’t parse the link. Expected t.me/addstickers/Name”** — the field doesn’t contain a pack link. Copy it again
-  following [step 1](#pack-link).
-- **“HTTP 401 … Unauthorized”** — Telegram didn’t accept your token. Check that the token is copied in full, or get it
-  again following the [“Copy the token”](#own-bot-token) step and paste it into “Settings”.
-- **“HTTP 400 … STICKERSET_INVALID”** — Telegram didn’t find the pack. This error appears under the field right after
-  you paste the link, and “Import” stays unavailable until the link is fixed. Check that the pack opens from the link
-  in Telegram itself, and copy the link again following [step 1](#pack-link).
+- **“Couldn’t parse the link…”** — the field doesn’t contain a pack link, see [step 1](#pack-link).
+- **“HTTP 400 … STICKERSET_INVALID”** — there is no such pack. Check that the link opens in Telegram.
+- **“HTTP 401 … Unauthorized”** — Telegram didn’t accept your token: copy it [again](#own-bot-token).
 
 ## Your own bot (optional) {#own-bot}
 
-You need your own bot if the “The built-in Telegram bot is unavailable” error appears during import. With your own
-bot’s token, amo stickers imports packs through it instead of the built-in one. You only need to create the bot once —
-you don’t need to add it to chats or set anything up in it.
+Only needed if the built-in one is unavailable. You create the bot once — no need to add it to chats or set it up.
 
 ::: warning The token is a secret
-The bot token gives full control over the bot: anyone with it can write on behalf of the bot and change it. Don’t
-forward the token in chats or show it in screenshots.
-
-amo stickers stores the token only in your browser and sends it only to Telegram (`api.telegram.org`). If the token
-has leaked to someone anyway, issue a new one: open the bot in @BotFather, click “Revoke” and paste the new token into
-“Settings” instead of the old one.
+Anyone with the token controls the bot: don’t forward it or show it in screenshots. amo stickers keeps the token
+in the browser and sends it only to `api.telegram.org`. If it leaked, click “Revoke” in @BotFather and paste
+the new one.
 :::
 
 ### 1. Create a bot
 
-1. Open [@BotFather](https://t.me/BotFather) in Telegram — the official Telegram bot for creating bots — and click
-   “Open” on the button at the bottom of the chat: the @BotFather window with the list of your bots will open.
-2. In the “My bots” section, click “Create a New Bot”.
+Open [@BotFather](https://t.me/BotFather) → “Open” → “Create a New Bot”. Any name will do, the username must end
+in `bot`. Click “Create Bot”. In the old Telegram interface — the `/newbot` command in the chat with @BotFather.
 
-<img src="../../img/setup/botfather-my-bots.png" alt="The @BotFather window: the “My bots” section with the “Create a New Bot” button, bot names are blurred" width="400">
-
-3. Enter the bot name — anything, for example `amo stickers`: the bot is only needed for importing. You can leave the
-   description (“About”) empty.
-4. Enter the bot username — Latin letters, digits or `_`; it must end with `bot`, for example
-   `alex_amo_stickers_bot`. @BotFather will show right below the field whether the username is available.
-5. Click “Create Bot”.
-
-<img src="../../img/setup/botfather-newbot.png" alt="The “New bot” form in @BotFather: the bot name, the username marked “is available” and the “Create Bot” button" width="400">
-
-The old Telegram interface has no such window: there you create a bot with the `/newbot` command in the chat with
-@BotFather, and it will ask for the name and the username in messages.
+<div class="media-row">
+<img src="../../img/setup/botfather-my-bots.png" alt="The @BotFather window: the “My bots” section with the “Create a New Bot” button, bot names are blurred" width="300">
+<img src="../../img/setup/botfather-newbot.png" alt="The “New bot” form in @BotFather: the bot name, the username marked “is available” and the “Create Bot” button" width="300">
+</div>
 
 ### 2. Copy the token {#own-bot-token}
 
-After the bot is created, the bot page with the token opens — a string like `1234567890:AAH…`. Click “Copy”: the whole
-token will be copied.
+On the bot page, click “Copy”. Later you can copy the token in the same place: @BotFather → “My bots” → the bot →
+“Copy”.
 
-<img src="../../img/setup/botfather-token.png" alt="The new bot page in @BotFather: the token is hidden, the “Copy” and “Revoke” buttons are below it" width="400">
-
-You can copy the token again at any time: open @BotFather, choose the bot in “My bots” and click “Copy”.
+<img src="../../img/setup/botfather-token.png" alt="The new bot page in @BotFather: the token is hidden, the “Copy” and “Revoke” buttons are below it" width="300">
 
 ### 3. Paste the token into “Settings”
 
-1. Open amo and hover over the sticker button in the message field or click it.
-2. Click “Settings” at the bottom of the panel.
-3. Paste the token into the “Your Telegram bot token (optional)” field. The token saves on its own — as soon as you stop
-   typing, leave the field or press Enter.
+The amo stickers panel → “Settings” → the “Your Telegram bot token” field. The token saves on its own. “Doesn’t look
+like a bot token” under the field — the token wasn’t copied in full.
 
-If “Doesn’t look like a bot token. Expected 123456:ABC…” appears under the field, the token wasn’t copied in full:
-copy it again following the [“Copy the token”](#own-bot-token) step.
+<img src="../../img/setup/settings-token.png" alt="The amo stickers “Settings” screen: the “Telegram” group with the “Your Telegram bot token (optional)” field and the hint under it" width="364">
 
-<!-- скрин: img/setup/settings-token.png — поле «Свой токен Telegram-бота (необязательно)» и его подсказка -->
-
-Import the pack again following the [“Import the pack”](#import) step: with your own token it goes through your bot
-rather than the built-in one.
-
-Other questions are in the [“FAQ”](../faq) section.
+Now the import goes through your bot.

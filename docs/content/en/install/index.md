@@ -11,7 +11,6 @@ amo stickers works in the amo web app in a desktop browser. Choose your brow
 | [Brave, Vivaldi and other Chromium browsers](./chromium) | extension or userscript |
 | [Firefox](./firefox) | userscript |
 | [Safari](./safari) | userscript, no guarantees |
-| [amo desktop app](./desktop) | not available yet |
 
 The **extension** is installed in the browser like any other add-on. The **userscript** is a script run by a script
 manager such as Tampermonkey: handy if you already have one or can’t install the extension.

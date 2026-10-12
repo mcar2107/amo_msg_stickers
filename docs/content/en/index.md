@@ -38,21 +38,19 @@ amo stickers adds a sticker button to the amo web app. Hover over it or cl
 A sticker is sent with a click. The other person gets it as a GIF image even without amo stickers; those who have it
 see the sticker without a message bubble, like in Telegram.
 
-<video autoplay loop muted playsinline aria-label="Sticker panel above the amo message field: sending a sticker and a GIF with a click">
+<video autoplay loop muted playsinline aria-label="The sticker panel in amo: hovering the button opens it, a sticker is sent without a bubble, holding one opens a preview, a GIF is found by search and sent with a click">
   <source src="../img/home/demo.webm" type="video/webm">
   <source src="../img/home/demo.mp4" type="video/mp4">
 </video>
 
 The interface follows the amo language: English or Russian. The theme is light or dark, as in amo.
 
-Screenshots in this guide were taken with the Russian interface. With amo in English, buttons and screens are labeled
+Screenshots and videos in this guide were taken with the Russian interface. With amo in English, buttons and screens are labeled
 as in the text.
 
 ## Getting started
 
-1. [Install](./install/) the extension or the userscript in your browser.
-2. GIF search in KLIPY works right away. To add GIPHY sources, get a [free key](./setup/gif-keys) for GIPHY.
-3. To import a pack from Telegram, [copy its link](./setup/telegram) — no bot or token needed.
-
-Your own stickers, recent ones, pack import from Telegram and GIF search in KLIPY work right after installation, no keys
-needed.
+1. [Install](./install/) the extension or the userscript.
+2. Your own stickers, [pack import from Telegram](./setup/telegram) and KLIPY GIF search work right away, no keys
+   needed. A [GIPHY key](./setup/gif-keys) adds GIPHY sources.
+3. Everything else — in [“How to use”](./usage).

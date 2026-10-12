@@ -3,7 +3,7 @@
 Стикеры и GIF для мессенджера amo в браузере: кнопка стикеров в строке ввода рядом с кнопкой эмодзи, отправка одним
 кликом.
 
-<img src="docs/content/img/readme/demo.gif" alt="Панель стикеров над строкой ввода amo: отправка стикера и GIF кликом" width="720">
+<img src="docs/content/img/readme/demo.gif" alt="Панель стикеров в amo: наведение на кнопку открывает её, стикер уходит без пузыря, удержание открывает предпросмотр, GIF находится поиском и уходит кликом" width="720">
 
 - **Свои стикеры** — из картинки, GIF, видео или анимированного стикера Telegram (`.tgs`), с подписью или без.
 - **Паки из Telegram** — импорт целого пака по ссылке на него, без настройки.
@@ -22,6 +22,7 @@
 [установить userscript](https://github.com/mcar2107/amo_msg_stickers/releases/latest/download/amo-stickers.user.js).
 
 [Документация](https://mcar2107.github.io/amo_msg_stickers/) ·
+[Как пользоваться](https://mcar2107.github.io/amo_msg_stickers/usage) ·
 [Частые вопросы](https://mcar2107.github.io/amo_msg_stickers/faq) ·
 [Политика конфиденциальности](https://mcar2107.github.io/amo_msg_stickers/privacy) ·
 [Сообщить о проблеме](https://github.com/mcar2107/amo_msg_stickers/issues)
