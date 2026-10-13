@@ -2,7 +2,13 @@ import { readAmoLocale } from './i18n/locale';
 import { setLocale, t } from './i18n/translate';
 import { createPicker } from './ui/createPicker';
 import { stickerIcon } from './ui/icons';
-import { composerOf, findComposers, injectMessageStyle, isDarkTheme } from './amoDom';
+import {
+  composerOf,
+  findComposers,
+  injectMessageStyle,
+  isDarkTheme,
+  watchSystemTheme,
+} from './amoDom';
 import type { ButtonMarkup, Composer } from './amoDom.types';
 import { toStickerGif } from './convert';
 import { getSticker, pushRecent } from './db';
@@ -124,21 +130,39 @@ export const start = (host: Host) => {
     },
   });
 
-  picker.setTheme(isDarkTheme());
+  /**
+   * Тема читается заново на каждом источнике её смены, а не держится с подписки: поле
+   * Worker-версии, от которого зависит системная тема, страница рисует после старта.
+   */
+  const syncTheme = () => {
+    picker.setTheme(isDarkTheme());
+  };
+
+  syncTheme();
 
   const show = (button: HTMLElement, openedBy: OpenedBy) => {
     activeButton = button;
     /**
      * Хост попапа живёт внутри кнопки: position:fixed считается от ближайшего предка
-     * с transform — контейнера поля ввода, как у родного попапа эмодзи. Поэтому и курсор
-     * над попапом остаётся внутри обёртки кнопки.
+     * с transform — контейнера поля ввода, как у родного попапа эмодзи, или самой обёртки
+     * кнопки (`ButtonMarkup.anchor`). Поэтому и курсор над попапом остаётся внутри обёртки.
      *
      * Уже вставленный в эту кнопку хост не переставляется: перестановка узла сбросила бы
      * переход уходящей панели, и возврат курсора во время ухода мигнул бы ею.
      */
     if (picker.element.parentElement !== button) button.append(picker.element);
     setIconOpen(button, true);
-    picker.open(openedBy);
+    syncTheme();
+    const markup = buttonMarkups.get(button);
+
+    /**
+     * Высота считается на каждом открытии, а не держится с монтирования: над кнопкой
+     * становится меньше места с плашкой ответа и многострочным текстом.
+     */
+    picker.open(openedBy, {
+      by: markup?.anchor || 'composer',
+      maxHeight: markup?.panelHeight?.(button) || null,
+    });
   };
 
   /**
@@ -175,6 +199,12 @@ export const start = (host: Host) => {
 
     wrap.setAttribute(MARK, '');
     wrap.className = button.wrapClass;
+    /**
+     * Обёртка — контейнер `fixed`-панели только там, где у поля ввода нет предка с transform:
+     * добавить transform полосе поля нельзя — внутри неё `fixed`-панель форматирования
+     * страницы, и она уехала бы.
+     */
+    if (button.anchor === 'button') wrap.style.transform = 'translateZ(0)';
     buttonMarkups.set(wrap, button);
     const inner = document.createElement('div');
 
@@ -198,9 +228,18 @@ export const start = (host: Host) => {
   };
 
   const scan = () => {
+    let hasMounted = false;
+
     for (const composer of findComposers()) {
-      if (!composer.row.querySelector(`:scope > [${MARK}]`)) mount(composer);
+      if (composer.row.querySelector(`:scope > [${MARK}]`)) continue;
+      mount(composer);
+      hasMounted = true;
     }
+
+    /**
+     * Новое поле могло оказаться полем Worker-версии: без явной темы её тема — системная.
+     */
+    if (hasMounted) syncTheme();
 
     if (picker.isOpen && !picker.element.isConnected) picker.close();
   };
@@ -242,12 +281,11 @@ export const start = (host: Host) => {
     childList: true,
     subtree: true,
   });
-  new MutationObserver(() => {
-    return picker.setTheme(isDarkTheme());
-  }).observe(document.documentElement, {
+  new MutationObserver(syncTheme).observe(document.documentElement, {
     attributes: true,
-    attributeFilter: ['class'],
+    attributeFilter: ['class', 'data-amo-theme'],
   });
+  watchSystemTheme(syncTheme);
 
   document.addEventListener('mousedown', handleDocumentMouseDown, true);
   document.addEventListener('mouseout', handleDocumentMouseOut);

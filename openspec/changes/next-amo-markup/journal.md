@@ -47,3 +47,12 @@ K4: `AmoMarkup.button` (`ButtonMarkup` с `anchor`), общая констант
 Стенд: режим Worker-версии рядом с прежней и стабильной разметками; поддельное ядро `harness-core` (первое сообщение — `call:loaded`), двойной буфер fiber (K6), `sendFiles`/`sent`, черновик через `InputEvent`, `down.*` ленты, вложение с Worker-ом фото, редактирование, тема, `<html lang>`. Сверх задачи — органы для 6.2 (история 40 строк, удаление, уход и возврат, отказ ядра, панель форматирования): G8 стенд не правит.
 Аудит: ok с первого круга.
 Долг: придуманные стендом команды и доклады (`reply`, `sendMessage`, `row`, `draftState`) — аудиты G6/G8 проверяют, что агент не держит их в списке известных докладов (лучше префикс `harness*`); пропсы поля `onSend`/`reply`/`draft`/`onDraftChange` сверх design «Context» — агент не зовёт `onDraftChange` (G6), Context дописать или стенд сократить (G9); удалённое сообщение и виртуализация ленты — допущения стенда, по существу проверяет G8 вживую.
+
+### G5 · Разметка Worker-версии: поле, панель, тема
+
+`amoDomWorker.ts`: поле и кнопка после кнопки эмодзи; `ComposerMarkup` и `AmoMarkup = ComposerMarkup & { message }`, фасад держит `STYLED_MARKUPS` и `COMPOSER_MARKUPS` до 4.2. Черновик — `WeakMap` editable → капсула, капсулы нет — черновик занят.
+Панель: `PanelAnchor { by, maxHeight }`, вариант `anchor` в Picker; у Worker-версии 9 px над кнопкой, max-height от верха кнопки до низа шапки, не больше 400; `translateZ(0)` на обёртке.
+Тема: чистая `resolveDarkTheme` (класс → `data-amo-theme` → система), `watchSystemTheme`, пересчёт перед открытием.
+Вне списка файлов: createPicker.types.ts, Picker/Picker.types.ts, tests/amoDomTheme.test.ts.
+Аудит: ok с первого круга.
+Долг: маленький положительный `panelHeight` даёт панель в десятки px — записать, если встретится в G8; createPicker.tsx:60 — комментарий длиннее printWidth; пересчёт темы на любое новое поле. В G8: наведение на кнопку и высота панели при плашке ответа.

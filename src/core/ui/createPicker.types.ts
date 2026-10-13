@@ -1,5 +1,21 @@
+import type { ButtonAnchor } from '../amoDom.types';
 import type { SendItem } from '../db.types';
 import type { OpenedBy } from '../hoverPopup.types';
+
+/**
+ * Где и какой высоты встаёт панель при открытии.
+ */
+export type PanelAnchor = {
+  /**
+   * От чего считается место панели: от контейнера поля ввода или от обёртки кнопки.
+   */
+  by: ButtonAnchor;
+
+  /**
+   * Наибольшая высота панели, px, посчитанная в момент открытия; null — высота постоянная.
+   */
+  maxHeight: number | null;
+};
 
 export type PickerCallbacks = {
   /**
@@ -24,7 +40,8 @@ export type PickerCallbacks = {
 export type PickerHandle = {
   /**
    * Хост пикера с shadow root. Вставляется в DOM вызывающей стороной: `position: fixed`
-   * панели считается от ближайшего предка с transform.
+   * панели считается от ближайшего предка с transform — контейнера поля ввода или обёртки
+   * кнопки (`PanelAnchor`).
    */
   element: HTMLElement;
 
@@ -56,8 +73,9 @@ export type PickerHandle = {
    * Открывает пикер; уже открытый не трогает.
    *
    * @param openedBy — чем открыт: наведение не уводит фокус из поля сообщения
+   * @param anchor — место и высота панели у кнопки, которая её открыла
    */
-  open: (openedBy: OpenedBy) => void;
+  open: (openedBy: OpenedBy, anchor: PanelAnchor) => void;
 
   /**
    * Закрывает пикер и вызывает `onClose`; закрытый не трогает. Панель ещё уходит

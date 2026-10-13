@@ -9,7 +9,7 @@ import { createPanelPhase } from '../hoverPopupPhase';
 
 import { Picker } from './Picker/Picker';
 import { PickerProvider } from './Picker/PickerProvider/PickerProvider';
-import type { PickerCallbacks, PickerHandle } from './createPicker.types';
+import type { PanelAnchor, PickerCallbacks, PickerHandle } from './createPicker.types';
 
 /**
  * Длительность ухода панели, мс — как у перехода `duration-lg` панели и у попапа эмодзи.
@@ -57,7 +57,7 @@ export const createPicker = (env: Host, callbacks: PickerCallbacks): PickerHandl
 
   /**
    * Слой предпросмотра: отдельный хост на всю страницу. `position: fixed` внутри пикера
-   * считается от контейнера поля ввода с transform, поэтому накрыть окно оверлеем из дерева
+   * считается от предка с transform — контейнера поля ввода или обёртки кнопки, поэтому накрыть окно оверлеем из дерева
    * панели нельзя. Хост лежит в `documentElement`, а не в `body`: слежение ядра и amo за
    * `body` он не будит. Курсор хост не принимает — его включает только закреплённый слой.
    */
@@ -75,6 +75,7 @@ export const createPicker = (env: Host, callbacks: PickerCallbacks): PickerHandl
    */
   let openedBy: OpenedBy = 'hover';
   let isDark = false;
+  let anchor: PanelAnchor = { by: 'composer', maxHeight: null };
 
   const holds = createPopupHolds(onHoldRelease);
   const panel = createPanelPhase({
@@ -117,6 +118,7 @@ export const createPicker = (env: Host, callbacks: PickerCallbacks): PickerHandl
           <Picker
             phase={phase}
             isDark={isDark}
+            anchor={anchor}
             previewRoot={previewRoot}
             onClose={handlePickerClose}
           />
@@ -126,9 +128,10 @@ export const createPicker = (env: Host, callbacks: PickerCallbacks): PickerHandl
     );
   };
 
-  const open = (nextOpenedBy: OpenedBy) => {
+  const open = (nextOpenedBy: OpenedBy, nextAnchor: PanelAnchor) => {
     if (panel.phase === 'open') return;
     openedBy = nextOpenedBy;
+    anchor = nextAnchor;
     panel.show();
   };
 

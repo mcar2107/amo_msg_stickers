@@ -1,4 +1,5 @@
 import type { PanelPhase } from '../../hoverPopup.types';
+import type { PanelAnchor } from '../createPicker.types';
 
 export type PickerProps = {
   /**
@@ -11,6 +12,11 @@ export type PickerProps = {
    * Тёмная тема страницы.
    */
   isDark: boolean;
+
+  /**
+   * Место и высота панели у кнопки, которая её открыла.
+   */
+  anchor: PanelAnchor;
 
   /**
    * Корень слоя предпросмотра на странице: оверлей рисуется в него, вне панели.
