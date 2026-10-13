@@ -40,3 +40,13 @@ export type MessageArgs<K extends MessageKey> = K extends MessageKey
     ? [params?: undefined]
     : [params: MessageParams<K>]
   : never;
+
+/**
+ * Срез документа страницы, из которого читается язык: тесты подставляют его без DOM.
+ */
+export type LocaleDocument = {
+  /**
+   * Корень документа: его `lang` — язык, на котором страница показана.
+   */
+  documentElement: Pick<HTMLElement, 'lang'>;
+};

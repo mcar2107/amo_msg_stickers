@@ -3,7 +3,7 @@ import { setLocale, t } from './i18n/translate';
 import { createPicker } from './ui/createPicker';
 import { stickerIcon } from './ui/icons';
 import { composerOf, findComposers, injectMessageStyle, isDarkTheme } from './amoDom';
-import type { Composer } from './amoDom.types';
+import type { ButtonMarkup, Composer } from './amoDom.types';
 import { toStickerGif } from './convert';
 import { getSticker, pushRecent } from './db';
 import type { SendItem } from './db.types';
@@ -30,29 +30,6 @@ const HOVER_OPEN_DELAY_MS = 250;
  */
 const HOVER_CLOSE_DELAY_MS = 500;
 
-/**
- * Классы повторяют обёртку кнопки эмодзи — tailwind-стили amo применяются без своего CSS.
- */
-const WRAP_CLASS = 'relative z-100 mb-0 mr-3 flex h-full w-4.5 cursor-default items-end';
-const INNER_CLASS = 'flex h-8 items-center';
-const ICON_CLASS =
-  'pointer-events-auto size-4.5 cursor-pointer fill-cadetGray-30 p-0 transition-all duration-base ease-linear dark:fill-gray-70';
-
-/**
- * Базовый fill заменяется, а не дополняется: из двух fill-классов на элементе победит тот,
- * что стоит позже в CSS amo, а не тот, что нужен.
- */
-const ICON_IDLE_CLASSES = ['fill-cadetGray-30', 'dark:fill-gray-70'];
-const ICON_OPEN_CLASSES = ['fill-blue-50', 'dark:fill-beige-70'];
-
-const setIconOpen = (button: HTMLElement | null, isOpen: boolean) => {
-  const icon = button?.querySelector('svg');
-
-  if (!icon) return;
-  icon.classList.remove(...(isOpen ? ICON_IDLE_CLASSES : ICON_OPEN_CLASSES));
-  icon.classList.add(...(isOpen ? ICON_OPEN_CLASSES : ICON_IDLE_CLASSES));
-};
-
 export const start = (host: Host) => {
   setLocale(readAmoLocale());
   if (window.__amoStickers) return;
@@ -60,6 +37,31 @@ export const start = (host: Host) => {
   injectMessageStyle();
 
   let activeButton: HTMLElement | null = null;
+
+  /**
+   * Кнопка разметки у каждой вставленной обёртки: цвет иконки меняется классами той разметки, в
+   * поле которой обёртка стоит, а поле к моменту закрытия попапа может уже исчезнуть.
+   */
+  const buttonMarkups = new WeakMap<HTMLElement, ButtonMarkup>();
+
+  /**
+   * Классы цвета иконки в закрытом и открытом состоянии — свои у разметки поля: они заменяют
+   * друг друга, а не дополняют (`ButtonMarkup`).
+   *
+   * @param button — обёртка кнопки стикеров; null — попап ни у какой кнопки не открыт
+   * @param isOpen — открыт ли попап у этой кнопки
+   */
+  const setIconOpen = (button: HTMLElement | null, isOpen: boolean) => {
+    const markup = button && buttonMarkups.get(button);
+    const icon = button?.querySelector('svg');
+
+    if (!icon || !markup) return;
+    const { idleClasses, openClasses } = markup;
+
+    icon.classList.remove(...(isOpen ? idleClasses : openClasses));
+    icon.classList.add(...(isOpen ? openClasses : idleClasses));
+  };
+
   const pageClient = createPageClient(document, fileInputOf);
 
   const toFile = async (item: SendItem) => {
@@ -168,19 +170,20 @@ export const start = (host: Host) => {
     },
   });
 
-  const mount = ({ emojiWrap }: Composer) => {
+  const mount = ({ emojiWrap, markup: { button } }: Composer) => {
     const wrap = document.createElement('div');
 
     wrap.setAttribute(MARK, '');
-    wrap.className = WRAP_CLASS;
+    wrap.className = button.wrapClass;
+    buttonMarkups.set(wrap, button);
     const inner = document.createElement('div');
 
-    inner.className = INNER_CLASS;
+    inner.className = button.innerClass;
     /**
      * title на inner, а не на wrap: иначе подсказка всплывает над всем попапом.
      */
     inner.title = t('picker.title');
-    inner.innerHTML = stickerIcon(ICON_CLASS);
+    inner.innerHTML = stickerIcon(button.iconClass, button.iconFill);
     inner.addEventListener('click', () => {
       hoverPopup.click(wrap);
     });

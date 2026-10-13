@@ -7,7 +7,12 @@
  */
 
 import type { AmoMarkup, Composer, ShownNode } from './amoDom.types';
-import { STABLE_COMPOSE_INPUT_ATTR, STABLE_MESSAGE_ATTR } from './amoDomStable';
+import {
+  COMPOSER_BUTTON,
+  shownCompose,
+  STABLE_COMPOSE_INPUT_ATTR,
+  STABLE_MESSAGE_ATTR,
+} from './amoDomStable';
 import { MARKER_NAME_PART, STICKER_NAME_PART } from './fileName';
 
 const EDITABLE_SELECTOR = `div[contenteditable="true"][aria-placeholder]:not([${STABLE_COMPOSE_INPUT_ATTR}])`;
@@ -127,8 +132,9 @@ const QUOTE_SELECTOR = `${REPLY_BUBBLE_SELECTOR} > div${QUOTE_CLASS_SELECTOR}:no
 const STICKER_SELECTOR = `${MEDIA_PATH} > ${MEDIA_CONTAINER_SELECTOR}:has(> div > ${STICKER_IMG_SELECTOR})`;
 
 export const legacyMarkup: AmoMarkup = {
+  ...shownCompose(isShown),
   findComposers,
-  isShown,
+  button: COMPOSER_BUTTON,
   message: {
     bubble: BUBBLE_SELECTOR,
     tail: `${MESSAGE_SELECTOR}:has(${MEDIA_SELECTOR} ${OUR_IMG_SELECTOR}) [class*="message_tail-"]`,

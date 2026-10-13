@@ -1,4 +1,4 @@
-import type { Locale } from './i18n.types';
+import type { Locale, LocaleDocument } from './i18n.types';
 
 /**
  * Ключ, под которым amo web хранит применённый язык: мы идём за языком страницы, а не браузера, и выбор
@@ -15,15 +15,21 @@ const TAG_SEPARATOR = /[-_]/;
  * Правило amo: английский — только при основном теге `en`, любой другой язык и отсутствие языка дают русский —
  * запасной язык amo.
  *
+ * Язык документа стоит между сохранённым языком и языками браузера: версия amo без сохранённого языка пишет в
+ * `<html lang>` язык своего интерфейса, и пикер говорит на нём же — при неподдержанном первом языке браузера
+ * страница на английском, а по языкам браузера пикер был бы на русском.
+ *
  * @param stored — язык, сохранённый amo; `null` или пустая строка — не сохранён
+ * @param documentLang — `lang` у `<html>`; пустая строка — не задан
  * @param languages — языки браузера по приоритету
  * @returns язык интерфейса
  */
 export const resolveLocale = (
   stored: string | null,
+  documentLang: string,
   languages: readonly string[]
 ): Locale => {
-  const [primary] = (stored || languages[0] || '').split(TAG_SEPARATOR);
+  const [primary] = (stored || documentLang || languages[0] || '').split(TAG_SEPARATOR);
 
   if (primary?.toLowerCase() === 'en') return 'en';
 
@@ -47,10 +53,15 @@ const readStoredLocale = (): string | null => {
 /**
  * Пустой список `navigator.languages` не ломает выбор: тогда язык берётся из `navigator.language`.
  *
+ * @param page — документ страницы amo: из него читается `lang` корня
  * @returns язык интерфейса по языку amo
  */
-export const readAmoLocale = (): Locale => {
+export const readAmoLocale = (page: LocaleDocument = document): Locale => {
   const { languages, language } = navigator;
 
-  return resolveLocale(readStoredLocale(), languages.length > 0 ? languages : [language]);
+  return resolveLocale(
+    readStoredLocale(),
+    page.documentElement.lang,
+    languages.length > 0 ? languages : [language]
+  );
 };

@@ -1,12 +1,12 @@
 /**
- * Фасад DOM amo web для ядра: поле ввода, видимость его кнопок, тема и стиль своих сообщений.
+ * Фасад DOM amo web для ядра: поле ввода, его черновик, тема и стиль своих сообщений.
  *
  * Страница amo бывает в двух разметках — стабильной, с атрибутами `data-*` (`amoDomStable.ts`), и
  * прежней, по классам и структуре (`amoDomLegacy.ts`). Ядро не знает, какая из них на странице:
  * фасад спрашивает обе, а разметки друг с другом не пересекаются.
  */
 
-import type { AmoMarkup, Composer, SendComposer } from './amoDom.types';
+import type { AmoMarkup, Composer, SendButton, SendComposer } from './amoDom.types';
 import { legacyMarkup } from './amoDomLegacy';
 import { stableMarkup } from './amoDomStable';
 import { messageCss } from './amoDomStyle';
@@ -27,21 +27,34 @@ export const composerOf = (el: Element): Composer | null => {
   );
 };
 
-export const isEditing = ({
-  cancelEditButton,
-  markup,
-}: Pick<SendComposer, 'cancelEditButton' | 'markup'>) => {
-  return Boolean(cancelEditButton && markup.isShown(cancelEditButton));
+/**
+ * Идёт ли редактирование — признаком разметки поля, в момент вызова.
+ *
+ * @param composer — поле ввода
+ * @returns true — редактируется отправленное сообщение
+ */
+export const isEditing = (composer: SendComposer) => {
+  return composer.markup.isEditing(composer);
 };
 
 /**
- * Кнопка «Отправить» видна, если есть текст или вложения.
+ * Пуст ли черновик — признаком разметки поля, в момент вызова.
+ *
+ * @param composer — поле ввода
+ * @returns true — в поле нет ни текста, ни вложений
  */
-export const isDraftEmpty = ({
-  sendButton,
-  markup,
-}: Pick<SendComposer, 'sendButton' | 'markup'>) => {
-  return !sendButton || !markup.isShown(sendButton);
+export const isDraftEmpty = (composer: SendComposer) => {
+  return composer.markup.isDraftEmpty(composer);
+};
+
+/**
+ * Кнопка «Отправить», которую можно нажать сейчас, — признаком разметки поля.
+ *
+ * @param composer — поле ввода
+ * @returns кнопка; null — её нет или она скрыта
+ */
+export const sendButtonOf = (composer: SendComposer): SendButton | null => {
+  return composer.markup.sendButtonOf(composer);
 };
 
 export const isDarkTheme = () => {

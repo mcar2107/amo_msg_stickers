@@ -23,3 +23,13 @@ Design: D5 — первое сообщение ядра — запись `call`;
 Спека runtime-hosts: сценарий «Пометка ленты не выдаёт чужое» — «только вид и стороны» (решение координатора).
 Аудит: 1 critical (решение 2 устарело) → закрыт за 1 круг.
 Долг: проверка Worker-а подготовки фото (не ядро, не удерживается) — в G6 на живом образце.
+
+### G2 · Контракт разметки: черновик, кнопка, язык
+
+K3: `ComposeMarkup.{isEditing,isDraftEmpty,sendButtonOf}` вместо `isShown`, у стабильной и прежней — общий `shownCompose`; sender ищет кнопку заново после паузы, пропавшая — `SendError(notAttached)`.
+K4: `AmoMarkup.button` (`ButtonMarkup` с `anchor`), общая константа `COMPOSER_BUTTON`; `open(openedBy, anchor)` — в 3.3 (G5). Кнопка на стенде побайтно та же в обеих разметках.
+3.5: `resolveLocale(stored, documentLang, languages)`, `LocaleDocument` в i18n.types.ts (вне списка файлов, файл типов модуля).
+Для G5: `SendComposer` понадобится доступ к DOM строки для черновика Worker-версии.
+Аудит: ok с первого круга.
+Долг: tests/sender.test.ts:233 не отличает повторный поиск кнопки от прежней; общий код разметок лежит в amoDomStable.ts.
+Вопрос пользователю: localization «Хранилище недоступно» на прежней amo со статичным `lang="ru"` даёт `ru`, сценарий ждёт `en`.

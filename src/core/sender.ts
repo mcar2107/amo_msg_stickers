@@ -1,5 +1,5 @@
 import { t } from './i18n/translate';
-import { isDraftEmpty, isEditing } from './amoDom';
+import { isDraftEmpty, isEditing, sendButtonOf } from './amoDom';
 import type { SendComposer } from './amoDom.types';
 import { inspectGif } from './gif';
 import type { PageClient } from './pageClient.types';
@@ -37,12 +37,16 @@ const waitFor = async (check: () => boolean, timeoutMs: number) => {
  * «Отправить».
  *
  * В DataTransfer кладём ТОЛЬКО файл: при наличии text/plain поле вставит текст, а не вложение.
+ *
+ * Ждём саму кнопку «Отправить», а не непустой черновик: где кнопка появляется только с готовым
+ * вложением, полоса вложений показывается раньше неё. Кнопка ищется заново в момент нажатия —
+ * найденная до вставки могла смениться.
  */
 const sendViaPaste = async (composer: SendComposer, file: File) => {
   if (isEditing(composer)) throw new SendError(t('error.send.editing'));
   if (!isDraftEmpty(composer)) throw new SendError(t('error.send.draftNotEmpty'));
 
-  const { editable, sendButton } = composer;
+  const { editable } = composer;
   const dataTransfer = new DataTransfer();
 
   dataTransfer.items.add(file);
@@ -57,13 +61,19 @@ const sendViaPaste = async (composer: SendComposer, file: File) => {
   );
 
   const isAttached = await waitFor(() => {
-    return !isDraftEmpty(composer);
+    return Boolean(sendButtonOf(composer));
   }, ATTACH_TIMEOUT_MS);
 
   if (!isAttached) throw new SendError(t('error.send.notAttached'));
 
   await wait(RENDER_SETTLE_MS);
-  sendButton?.click();
+  const sendButton = sendButtonOf(composer);
+
+  /**
+   * Кнопка пропала за паузу дорисовки — нажимать нечего, и «отправлено» было бы ложью.
+   */
+  if (!sendButton) throw new SendError(t('error.send.notAttached'));
+  sendButton.click();
 };
 
 /**
