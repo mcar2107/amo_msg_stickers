@@ -15,6 +15,10 @@ export const injectPageAgent = (doc: Document, code: string) => {
   const script = doc.createElement('script');
 
   script.textContent = code;
-  (doc.head || doc.documentElement).append(script);
+  /**
+   * На `document-start` корня у документа может ещё не быть: тогда `<script>` встаёт корнем сам и тут же
+   * удаляется, а разметку страницы парсер строит после него как обычно.
+   */
+  (doc.head || doc.documentElement || doc).append(script);
   script.remove();
 };

@@ -10,16 +10,27 @@ import type { PageRejectReason, PageResponse } from '../shared/pageBridge.types'
 
 import type {
   AgentDocument,
+  AgentHost,
   AgentMemory,
   AgentNode,
+  AgentState,
   PreparedMessage,
 } from './agent.types';
 import type { AmoClient } from './amo.types';
 import { buildMessage } from './buildMessage';
+import {
+  composePropsOf,
+  handleCoreReport,
+  isPageElement,
+  sendToCore,
+  SEQ_MIN,
+} from './coreSend';
+import type { CoreSendContext } from './coreSend.types';
 import { fieldOf } from './field';
 import { findClient } from './findClient';
 import { attachReply, replyKey } from './refersTo';
 import type { AmoReplyRef } from './refersTo.types';
+import { catchCore } from './workerCore';
 
 const SEND_REQUEST_TYPE = 'sendNewMessages';
 
@@ -144,11 +155,14 @@ const clearReply = (
  * `sendRequest` синхронная, а исход очереди не ждём — `accepted` значит «`sendRequest` не
  * бросил», дальнейшее показывает сама amo (design.md, п. 6).
  *
+ * В Worker-версии amo web — поле с пропсами её компонента поля — стикер уходит командой ядра страницы, иначе —
+ * очередью amo через `sendRequest`.
+ *
  * @param doc — документ страницы
  * @param event — команда ядра
- * @param memory — память агента между командами
+ * @param agent — память агента, пойманное ядро страницы и окно
  */
-const handleRequest = (doc: AgentDocument, event: Event, memory: AgentMemory) => {
+const handleRequest = (doc: AgentDocument, event: Event, agent: AgentState) => {
   const request = parsePageRequest(event);
 
   if (!request) return;
@@ -170,6 +184,20 @@ const handleRequest = (doc: AgentDocument, event: Event, memory: AgentMemory) =>
   const file = fileOf(markedNode(doc, PAGE_FILE_ATTR, id));
 
   if (!file) return reject('no-file');
+
+  const { memory } = agent;
+  const field = isPageElement(target) ? target : null;
+  const compose = field ? composePropsOf(field) : null;
+
+  if (field && compose) {
+    const context: CoreSendContext = { core: agent.catcher.core(), memory };
+
+    if (agent.host.InputEvent) context.InputEvent = agent.host.InputEvent;
+
+    const reason = sendToCore({ field, compose, file, dims: request.dims }, context);
+
+    return reason ? reject(reason) : respond({ id, status: 'accepted' });
+  }
 
   const client = findClient(target);
 
@@ -224,19 +252,28 @@ const handleRequest = (doc: AgentDocument, event: Event, memory: AgentMemory) =>
  * userscript вместе или двойное подключение — ничего не делает: второй слушатель отправил
  * бы стикер дважды.
  *
+ * Ядро страницы Worker-версии ловится с запуска: агент запускается до скриптов страницы, и `Worker`, созданный
+ * раньше, ему не виден.
+ *
  * @param doc — документ страницы
- * @param host — `window` страницы, на нём флаг запуска
+ * @param host — `window` страницы: флаг запуска, `Worker` и `InputEvent`
  */
-export const startAgent = (
-  doc: AgentDocument,
-  host: Pick<Window, '__amoStickersPage'>
-) => {
+export const startAgent = (doc: AgentDocument, host: AgentHost) => {
   if (host.__amoStickersPage) return;
 
-  const memory: AgentMemory = { clearingReplies: new Set() };
+  const memory: AgentMemory = {
+    clearingReplies: new Set(),
+    seq: SEQ_MIN,
+    sending: new Map(),
+  };
 
   host.__amoStickersPage = true;
+
+  const catcher = catchCore(host, (report) => {
+    handleCoreReport(report, memory);
+  });
+
   doc.addEventListener(PAGE_REQUEST_EVENT, (event) => {
-    handleRequest(doc, event, memory);
+    handleRequest(doc, event, { catcher, host, memory });
   });
 };

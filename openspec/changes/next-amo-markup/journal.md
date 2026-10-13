@@ -56,3 +56,12 @@ K4: `AmoMarkup.button` (`ButtonMarkup` с `anchor`), общая констант
 Вне списка файлов: createPicker.types.ts, Picker/Picker.types.ts, tests/amoDomTheme.test.ts.
 Аудит: ok с первого круга.
 Долг: маленький положительный `panelHeight` даёт панель в десятки px — записать, если встретится в G8; createPicker.tsx:60 — комментарий длиннее printWidth; пересчёт темы на любое новое поле. В G8: наведение на кнопку и высота панели при плашке ответа.
+
+### G6 · Агент: ядро страницы, отправка, ранний старт
+
+5.1: `src/page/workerCore.ts` — ядро по первому сообщению (`call` или вид из 9 известных докладов, без придуманных стендом); Worker фото вживую не принят за ядро. K6 — `src/page/fiber.ts`.
+5.2: `src/page/coreSend.ts` — `sendFiles`, затем черновик через `insertText`; «вниз» только при своём seq, `shown` и том же чате; вложение — `draft-busy`; без пропсов Worker-версии — прежний `sendRequest`. `dims` обязательны (K2).
+5.4: агент на document_start (page.js, `@run-at document-start`), ядро — по `DOMContentLoaded`; без корня документа `<script>` вставляется в сам документ (правка `src/userscript/pageAgent.ts` вне списка, найдена вживую).
+Вживую: стикер и GIF ушли `sendFiles`, лента из истории доехала вниз, черновик вернулся. Журнал — local/new-client/g6-journal.md.
+Аудит: ok с первого круга.
+Долг: `memory.sending` без ограничения держит отсоединённое поле, если `sent` не придёт; префикс fiber продублирован в findClient.ts и fiber.ts — свести при удалении прежней разметки; нет теста, что `error` Worker-а доходит до страницы без изменений.

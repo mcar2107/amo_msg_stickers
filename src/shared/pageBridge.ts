@@ -105,8 +105,8 @@ const isRejectReason = (value: unknown): value is PageRejectReason => {
 
 /**
  * Возвращается новый объект только с полями протокола: лишнее из чужого `detail` дальше
- * не уходит. Стороны необязательны, но неверные стороны — неверная команда целиком, а не
- * команда без сторон: такой `detail` прислало не ядро amo stickers.
+ * не уходит. Команда без сторон или с неверными сторонами — неверная команда: ядро amo stickers без сторон GIF
+ * агенту не пишет, а уходит запасным путём.
  *
  * @param event — событие `PAGE_REQUEST_EVENT`
  * @returns команда; null — формат неверный, на такую команду агент не отвечает
@@ -117,13 +117,9 @@ export const parsePageRequest = (event: Event): PageRequest | null => {
   if (!isObject(payload) || !('id' in payload) || !('op' in payload)) return null;
   if (!isShortString(payload.id, MAX_ID_LENGTH) || payload.op !== 'send') return null;
 
-  const request: PageRequest = { id: payload.id, op: payload.op };
+  const dims = 'dims' in payload ? parseDims(payload.dims) : null;
 
-  if (!('dims' in payload)) return request;
-
-  const dims = parseDims(payload.dims);
-
-  return dims ? { ...request, dims } : null;
+  return dims ? { id: payload.id, op: payload.op, dims } : null;
 };
 
 /**

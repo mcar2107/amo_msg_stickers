@@ -12,31 +12,32 @@ const eventWith = (detail: unknown) => {
   return new CustomEvent(PAGE_REQUEST_EVENT, { detail });
 };
 
+const DIMS = { w: 8, h: 8 };
+
 const json = (value: unknown) => {
   return eventWith(JSON.stringify(value));
 };
 
 describe('parsePageRequest', () => {
   it('разбирает команду send, созданную toPageEvent', () => {
-    const event = toPageEvent(PAGE_REQUEST_EVENT, { id: 'a-1', op: 'send' });
+    const event = toPageEvent(PAGE_REQUEST_EVENT, { id: 'a-1', op: 'send', dims: DIMS });
 
-    expect(parsePageRequest(event)).toEqual({ id: 'a-1', op: 'send' });
+    expect(parsePageRequest(event)).toEqual({ id: 'a-1', op: 'send', dims: DIMS });
   });
 
   it('не пропускает лишние поля дальше', () => {
-    expect(parsePageRequest(json({ id: 'a', op: 'send', extra: { x: 1 } }))).toEqual({
-      id: 'a',
-      op: 'send',
-    });
+    expect(
+      parsePageRequest(json({ id: 'a', op: 'send', dims: DIMS, extra: { x: 1 } }))
+    ).toEqual({ id: 'a', op: 'send', dims: DIMS });
   });
 
   it.each([
-    ['неизвестный op', { id: 'a', op: 'stash' }],
-    ['op не строка', { id: 'a', op: { toString: 'send' } }],
-    ['нет id', { op: 'send' }],
-    ['id не строка', { id: 1, op: 'send' }],
-    ['пустой id', { id: '', op: 'send' }],
-    ['id длиннее 64', { id: 'x'.repeat(65), op: 'send' }],
+    ['неизвестный op', { id: 'a', op: 'stash', dims: DIMS }],
+    ['op не строка', { id: 'a', op: { toString: 'send' }, dims: DIMS }],
+    ['нет id', { op: 'send', dims: DIMS }],
+    ['id не строка', { id: 1, op: 'send', dims: DIMS }],
+    ['пустой id', { id: '', op: 'send', dims: DIMS }],
+    ['id длиннее 64', { id: 'x'.repeat(65), op: 'send', dims: DIMS }],
     ['массив', ['a', 'send']],
     ['null', null],
   ])('отклоняет: %s', (_case, payload) => {
@@ -52,7 +53,11 @@ describe('parsePageRequest', () => {
   it('принимает id ровно 64 символа', () => {
     const id = 'x'.repeat(64);
 
-    expect(parsePageRequest(json({ id, op: 'send' }))).toEqual({ id, op: 'send' });
+    expect(parsePageRequest(json({ id, op: 'send', dims: DIMS }))).toEqual({
+      id,
+      op: 'send',
+      dims: DIMS,
+    });
   });
 
   it('разбирает стороны GIF, созданные toPageEvent', () => {
@@ -69,11 +74,8 @@ describe('parsePageRequest', () => {
     });
   });
 
-  it('команда без сторон остаётся без поля dims', () => {
-    expect(parsePageRequest(json({ id: 'a', op: 'send' }))).toStrictEqual({
-      id: 'a',
-      op: 'send',
-    });
+  it('отклоняет команду без сторон', () => {
+    expect(parsePageRequest(json({ id: 'a', op: 'send' }))).toBeNull();
   });
 
   it('не пропускает лишние поля сторон дальше', () => {

@@ -36,7 +36,7 @@ type EntryScript = {
 };
 
 /**
- * `document` точки входа: `body` есть, `<script>` агента пишет в `bootOrder` свою вставку и
+ * `document` точки входа: загружен, `<script>` агента пишет в `bootOrder` свою вставку и
  * удаление.
  *
  * @returns заглушка документа
@@ -44,6 +44,7 @@ type EntryScript = {
 const entryDocument = () => {
   return {
     body: {},
+    readyState: 'complete',
     head: {
       append: (script: EntryScript) => {
         bootOrder.push(`inject:${script.textContent}`);
@@ -217,6 +218,54 @@ describe('userscript: агент в мире страницы', () => {
     await bootHost();
 
     expect(bootOrder).toEqual(['inject:/* agent */', 'remove', 'start']);
+  });
+
+  it('документ грузится — агент сразу, start по DOMContentLoaded', async () => {
+    const { start } = await import('../src/core/app');
+    const target = new EventTarget();
+
+    vi.mocked(start).mockImplementation(() => {
+      bootOrder.push('start');
+    });
+    vi.stubGlobal('document', {
+      ...entryDocument(),
+      body: null,
+      head: null,
+      readyState: 'loading',
+      documentElement: {
+        append: (script: EntryScript) => {
+          bootOrder.push(`inject:${script.textContent}`);
+        },
+      },
+      addEventListener: target.addEventListener.bind(target),
+    });
+    vi.resetModules();
+    await import('../src/userscript/index');
+
+    expect(bootOrder).toEqual(['inject:/* agent */', 'remove']);
+
+    target.dispatchEvent(new Event('DOMContentLoaded'));
+    target.dispatchEvent(new Event('DOMContentLoaded'));
+
+    expect(bootOrder).toEqual(['inject:/* agent */', 'remove', 'start']);
+  });
+
+  it('у документа ещё нет корня — агент вставляется в сам документ', async () => {
+    vi.stubGlobal('document', {
+      ...entryDocument(),
+      body: null,
+      head: null,
+      documentElement: null,
+      readyState: 'loading',
+      append: (script: EntryScript) => {
+        bootOrder.push(`inject:${script.textContent}`);
+      },
+      addEventListener: vi.fn(),
+    });
+    vi.resetModules();
+    await import('../src/userscript/index');
+
+    expect(bootOrder).toEqual(['inject:/* agent */', 'remove']);
   });
 
   it('сбой вставки агента не мешает старту ядра', async () => {

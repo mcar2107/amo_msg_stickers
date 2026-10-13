@@ -17,9 +17,9 @@ export type PageRequest = {
 
   /**
    * Стороны GIF из его заголовка: ядро страницы Worker-версии amo web требует их у файла, а агент отвечает синхронно
-   * и прочитать `File` не успевает. Нет — команда без сторон.
+   * и прочитать `File` не успевает.
    */
-  dims?: PageDims;
+  dims: PageDims;
 };
 
 export type PageDims = {
