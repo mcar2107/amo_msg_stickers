@@ -18,15 +18,18 @@ updates:
       prefix: 'chore(deps)'
       prefix-development: 'chore(deps-dev)'
     groups:
-      # порядок важен: пакет попадает в первую подходящую группу
       eslint:
         patterns: ['eslint*', '@eslint/*', 'typescript-eslint', 'globals']
         update-types: ['minor', 'patch']
       runtime:
         dependency-type: 'production'
         update-types: ['minor', 'patch']
+      # пакет, подходящий двум группам, Dependabot отдаёт не первой по порядку, а «более специфичной», и группа
+      # по dependency-type для него специфичнее группы по шаблонам: без исключения пакеты eslint уходят сюда.
+      # Шаблоны — те же, что у группы eslint
       dev-tools:
         dependency-type: 'development'
+        exclude-patterns: ['eslint*', '@eslint/*', 'typescript-eslint', 'globals']
         update-types: ['minor', 'patch']
     ignore:
       # версия закреплена точной: апдейт требует `pnpm skills:update` в том же PR, вручную
