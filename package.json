@@ -29,7 +29,7 @@
     "@types/chrome": "^0.3.4",
     "concurrently": "10.0.5",
     "esbuild": "^0.28.2",
-    "eslint": "9.39.4",
+    "eslint": "9.39.5",
     "eslint-config-prettier": "10.1.8",
     "eslint-plugin-jsdoc": "63.3.3",
     "eslint-plugin-jsx-a11y": "^6.10.2",
