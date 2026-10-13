@@ -1,3 +1,12 @@
+import {
+  KIND_KEY,
+  kindOfValue,
+  NAME_PARAM_KEY,
+  NAME_PARAM_VALUE,
+  splitStickerFileName,
+  STICKER_MARKER,
+} from '../shared/stickerMark';
+
 import type { SendItem } from './db.types';
 import type {
   ParsedStickerFileName,
@@ -7,44 +16,16 @@ import type {
 } from './fileName.types';
 
 /**
- * Маркер имени файла amo stickers. По нему и по виду в имени (оно же `alt` картинки в ленте) CSS узнаёт сообщение,
- * отправленное amo stickers.
- */
-const MARKER = 'amostk';
-
-const KIND_KEY = 'k';
-
-/**
  * Подстроки имени для селекторов стиля ленты (`amoDom*.ts`): маркер с точкой — своё сообщение, сегмент вида в
  * точках — стикер. Собраны из тех же констант, что и само имя, поэтому смена маркера не разведёт имя и стиль.
  */
-export const MARKER_NAME_PART = `${MARKER}.`;
+export const MARKER_NAME_PART = `${STICKER_MARKER}.`;
 export const STICKER_NAME_PART = `.${KIND_KEY}-${'sticker' satisfies StickerFileKind}.`;
 
 /**
  * Других форматов сейчас нет: всё, что отправляется, приведено к GIF.
  */
 const EXTENSION = 'gif';
-
-/**
- * Без точек и дефисов в ключе и значении разбор однозначен: точка делит сегменты, первый дефис — ключ и значение.
- */
-const PARAM_KEY = /^[a-z][a-z0-9]*$/;
-const PARAM_VALUE = /^[a-z0-9]+$/;
-const EXTENSION_SEGMENT = /^[a-z0-9]+$/;
-
-/**
- * Имя из двух сегментов — маркер с расширением или метка с маркером без расширения: в обоих нет ни вида, ни места
- * под него, такое имя не считается именем amo stickers.
- */
-const MIN_SEGMENTS = 3;
-
-/**
- * Где искать маркер: сначала сегмент 1 (сегмент 0 — метка), затем сегмент 0 (метки нет). В таком порядке имя
- * `amostk.amostk.k-gif.gif` читается как метка `amostk`, а не как имя без метки. Дальше сегмента 1 маркера не
- * бывает: точки из метки вычищены.
- */
-const MARKER_POSITIONS = [1, 0];
 
 const MAX_LABEL_GRAPHEMES = 32;
 
@@ -115,7 +96,7 @@ export const buildStickerFileName = ({
   params,
 }: StickerFileNameParams): string => {
   const paramSegments = Object.entries(params || {}).map(([key, value]) => {
-    if (key === KIND_KEY || !PARAM_KEY.test(key) || !PARAM_VALUE.test(value)) {
+    if (key === KIND_KEY || !NAME_PARAM_KEY.test(key) || !NAME_PARAM_VALUE.test(value)) {
       throw new Error(`Невалидный параметр имени файла: «${key}» = «${value}»`);
     }
 
@@ -126,7 +107,7 @@ export const buildStickerFileName = ({
 
   return [
     ...labelSegments,
-    MARKER,
+    STICKER_MARKER,
     `${KIND_KEY}-${kind}`,
     ...paramSegments,
     EXTENSION,
@@ -134,84 +115,22 @@ export const buildStickerFileName = ({
 };
 
 /**
- * Вид по значению `k`. Незнакомое значение — не повод считать имя чужим: будущий вид остаётся именем amo stickers.
- *
- * @param value — значение параметра `k`, если он есть
- * @returns вид или null
- */
-const toKind = (value: string | undefined): StickerFileKind | null => {
-  switch (value) {
-    case 'sticker': {
-      return 'sticker';
-    }
-
-    case 'gif': {
-      return 'gif';
-    }
-
-    default: {
-      return null;
-    }
-  }
-};
-
-/**
- * Параметры из сегментов между маркером и расширением. Сегмент не в форме `ключ-значение` пропускается — будущие
- * версии формата могут добавить сегменты иного вида; при повторе ключа действует первое вхождение.
- *
- * @param segments — сегменты после маркера без расширения
- * @returns все параметры, включая `k`
- */
-const parseParams = (segments: string[]): Record<string, string> => {
-  return segments.reduce<Record<string, string>>((acc, segment) => {
-    const dashIndex = segment.indexOf('-');
-    const key = segment.slice(0, dashIndex);
-    const value = segment.slice(dashIndex + 1);
-
-    if (
-      dashIndex > 0 &&
-      PARAM_KEY.test(key) &&
-      PARAM_VALUE.test(value) &&
-      !Object.hasOwn(acc, key)
-    ) {
-      acc[key] = value;
-    }
-
-    return acc;
-  }, {});
-};
-
-/**
- * Разбор имени файла amo stickers. Незнакомый вид, незнакомые параметры и сегменты иного вида имя чужим не делают.
+ * Разбор имени файла amo stickers. Незнакомый вид, незнакомые параметры и сегменты иного вида имя чужим не делают:
+ * будущий вид остаётся именем amo stickers.
  *
  * @param name — имя файла
  * @returns вид, метка и параметры без `k`; null — нет маркера на месте или расширения
  */
 export const parseStickerFileName = (name: string): ParsedStickerFileName | null => {
-  const segments = name.split('.');
-  const extension = segments.at(-1) || '';
+  const parts = splitStickerFileName(name);
 
-  if (segments.length < MIN_SEGMENTS || !EXTENSION_SEGMENT.test(extension)) {
+  if (!parts) {
     return null;
   }
 
-  const markerIndex = MARKER_POSITIONS.find((index) => {
-    return segments[index] === MARKER;
-  });
+  const { [KIND_KEY]: kindValue, ...params } = parts.params;
 
-  if (markerIndex === undefined) {
-    return null;
-  }
-
-  const { [KIND_KEY]: kindValue, ...params } = parseParams(
-    segments.slice(markerIndex + 1, -1)
-  );
-
-  return {
-    kind: toKind(kindValue),
-    label: markerIndex === 1 ? segments[0] || '' : '',
-    params,
-  };
+  return { kind: kindOfValue(kindValue), label: parts.label, params };
 };
 
 /**

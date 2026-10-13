@@ -1,4 +1,4 @@
-import type { PageRejectReason } from '../shared/pageBridge.types';
+import type { PageDims, PageRejectReason } from '../shared/pageBridge.types';
 
 /**
  * Итог команды агенту: amo принял стикер в очередь или агент недоступен.
@@ -17,9 +17,10 @@ export type PageSendResult =
       status: 'unavailable';
 
       /**
-       * Причина для консоли: отказ агента или `no-agent`, если агент не ответил.
+       * Причина для консоли: отказ агента, `no-agent` — агент не ответил, `no-dims` — стороны
+       * GIF не прочитались, и команда агенту не уходила.
        */
-      reason: PageRejectReason | 'no-agent';
+      reason: PageRejectReason | 'no-agent' | 'no-dims';
     };
 
 /**
@@ -84,7 +85,7 @@ export type ClientDocument<N extends FileNode> = {
  */
 export type PageClient = {
   /**
-   * Отправляет файл через очередь amo от имени поля ввода.
+   * Отправляет файл через очередь amo от имени поля ввода; стороны GIF уходят в команде.
    */
-  send: (editable: MarkableNode, file: File) => PageSendResult;
+  send: (editable: MarkableNode, file: File, dims: PageDims) => PageSendResult;
 };

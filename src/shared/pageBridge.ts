@@ -1,5 +1,10 @@
 import { isObject } from './guards';
-import type { PageRejectReason, PageRequest, PageResponse } from './pageBridge.types';
+import type {
+  PageDims,
+  PageRejectReason,
+  PageRequest,
+  PageResponse,
+} from './pageBridge.types';
 
 /**
  * Протокол ядра и агента в мире страницы. Внутренний путь отправки amo виден только
@@ -32,7 +37,10 @@ export const PAGE_FILE_ATTR = 'data-amo-stickers-file';
  * - `no-conversation` — открыт не чат, или его нет в `state.dialogs`, или у записи нет типа;
  * - `unsupported-conversation` — тип чата, для которого amo не соберёт запрос;
  * - `build-threw` — чтение состояния amo или сборка сообщения бросили исключение;
- * - `send-threw` — `sendRequest` бросил до постановки в очередь.
+ * - `send-threw` — `sendRequest` бросил до постановки в очередь;
+ * - `draft-busy` — в черновике Worker-версии amo web есть вложения или идёт редактирование: ядро страницы после
+ *   отправки снимает черновик целиком, и они пропали бы;
+ * - `no-core` — у поля Worker-версии amo web есть, а ядро страницы агент не поймал.
  */
 export const PAGE_REJECT_REASONS = [
   'no-target',
@@ -42,6 +50,8 @@ export const PAGE_REJECT_REASONS = [
   'unsupported-conversation',
   'build-threw',
   'send-threw',
+  'draft-busy',
+  'no-core',
 ] as const;
 
 const MAX_ID_LENGTH = 64;
@@ -71,6 +81,22 @@ const isShortString = (value: unknown, maxLength: number): value is string => {
   return typeof value === 'string' && value.length > 0 && value.length <= maxLength;
 };
 
+const isDimension = (value: unknown): value is number => {
+  return Number.isSafeInteger(value) && Number(value) > 0;
+};
+
+/**
+ * @param value — поле `dims` из чужого `detail`
+ * @returns стороны только с полями протокола; null — не объект или сторона не целое больше нуля
+ */
+const parseDims = (value: unknown): PageDims | null => {
+  if (!isObject(value) || !('w' in value) || !('h' in value)) return null;
+
+  const { w, h } = value;
+
+  return isDimension(w) && isDimension(h) ? { w, h } : null;
+};
+
 const isRejectReason = (value: unknown): value is PageRejectReason => {
   return PAGE_REJECT_REASONS.some((reason) => {
     return reason === value;
@@ -79,7 +105,8 @@ const isRejectReason = (value: unknown): value is PageRejectReason => {
 
 /**
  * Возвращается новый объект только с полями протокола: лишнее из чужого `detail` дальше
- * не уходит.
+ * не уходит. Стороны необязательны, но неверные стороны — неверная команда целиком, а не
+ * команда без сторон: такой `detail` прислало не ядро amo stickers.
  *
  * @param event — событие `PAGE_REQUEST_EVENT`
  * @returns команда; null — формат неверный, на такую команду агент не отвечает
@@ -90,7 +117,13 @@ export const parsePageRequest = (event: Event): PageRequest | null => {
   if (!isObject(payload) || !('id' in payload) || !('op' in payload)) return null;
   if (!isShortString(payload.id, MAX_ID_LENGTH) || payload.op !== 'send') return null;
 
-  return { id: payload.id, op: payload.op };
+  const request: PageRequest = { id: payload.id, op: payload.op };
+
+  if (!('dims' in payload)) return request;
+
+  const dims = parseDims(payload.dims);
+
+  return dims ? { ...request, dims } : null;
 };
 
 /**

@@ -1,4 +1,4 @@
-import type { GifInfo } from './gif.types';
+import type { GifInfo, GifSize } from './gif.types';
 
 /**
  * Проверка GIF по содержимому, а не по Content-Type: проходим блочную структуру файла.
@@ -10,9 +10,9 @@ const GIF_SIGNATURES = ['GIF87a', 'GIF89a'];
 const SIGNATURE_BYTES = 6;
 
 /**
- * Сигнатура и Logical Screen Descriptor.
+ * Сигнатура и Logical Screen Descriptor: столько байт файла нужно `gifScreenSize`.
  */
-const HEADER_BYTES = 13;
+export const GIF_HEADER_BYTES = 13;
 const SCREEN_HEIGHT_OFFSET = 8;
 const SCREEN_PACKED_OFFSET = 10;
 
@@ -92,6 +92,22 @@ const hasGifSignature = (bytes: Uint8Array) => {
 };
 
 /**
+ * Стороны GIF по одному заголовку, без прохода по кадрам: так их можно прочитать из начала
+ * файла, не загружая его целиком.
+ *
+ * @param bytes — файл или его первые `GIF_HEADER_BYTES` байт
+ * @returns ширина и высота логического экрана; null — нет сигнатуры GIF, заголовок обрезан
+ * или сторона нулевая
+ */
+export const gifScreenSize = (bytes: Uint8Array): GifSize | null => {
+  if (bytes.length < GIF_HEADER_BYTES || !hasGifSignature(bytes)) return null;
+  const width = readU16(bytes, SIGNATURE_BYTES);
+  const height = readU16(bytes, SCREEN_HEIGHT_OFFSET);
+
+  return width && height ? { width, height } : null;
+};
+
+/**
  * Разбирает GIF. null — не GIF: нет сигнатуры, нулевые размеры или ни одного целого кадра.
  * Отсутствие trailer и мусор после последнего целого кадра допускаются — браузеры такие
  * файлы показывают.
@@ -100,12 +116,11 @@ const hasGifSignature = (bytes: Uint8Array) => {
  * @returns размеры и число кадров или null
  */
 export const inspectGif = (bytes: Uint8Array): GifInfo | null => {
-  if (bytes.length < HEADER_BYTES || !hasGifSignature(bytes)) return null;
-  const width = readU16(bytes, SIGNATURE_BYTES);
-  const height = readU16(bytes, SCREEN_HEIGHT_OFFSET);
+  const size = gifScreenSize(bytes);
 
-  if (!width || !height) return null;
-  let pos = HEADER_BYTES + colorTableBytes(bytes[SCREEN_PACKED_OFFSET] || 0);
+  if (!size) return null;
+  const { width, height } = size;
+  let pos = GIF_HEADER_BYTES + colorTableBytes(bytes[SCREEN_PACKED_OFFSET] || 0);
   let frames = 0;
 
   const toInfo = () => {

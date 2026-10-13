@@ -54,6 +54,49 @@ describe('parsePageRequest', () => {
 
     expect(parsePageRequest(json({ id, op: 'send' }))).toEqual({ id, op: 'send' });
   });
+
+  it('разбирает стороны GIF, созданные toPageEvent', () => {
+    const event = toPageEvent(PAGE_REQUEST_EVENT, {
+      id: 'a',
+      op: 'send',
+      dims: { w: 300, h: 70 },
+    });
+
+    expect(parsePageRequest(event)).toStrictEqual({
+      id: 'a',
+      op: 'send',
+      dims: { w: 300, h: 70 },
+    });
+  });
+
+  it('команда без сторон остаётся без поля dims', () => {
+    expect(parsePageRequest(json({ id: 'a', op: 'send' }))).toStrictEqual({
+      id: 'a',
+      op: 'send',
+    });
+  });
+
+  it('не пропускает лишние поля сторон дальше', () => {
+    expect(
+      parsePageRequest(json({ id: 'a', op: 'send', dims: { w: 1, h: 2, d: 3 } }))
+    ).toStrictEqual({ id: 'a', op: 'send', dims: { w: 1, h: 2 } });
+  });
+
+  it.each([
+    ['ноль', { w: 0, h: 70 }],
+    ['отрицательная', { w: 300, h: -70 }],
+    ['дробная', { w: 300.5, h: 70 }],
+    ['NaN (в JSON — null)', { w: Number.NaN, h: 70 }],
+    ['бесконечность (в JSON — null)', { w: 300, h: Number.POSITIVE_INFINITY }],
+    ['строка', { w: '300', h: 70 }],
+    ['больше безопасного целого', { w: 2 ** 53, h: 70 }],
+    ['нет h', { w: 300 }],
+    ['null', null],
+    ['массив', [300, 70]],
+    ['число', 300],
+  ])('отклоняет команду со сторонами: %s', (_case, dims) => {
+    expect(parsePageRequest(json({ id: 'a', op: 'send', dims }))).toBeNull();
+  });
 });
 
 describe('parsePageResponse', () => {
@@ -70,6 +113,14 @@ describe('parsePageResponse', () => {
         })
       )
     ).toEqual({ id: 'a', status: 'rejected', reason: 'no-client' });
+  });
+
+  it.each(['draft-busy', 'no-core'])('принимает причину %s', (reason) => {
+    expect(parsePageResponse(json({ id: 'a', status: 'rejected', reason }))).toEqual({
+      id: 'a',
+      status: 'rejected',
+      reason,
+    });
   });
 
   it('не пропускает лишние поля дальше', () => {

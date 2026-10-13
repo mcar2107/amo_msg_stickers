@@ -33,3 +33,11 @@ K4: `AmoMarkup.button` (`ButtonMarkup` с `anchor`), общая констант
 Аудит: ok с первого круга.
 Долг: tests/sender.test.ts:233 не отличает повторный поиск кнопки от прежней; общий код разметок лежит в amoDomStable.ts.
 Вопрос пользователю: localization «Хранилище недоступно» на прежней amo со статичным `lang="ru"` даёт `ru`, сценарий ждёт `en`.
+
+### G3 · Протокол и стороны GIF
+
+Пометка — новый модуль `src/shared/stickerMark.ts` (а не `pageBridge.ts`, как в D7): формат имени и атрибуты ленты; незнакомый вид → `gif`.
+Протокол: `dims` (safe integer > 0), отказы `draft-busy`, `no-core`. Ядро читает стороны из 13 байт заголовка (`gifScreenSize`), не прочитались — запасной путь с `no-dims`.
+Отступление: `PageRequest.dims` пока необязательное — обязательным его делает G6 (5.2) с правкой tests/pageAgent.test.ts и теста tests/pageBridge.test.ts:72 на отказ.
+Аудит: ok с первого круга.
+Долг: D7 в design называет `pageBridge.ts` — выровнять в G9; экспорты `MARK_KIND_ATTR`, `MARK_WIDTH_VAR`, `MARK_HEIGHT_VAR`, `markKindOf` пока без потребителей — подключают G6/G7, итоговый аудит проверяет.

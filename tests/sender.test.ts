@@ -142,9 +142,33 @@ describe.each<[string, ComposeMarkup, ShownSignal]>([
 
     await sendFile(composer, file, client);
 
-    expect(client.send).toHaveBeenCalledWith(composer.editable, file);
+    expect(client.send).toHaveBeenCalledWith(composer.editable, file, { w: 8, h: 8 });
     expect(paste).not.toHaveBeenCalled();
     expect(click).not.toHaveBeenCalled();
+  });
+
+  it('стороны в команде — из заголовка GIF: 300×70', async () => {
+    const { composer } = fakeComposer(true, markup, signal);
+    const client = clientAnswering({ status: 'accepted' });
+    const wide = new File([makeGif(300, 70)], GIF_NAME, { type: 'image/gif' });
+
+    await sendFile(composer, wide, client);
+
+    expect(client.send).toHaveBeenCalledWith(composer.editable, wide, { w: 300, h: 70 });
+  });
+
+  it('стороны не читаются — агенту не шлётся, вставка и «Отправить»', async () => {
+    stubPaste();
+
+    const { click, composer, paste } = fakeComposer(false, markup, signal);
+    const client = clientAnswering({ status: 'accepted' });
+    const broken = new File(['<html>'], GIF_NAME, { type: 'image/gif' });
+
+    await sendFile(composer, broken, client);
+
+    expect(client.send).not.toHaveBeenCalled();
+    expect(paste).toHaveBeenCalledTimes(1);
+    expect(click).toHaveBeenCalledTimes(1);
   });
 
   it('очередь недоступна, поле пустое — вставка и «Отправить»', async () => {

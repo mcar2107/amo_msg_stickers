@@ -5,9 +5,9 @@
 
 ## 2. Протокол и общие константы
 
-- [ ] 2.1 `src/shared/`: маркер `amostk.`, разбор вида по `.k-…`, имя атрибута вида (`data-amo-stickers-kind`) и переменных сторон (`--amostk-w` / `--amostk-h`) — один источник для `fileName.ts`, агента и `amoDomWorker.ts`; `fileName.ts` берёт маркер и разбор оттуда — `pnpm test` (`fileName`) зелёный
-- [ ] 2.2 `PageRequest.dims` (`w`, `h` — целые > 0, разбор отбрасывает иное) и причины отказа `draft-busy`, `no-core` в `pageBridge.ts`; тесты разбора в `tests/pageBridge.test.ts` — `pnpm test` зелёный
-- [ ] 2.3 Стороны GIF в `gif.ts` (Logical Screen Descriptor), `pageClient.send` передаёт их в запросе, `sender.ts` считает их до команды; тесты `tests/gif.test.ts`, `tests/pageClient.test.ts` — `pnpm test` зелёный
+- [x] 2.1 `src/shared/`: маркер `amostk.`, разбор вида по `.k-…`, имя атрибута вида (`data-amo-stickers-kind`) и переменных сторон (`--amostk-w` / `--amostk-h`) — один источник для `fileName.ts`, агента и `amoDomWorker.ts`; `fileName.ts` берёт маркер и разбор оттуда — `pnpm test` (`fileName`) зелёный
+- [x] 2.2 `PageRequest.dims` (`w`, `h` — целые > 0, разбор отбрасывает иное) и причины отказа `draft-busy`, `no-core` в `pageBridge.ts`; тесты разбора в `tests/pageBridge.test.ts` — `pnpm test` зелёный
+- [x] 2.3 Стороны GIF в `gif.ts` (Logical Screen Descriptor), `pageClient.send` передаёт их в запросе, `sender.ts` считает их до команды; тесты `tests/gif.test.ts`, `tests/pageClient.test.ts` — `pnpm test` зелёный
 
 ## 3. Контракт разметки и ядро amo stickers
 

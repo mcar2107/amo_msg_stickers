@@ -6,7 +6,7 @@ import {
   parsePageResponse,
   toPageEvent,
 } from '../shared/pageBridge';
-import type { PageResponse } from '../shared/pageBridge.types';
+import type { PageDims, PageResponse } from '../shared/pageBridge.types';
 
 import { uid } from './db';
 import type {
@@ -55,7 +55,7 @@ export const createPageClient = <N extends FileNode>(
   doc: ClientDocument<N>,
   fileNodeOf: (file: File) => N
 ): PageClient => {
-  const send = (editable: MarkableNode, file: File): PageSendResult => {
+  const send = (editable: MarkableNode, file: File, dims: PageDims): PageSendResult => {
     const id = uid();
     const input = fileNodeOf(file);
     let response: PageResponse | null = null;
@@ -76,7 +76,7 @@ export const createPageClient = <N extends FileNode>(
     doc.documentElement.append(input);
 
     try {
-      doc.dispatchEvent(toPageEvent(PAGE_REQUEST_EVENT, { id, op: 'send' }));
+      doc.dispatchEvent(toPageEvent(PAGE_REQUEST_EVENT, { id, op: 'send', dims }));
     } finally {
       doc.removeEventListener(PAGE_RESPONSE_EVENT, handleResponse);
       editable.removeAttribute(PAGE_TARGET_ATTR);
