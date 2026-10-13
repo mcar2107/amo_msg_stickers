@@ -7,11 +7,16 @@
  * вместе с полем.
  */
 
+import { MARK_HEIGHT_VAR, MARK_KIND_ATTR, MARK_WIDTH_VAR } from '../shared/stickerMark';
+
 import type {
+  AmoMarkup,
   ButtonMarkup,
   ComposeMarkup,
   Composer,
-  ComposerMarkup,
+  MessageSelectors,
+  QuoteSpacing,
+  QuoteSurface,
 } from './amoDom.types';
 import { STABLE_COMPOSE_INPUT_ATTR } from './amoDomStable';
 
@@ -144,8 +149,118 @@ const findComposers = (root: ParentNode): Composer[] => {
   return result;
 };
 
-export const workerMarkup: ComposerMarkup = {
+/**
+ * Своё сообщение в ленте — строка `[data-key]`, которую пометил агент в мире страницы: имени
+ * файла в DOM этой версии нет. Пересылку, подпись и реакции агент не помечает, поэтому
+ * селекторы их не проверяют. Вид — точным значением атрибута, а не подстрокой имени.
+ */
+const ROW = `[${MARK_KIND_ATTR}]`;
+const STICKER_ROW = `[${MARK_KIND_ATTR}="sticker"]`;
+const GIF_ROW = `[${MARK_KIND_ATTR}="gif"]`;
+
+const BUBBLE = '[data-amo-bubble]';
+const PHOTO_BOX = '[data-media="photo"][data-media-box]';
+const STICKER_BOX = `${STICKER_ROW} ${PHOTO_BOX}`;
+
+/**
+ * Цитата ответа — с `data-quote-id`: просто `.amo-quote` ещё и у превью ссылки.
+ */
+const QUOTE = '.amo-quote[data-quote-id]';
+
+/**
+ * Плашка — блок цитаты в пузыре, обёртка `.amo-quote` со своими полями: вынесенная одна цитата
+ * оставила бы обёртку в потоке, и картинка сдвинулась бы на её поля. В субъекте `:has()` — класс
+ * блока, а не голый `div`: иначе `:has()` проверялся бы у каждого `div` ленты.
+ */
+const QUOTE_BLOCK = `${BUBBLE} > .pt-1:has(> ${QUOTE})`;
+
+/**
+ * Рамки пузыря — узлы, нажатие по которым не выделяет сообщение: первым ребёнком пузыря идёт
+ * строка имени автора, после содержимого — полоса панели действий при наведении.
+ */
+const BUBBLE_FRAME = '[data-amo-bubble-frame]';
+
+/**
+ * Признаки по содержимому строки — `:has()` на самой помеченной строке: атрибут в субъекте
+ * отсекает чужие строки одной проверкой, и `:has()` не проверяется у каждого `div` ленты. Они
+ * нужны только плашке цитаты: ответ, направление и колонка аватара в ряду (узел перед окном
+ * хвоста, своего или чужого).
+ */
+const WITH_REPLY = `:has(${BUBBLE} > .pt-1 > ${QUOTE})`;
+const OUTGOING = `:has(${BUBBLE}.amo-bubble-out)`;
+const WITH_AVATAR =
+  ':has([data-amo-feed-row] > div > div[data-amo-tail]:not(:first-child))';
+
+/**
+ * Над картинкой шапка — имя автора или цитата: страница опускает под ней обёртку картинки на
+ * 8 px, а без шапки поднимает на 7 px в поле пузыря.
+ */
+const WITH_HEAD = `:has(${BUBBLE} > ${BUBBLE_FRAME}:first-child, ${BUBBLE} > .pt-1 > ${QUOTE})`;
+const HEAD_GAP_PX = 8;
+const MEDIA_BLEED_PX = 7;
+
+/**
+ * Поле пузыря — 8 px, картинка выходит в него на 7 px: от края пузыря до картинки 1 px. Слота
+ * чекбокса у края ряда вне режима выбора нет.
+ */
+const QUOTE_SPACING: QuoteSpacing = {
+  mediaInsetPx: 1,
+  mediaBleedPx: MEDIA_BLEED_PX,
+  rowEdgePx: 0,
+};
+
+/**
+ * Плашка — из переменных пузыря страницы: они уже несут текущую тему и направление, и своих
+ * правил под тёмную тему не нужно.
+ */
+const QUOTE_SURFACE: QuoteSurface = {
+  incoming:
+    'linear-gradient(to top, var(--amo-color-bubble-in-from), var(--amo-color-bubble-in-to))',
+  outgoing:
+    'linear-gradient(to top, var(--amo-color-bubble-out-from), var(--amo-color-bubble-out-to))',
+  dark: null,
+  radius: 'var(--amo-radius-lgx)',
+  shadow: 'var(--amo-shadow-flat)',
+};
+
+/**
+ * Хвост — окно `div[data-amo-tail]` рядом с пузырём, а не строка `[data-amo-feed-row]`: у
+ * последней строки пачки тот же атрибут. Заглушка — размытое превью страницы под картинкой: у
+ * прозрачного стикера она видна сквозь него, и снимается совсем, а не после показа картинки.
+ */
+const MESSAGE: MessageSelectors = {
+  bubble: `${ROW} ${BUBBLE}`,
+  tail: `${ROW} [data-amo-feed-row] div[data-amo-tail]`,
+  backdrop: `${ROW} ${PHOTO_BOX} > img[data-media-preview]`,
+  author: `${ROW} ${BUBBLE} > ${BUBBLE_FRAME}:first-child`,
+  image: `${ROW} ${PHOTO_BOX} > img[data-media-photo]`,
+  stickerButton: STICKER_BOX,
+  stickerSizing: {
+    by: 'vars',
+    box: STICKER_BOX,
+    boxWidth: `${STICKER_BOX} > span`,
+    widthVar: MARK_WIDTH_VAR,
+    heightVar: MARK_HEIGHT_VAR,
+  },
+  stickerSpinnerLayer: `${STICKER_BOX} > [data-media-uploading]`,
+  headedMedia: {
+    selector: `${ROW}${WITH_HEAD} ${PHOTO_BOX}`,
+    shiftPx: HEAD_GAP_PX + MEDIA_BLEED_PX,
+  },
+  quote: `${ROW} ${QUOTE_BLOCK}`,
+  stickerQuote: `${STICKER_ROW} ${QUOTE_BLOCK}`,
+  gifQuote: `${GIF_ROW} ${QUOTE_BLOCK}`,
+  quoteSurface: QUOTE_SURFACE,
+  quoteSpacing: QUOTE_SPACING,
+  replyRow: `${ROW}${WITH_REPLY} > [data-amo-feed-row]`,
+  replyControls: `${ROW}${WITH_REPLY} ${BUBBLE} > ${BUBBLE_FRAME}:not(:first-child)`,
+  outgoing: OUTGOING,
+  withAvatar: WITH_AVATAR,
+};
+
+export const workerMarkup: AmoMarkup = {
   ...compose,
   findComposers,
   button: WORKER_BUTTON,
+  message: MESSAGE,
 };

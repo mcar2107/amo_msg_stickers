@@ -257,9 +257,10 @@ const handleRequest = (doc: AgentDocument, event: Event, agent: AgentState) => {
  *
  * @param doc — документ страницы
  * @param host — `window` страницы: флаг запуска, `Worker` и `InputEvent`
+ * @returns true — агент запущен этим вызовом; false — он уже работал на странице
  */
 export const startAgent = (doc: AgentDocument, host: AgentHost) => {
-  if (host.__amoStickersPage) return;
+  if (host.__amoStickersPage) return false;
 
   const memory: AgentMemory = {
     clearingReplies: new Set(),
@@ -276,4 +277,6 @@ export const startAgent = (doc: AgentDocument, host: AgentHost) => {
   doc.addEventListener(PAGE_REQUEST_EVENT, (event) => {
     handleRequest(doc, event, { catcher, host, memory });
   });
+
+  return true;
 };

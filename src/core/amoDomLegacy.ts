@@ -13,6 +13,7 @@ import {
   STABLE_COMPOSE_INPUT_ATTR,
   STABLE_MESSAGE_ATTR,
 } from './amoDomStable';
+import { TOKEN_QUOTE_SPACING, TOKEN_QUOTE_SURFACE } from './amoDomStyle';
 import { MARKER_NAME_PART, STICKER_NAME_PART } from './fileName';
 
 const EDITABLE_SELECTOR = `div[contenteditable="true"][aria-placeholder]:not([${STABLE_COMPOSE_INPUT_ATTR}])`;
@@ -190,5 +191,8 @@ export const legacyMarkup: AmoMarkup = {
      * Входящее под заголовком автора — в его ряду рядом с пузырём ещё и аватар.
      */
     withAvatar: '[class*="message_with_user-"]:not([class*="is_outgoing-"])',
+    headedMedia: null,
+    quoteSurface: TOKEN_QUOTE_SURFACE,
+    quoteSpacing: TOKEN_QUOTE_SPACING,
   },
 };

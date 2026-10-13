@@ -443,6 +443,7 @@
       }
       .hw-wrapper {
         align-items: flex-end;
+        width: 100%;
         max-width: 100%;
       }
       .hw-tail {
@@ -528,11 +529,19 @@
         font-size: 11px;
         line-height: 16px;
       }
+      .hw-quote-block {
+        margin: -8px -4px 8px;
+        padding-top: 4px;
+      }
+      .hw-quote-block.mt-0\.5 {
+        margin-top: 2px;
+      }
       .hw-quote {
         display: flex;
         gap: 6px;
         align-items: center;
-        margin-bottom: 6px;
+        box-sizing: border-box;
+        min-height: 42px;
         padding: 2px 6px;
         border-left: 2px solid var(--hw-accent);
         border-radius: 8px;
@@ -1545,6 +1554,10 @@
         const MEDIA_MAX_SIDE = 420;
         const MEDIA_MIN_SIDE = 100;
         const MEDIA_BLEED_PX = 7;
+        /**
+         * От шапки пузыря (имя, цитата, «переслано») до картинки, как у страницы.
+         */
+        const HEAD_GAP_PX = 8;
         const UPLOAD_MS = 300;
         const PREPARE_MS = 600;
         const LEAVE_MS = 300;
@@ -1916,14 +1929,25 @@
           return canvas.toDataURL('image/jpeg');
         };
 
-        const quoteNode = (key) => {
+        /**
+         * Цитата в пузыре — в блоке со своими полями, как у страницы: `-mx-1 mb-2 pt-1` и
+         * `-mt-2`, под именем автора — `mt-0.5`. Поля — правилом стенда, а не inline: у
+         * страницы они из классов, и стиль ленты их перебивает.
+         */
+        const quoteNode = (key, isNamed) => {
           const quoted = entries.get(key);
           const media = quoted?.row.media;
           return h(
             'div',
-            { class: 'amo-quote hw-quote', 'data-quote-id': key },
-            media && quoted.url ? h('img', { src: quoted.url, alt: '' }) : null,
-            h('div', {}, media?.name || quoted?.row.text || t('Сообщение', 'Message'))
+            {
+              class: `-mx-1 mb-2 w-auto pt-1 ${isNamed ? 'mt-0.5' : '-mt-2'} hw-quote-block`,
+            },
+            h(
+              'div',
+              { class: 'amo-quote hw-quote', 'data-quote-id': key },
+              media && quoted.url ? h('img', { src: quoted.url, alt: '' }) : null,
+              h('div', {}, media?.name || quoted?.row.text || t('Сообщение', 'Message'))
+            )
           );
         };
 
@@ -2005,14 +2029,15 @@
               )
             );
           }
-          if (row.replyTo) bubble.append(quoteNode(row.replyTo));
+          if (row.replyTo)
+            bubble.append(quoteNode(row.replyTo, Boolean(row.author && !row.mine)));
           if (row.deleted) {
             bubble.append(
               h('div', { class: 'hw-deleted' }, t('Сообщение удалено', 'Message deleted'))
             );
           } else if (row.media) {
             const media = mediaNode(entry);
-            media.style.margin = `${hasHead ? 4 : -MEDIA_BLEED_PX}px -${MEDIA_BLEED_PX}px ${row.text ? 6 : -MEDIA_BLEED_PX}px`;
+            media.style.margin = `${hasHead ? HEAD_GAP_PX : -MEDIA_BLEED_PX}px -${MEDIA_BLEED_PX}px ${row.text ? 6 : -MEDIA_BLEED_PX}px`;
             bubble.append(media);
           }
           if (row.text)

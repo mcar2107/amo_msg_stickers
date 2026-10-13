@@ -10,7 +10,6 @@
 import type {
   AmoMarkup,
   Composer,
-  ComposerMarkup,
   SendButton,
   SendComposer,
   ThemeSignals,
@@ -20,14 +19,10 @@ import { stableMarkup } from './amoDomStable';
 import { messageCss } from './amoDomStyle';
 import { workerMarkup } from './amoDomWorker';
 
-/**
- * Разметки со стилем ленты: Worker-версия поле ввода находит, а стиля ленты у неё нет.
- */
-const STYLED_MARKUPS: AmoMarkup[] = [stableMarkup, legacyMarkup];
-const COMPOSER_MARKUPS: ComposerMarkup[] = [...STYLED_MARKUPS, workerMarkup];
+const MARKUPS: AmoMarkup[] = [stableMarkup, legacyMarkup, workerMarkup];
 
 export const findComposers = (root: ParentNode = document): Composer[] => {
-  return COMPOSER_MARKUPS.flatMap((markup) => {
+  return MARKUPS.flatMap((markup) => {
     return markup.findComposers(root);
   });
 };
@@ -132,7 +127,7 @@ export const injectMessageStyle = () => {
   const style = document.createElement('style');
 
   style.id = MESSAGE_STYLE_ID;
-  style.textContent = STYLED_MARKUPS.map(({ message }) => {
+  style.textContent = MARKUPS.map(({ message }) => {
     return messageCss(message);
   }).join('\n');
   document.head.append(style);

@@ -11,6 +11,7 @@ import type {
   Composer,
   ShownNode,
 } from './amoDom.types';
+import { TOKEN_QUOTE_SPACING, TOKEN_QUOTE_SURFACE } from './amoDomStyle';
 import { MARKER_NAME_PART, STICKER_NAME_PART } from './fileName';
 
 /**
@@ -160,5 +161,8 @@ export const stableMarkup: AmoMarkup = {
     replyControls: `${REPLY_BUBBLE} > [data-feed-controls]`,
     outgoing: '[data-outgoing]',
     withAvatar: '[data-with-author]:not([data-outgoing])',
+    headedMedia: null,
+    quoteSurface: TOKEN_QUOTE_SURFACE,
+    quoteSpacing: TOKEN_QUOTE_SPACING,
   },
 };
