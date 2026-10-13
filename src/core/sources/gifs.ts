@@ -349,7 +349,7 @@ const klipyFeed = async (
   } catch (error) {
     if (!BUILTIN_KLIPY_REFUSAL_STATUSES.includes(httpStatus(error) || 0)) throw error;
 
-    throw new Error(t('error.gifs.builtinUnavailable'));
+    throw new Error(t('error.gifs.builtinUnavailable'), { cause: error });
   }
 };
 
