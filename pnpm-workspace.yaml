@@ -1,2 +1,8 @@
 allowBuilds:
   esbuild: true
+
+peerDependencyRules:
+  allowedVersions:
+    # последняя версия плагина объявляет eslint только до ^9, но под 10 его правила работают; без правила pnpm
+    # предупреждает о peer-зависимости на каждой установке
+    eslint-plugin-jsx-a11y>eslint: '10'
