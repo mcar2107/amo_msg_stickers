@@ -40,10 +40,16 @@ or a sticker. How to copy it — in [“Import from Telegram”](./setup/te
 
 ## “The message field has text or attachments”
 
-amo has changed the page, and the sticker goes the fallback way — through the message field, as an attached file.
-So that it isn’t sent with your draft, the field must be empty: send or delete what you typed. “Finish editing
-the message first” is the same while editing. It happens every time — report
-it in [issues](https://github.com/mcar2107/amo_msg_stickers/issues).
+A sticker goes as a separate message and doesn’t touch the message field. The error means it can’t be sent this way
+right now — what to do depends on your draft.
+
+- **A file is attached or you are editing a message** — in the new version of amo this is expected: the sticker waits
+  so that the attachment or the edit isn’t lost. Send or remove the attachment, finish or cancel editing — and send
+  the sticker again. Typed text doesn’t get in the way and stays in the field. “Finish editing the message first”
+  is the same while editing.
+- **No attachment, no editing** — amo has changed the page, and the sticker goes the fallback way — through the message
+  field, as an attached file. So that it isn’t sent with your draft, the field must be empty: send or delete what you
+  typed. It happens every time — report it in [issues](https://github.com/mcar2107/amo_msg_stickers/issues).
 
 ## Keys and token are gone after updating from the archive
 
