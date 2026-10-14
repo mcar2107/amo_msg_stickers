@@ -129,7 +129,7 @@ export type Composer = {
    * Разметка amo, в которой поле найдено: черновик читается её признаком, кнопка стикеров
    * строится по ней.
    */
-  markup: ComposerMarkup;
+  markup: FieldMarkup;
 };
 
 /**
@@ -400,7 +400,7 @@ export type MessageSelectors = {
  * Поле ввода одной версии разметки amo: как его найти, как читать черновик и какой встаёт
  * кнопка стикеров. Разные версии не пересекаются — поле одной не находится селекторами другой.
  */
-type ComposerMarkup = ComposeMarkup & {
+type FieldMarkup = ComposeMarkup & {
   /**
    * Поля ввода этой разметки в `root`; поле без строки или кнопки эмодзи пропускается.
    */
@@ -416,7 +416,7 @@ type ComposerMarkup = ComposeMarkup & {
  * Одна версия разметки amo: поле ввода и стиль ленты. Разные версии не пересекаются — узел
  * одной не находится селекторами другой.
  */
-export type AmoMarkup = ComposerMarkup & {
+export type AmoMarkup = FieldMarkup & {
   /**
    * Цели стиля ленты.
    */

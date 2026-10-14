@@ -1,4 +1,5 @@
 import type { PageRejectReason } from '../shared/pageBridge.types';
+import { ATTACHMENTS_SELECTOR, CAPSULE_TOP_SELECTOR } from '../shared/workerCompose';
 
 import type { AgentMemory, AgentNode } from './agent.types';
 import type {
@@ -42,8 +43,6 @@ const COMPOSE_MAX_STEPS = 12;
  */
 const FEED_BUTTONS_MAX_STEPS = 8;
 
-const CAPSULE_MARK_SELECTOR = '[data-capsule-top]';
-const ATTACHMENTS_SELECTOR = '[data-attachments]';
 const FEED_ROLE = 'log';
 
 /**
@@ -120,7 +119,7 @@ const isDraftBusy = (field: PageElement, compose: ComposeProps) => {
   if (compose.edit || compose.attached) return true;
 
   const capsule = ancestorOf(field, (element) => {
-    return element.querySelector(CAPSULE_MARK_SELECTOR) !== null;
+    return element.querySelector(CAPSULE_TOP_SELECTOR) !== null;
   });
 
   return Boolean(capsule?.querySelector(ATTACHMENTS_SELECTOR));

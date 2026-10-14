@@ -5,7 +5,7 @@ import { fieldOf } from './field';
  * проверяется на каждом шаге вызывающей стороной.
  */
 
-export const FIBER_KEY_PREFIX = '__reactFiber$';
+const FIBER_KEY_PREFIX = '__reactFiber$';
 const PROPS_KEY_PREFIX = '__reactProps$';
 
 const valueByPrefix = (node: object, prefix: string): unknown => {
@@ -17,6 +17,14 @@ const valueByPrefix = (node: object, prefix: string): unknown => {
 };
 
 /**
+ * @param node — DOM-узел страницы
+ * @returns fiber, с которым узел создан; null — узел не из React
+ */
+export const fiberOf = (node: object): unknown => {
+  return valueByPrefix(node, FIBER_KEY_PREFIX);
+};
+
+/**
  * Актуальная копия fiber узла. `__reactFiber$` остаётся копией, с которой узел создан, а текущей после коммитов
  * становится то она, то её `alternate` — та, чьи `memoizedProps` равны `__reactProps$` узла. Устаревшая копия
  * держит прежние пропсы и прежний путь к компонентам выше.
@@ -25,7 +33,7 @@ const valueByPrefix = (node: object, prefix: string): unknown => {
  * @returns fiber; null — узел не из React
  */
 const currentFiberOf = (node: object): unknown => {
-  const fiber = valueByPrefix(node, FIBER_KEY_PREFIX);
+  const fiber = fiberOf(node);
   const alternate = fieldOf(fiber, 'alternate');
   const props = valueByPrefix(node, PROPS_KEY_PREFIX);
 

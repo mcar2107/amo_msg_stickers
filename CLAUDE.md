@@ -271,11 +271,14 @@ src/
                   команда `sendFiles`, возврат черновика и лента к низу по докладу `sent`, markRows.ts — пометка строк
                   ленты (`watchFeedRows`), fiber.ts — актуальная копия fiber узла и подъём до пропсов (`propsUp`)
   shared/         чистые модули, общие для ядра, окружений и агента в мире страницы, без импортов извне `shared/`:
-                  guards.ts — общий первый шаг гардов ответов API (`isObject`)
+                  guards.ts — общий первый шаг гардов ответов API (`isObject`) и сторона картинки из чужих данных
+                  (`isDimension`)
                   pageBridge*.ts — протокол ядра и агента в мире страницы: события, атрибуты, разбор команды и ответа;
                   stickerMark*.ts — пометка сообщения amo stickers: маркер `amostk`, разбор имени файла и вида,
                   атрибут строки ленты `data-amo-stickers-kind`, селектор коробки медиа `MARK_BOX_SELECTOR` и её
-                  переменные сторон `--amostk-w` / `--amostk-h`
+                  переменные сторон `--amostk-w` / `--amostk-h`;
+                  workerCompose.ts — признаки поля Worker-версии, по которым ядро и агент решают, занят ли черновик:
+                  маркер капсулы `CAPSULE_TOP_SELECTOR` и полоса вложений `ATTACHMENTS_SELECTOR`
   types.d.ts      описания модулей без типов: gifenc, `*.css`, `gif-worker:code` и `page-agent:code` строкой; флаги
                   `window.__amoStickers` и `window.__amoStickersPage`;
                   `ImportMeta.glob` vite для теста пар страниц доки; константы сборки `__TELEGRAM_BOT_TOKEN__` и

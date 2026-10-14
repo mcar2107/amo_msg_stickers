@@ -13,6 +13,7 @@ import {
   MARK_KIND_ATTR,
   MARK_WIDTH_VAR,
 } from '../shared/stickerMark';
+import { ATTACHMENTS_SELECTOR, CAPSULE_TOP_SELECTOR } from '../shared/workerCompose';
 
 import type {
   AmoMarkup,
@@ -28,15 +29,12 @@ import { STABLE_COMPOSE_INPUT_ATTR } from './amoDomStable';
 const EDITABLE_SELECTOR = `[contenteditable][role="textbox"]:not([${STABLE_COMPOSE_INPUT_ATTR}]):not([aria-placeholder])`;
 
 /**
- * Капсула поля — ближайший предок поля с маркером верха капсулы: маркер рендерится всегда, в
- * отличие от кнопки файла, которой нет при вложениях и при правке.
+ * Капсула поля — ближайший предок поля с маркером верха капсулы.
  */
-const CAPSULE_TOP = '[data-capsule-top]';
-const CAPSULE_SELECTOR = `:has(${CAPSULE_TOP})`;
+const CAPSULE_SELECTOR = `:has(${CAPSULE_TOP_SELECTOR})`;
 const EMOJI_SELECTOR = ':scope > button[aria-haspopup="dialog"]';
 const CANCEL_EDIT_SELECTOR = ':scope > [data-compose-edit-cancel]';
 const EDITING_ATTR = 'data-editing';
-const ATTACHMENTS_SELECTOR = '[data-attachments]';
 
 /**
  * Колонка чата — предок ленты `[role="log"]`; её шапка лежит выше полосы поля по `z-index`, и
@@ -278,6 +276,6 @@ export const workerMarkup: AmoMarkup = {
   ...compose,
   findComposers,
   button: WORKER_BUTTON,
-  pageSelector: `${CAPSULE_TOP}, ${ROW}`,
+  pageSelector: `${CAPSULE_TOP_SELECTOR}, ${ROW}`,
   message: MESSAGE,
 };

@@ -25,7 +25,7 @@ import {
   sendToCore,
   SEQ_MIN,
 } from './coreSend';
-import type { CoreSendContext } from './coreSend.types';
+import type { ComposeProps, CoreSendContext } from './coreSend.types';
 import { fieldOf } from './field';
 import { findClient } from './findClient';
 import { attachReply, replyKey } from './refersTo';
@@ -187,7 +187,20 @@ const handleRequest = (doc: AgentDocument, event: Event, agent: AgentState) => {
 
   const { memory } = agent;
   const field = isPageElement(target) ? target : null;
-  const compose = field ? composePropsOf(field) : null;
+
+  /**
+   * Fiber и пропсы поля — чужие объекты, и их геттеры могут бросить: исключение — отказ с причиной, как у
+   * чтения состояния ниже.
+   */
+  let compose: ComposeProps | null;
+
+  try {
+    compose = field ? composePropsOf(field) : null;
+  } catch (error) {
+    console.warn('[amo-stickers] amo compose props unreadable:', error);
+
+    return reject('build-threw');
+  }
 
   if (field && compose) {
     const context: CoreSendContext = { core: agent.catcher.core(), memory };

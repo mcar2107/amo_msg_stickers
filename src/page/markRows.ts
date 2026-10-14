@@ -1,3 +1,4 @@
+import { isDimension } from '../shared/guards';
 import {
   MARK_BOX_SELECTOR,
   MARK_HEIGHT_VAR,
@@ -58,10 +59,6 @@ const isFeedNode = (node: object): node is FeedNode => {
   return 'matches' in node && 'closest' in node && 'querySelectorAll' in node;
 };
 
-const isSide = (value: unknown): value is number => {
-  return typeof value === 'number' && Number.isSafeInteger(value) && value > 0;
-};
-
 const isFilled = (value: unknown) => {
   return Array.isArray(value) ? value.length > 0 : Boolean(value);
 };
@@ -102,8 +99,8 @@ const rowMarkOf = (node: FeedRowNode): RowMark | null => {
   if (
     fieldOf(media, 'kind') !== PHOTO_KIND ||
     typeof name !== 'string' ||
-    !isSide(w) ||
-    !isSide(h) ||
+    !isDimension(w) ||
+    !isDimension(h) ||
     isFilled(fieldOf(row, 'forwardedFrom')) ||
     isFilled(fieldOf(row, 'text')) ||
     isFilled(fieldOf(row, 'blocks')) ||
@@ -163,6 +160,13 @@ const syncVar = (box: MediaBoxNode, name: string, value: string) => {
 export const markRows = (nodes: Iterable<FeedRowNode>) => {
   for (const node of nodes) {
     const mark = rowMarkOf(node);
+
+    /**
+     * Строка без метки и без атрибута вида переменных сторон на коробке не несёт: их ставят только вместе с
+     * атрибутом. Поиск коробки пропускается — чужих строк в пачке большинство.
+     */
+    if (!mark && node.getAttribute(MARK_KIND_ATTR) === null) continue;
+
     const box = node.querySelector(MARK_BOX_SELECTOR);
 
     if (isMediaBox(box)) {

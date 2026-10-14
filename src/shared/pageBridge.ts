@@ -1,4 +1,4 @@
-import { isObject } from './guards';
+import { isDimension, isObject } from './guards';
 import type {
   PageDims,
   PageRejectReason,
@@ -79,10 +79,6 @@ const payloadOf = (event: Event): unknown => {
 
 const isShortString = (value: unknown, maxLength: number): value is string => {
   return typeof value === 'string' && value.length > 0 && value.length <= maxLength;
-};
-
-const isDimension = (value: unknown): value is number => {
-  return Number.isSafeInteger(value) && Number(value) > 0;
 };
 
 /**

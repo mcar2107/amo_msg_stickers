@@ -76,7 +76,11 @@ const DARK_SCHEME_QUERY = '(prefers-color-scheme: dark)';
  * @returns true — тёмная тема
  */
 export const resolveDarkTheme = (signals: ThemeSignals) => {
-  const { hasDarkClass, themeAttr, hasWorkerComposer, isSystemDark } = signals;
+  /**
+   * Признаки поля Worker-версии и системной темы читаются из `signals` только в ветке без явной темы: у
+   * `isDarkTheme` они — геттеры, и поиск полей по документу на каждой смене темы и открытии не нужен.
+   */
+  const { hasDarkClass, themeAttr } = signals;
 
   if (hasDarkClass) return true;
 
@@ -90,7 +94,7 @@ export const resolveDarkTheme = (signals: ThemeSignals) => {
     }
 
     default: {
-      return hasWorkerComposer && isSystemDark;
+      return signals.hasWorkerComposer && signals.isSystemDark;
     }
   }
 };
@@ -101,8 +105,12 @@ export const isDarkTheme = () => {
   return resolveDarkTheme({
     hasDarkClass: root.classList.contains('dark'),
     themeAttr: root.getAttribute('data-amo-theme'),
-    hasWorkerComposer: workerMarkup.findComposers(document).length > 0,
-    isSystemDark: matchMedia(DARK_SCHEME_QUERY).matches,
+    get hasWorkerComposer() {
+      return workerMarkup.findComposers(document).length > 0;
+    },
+    get isSystemDark() {
+      return matchMedia(DARK_SCHEME_QUERY).matches;
+    },
   });
 };
 
