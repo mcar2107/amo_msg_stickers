@@ -14,6 +14,13 @@ export const BYTES_IN_MB = 1024 * 1024;
  */
 export const MAX_REMOTE_GIF_BYTES = 8 * BYTES_IN_MB;
 
+/**
+ * Лимит JSON-ответа API. Самые большие настоящие ответы — выдача GIPHY со всеми версиями GIF и
+ * состав пака Telegram — сотни КБ; лимит с запасом на порядок обрывает ответ, который вырос
+ * не по делу, до того как он скачан и разобран целиком.
+ */
+export const MAX_JSON_BYTES = 2 * BYTES_IN_MB;
+
 const ALLOWED_PROTOCOL = 'https:';
 
 /**
@@ -31,6 +38,13 @@ export const ALLOWED_DOMAINS = ['giphy.com', 'klipy.com'];
  * и не раздувает сообщение HTML-страницей ошибки.
  */
 const ERROR_BODY_PREVIEW = 200;
+
+/**
+ * Сколько байт тела не-2xx ответа читается ради текста ошибки. Символ UTF-8 — не больше 4 байт,
+ * поэтому в этот предел целиком входят первые `ERROR_BODY_PREVIEW` символов, а символ, разрезанный
+ * на границе чтения, лежит за ними и в текст ошибки не попадает.
+ */
+export const ERROR_BODY_MAX_BYTES = ERROR_BODY_PREVIEW * 4;
 
 /**
  * Ошибка политики — `LocalizedError`: её создаёт и service worker, и мир страницы, а показать её нужно на
@@ -119,8 +133,58 @@ export const httpStatus = (error: unknown): number | null => {
 };
 
 /**
+ * @param chunks — куски потока по порядку
+ * @param total — их суммарная длина
+ * @returns куски одним массивом байтов
+ */
+const joinChunks = (chunks: Uint8Array[], total: number) => {
+  const bytes = new Uint8Array(total);
+  let offset = 0;
+
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+
+  return bytes;
+};
+
+/**
+ * Начало потока не длиннее `maxBytes`: остаток отменяется и не скачивается. Длинный поток —
+ * не ошибка: ошибку превышения поверх этого строит `readLimited`.
+ *
+ * @param stream — поток байтов
+ * @param maxBytes — сколько байт прочитать
+ * @returns первые байты потока; весь поток, если он короче
+ */
+export const readPrefix = async (
+  stream: ReadableStream<Uint8Array>,
+  maxBytes: number
+) => {
+  const reader = stream.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+
+  while (total < maxBytes) {
+    const { done, value } = await reader.read();
+
+    if (done) return joinChunks(chunks, total);
+
+    const part = value.subarray(0, maxBytes - total);
+
+    chunks.push(part);
+    total += part.byteLength;
+  }
+
+  await reader.cancel();
+
+  return joinChunks(chunks, total);
+};
+
+/**
  * Читает поток целиком, но не больше `maxBytes`: при превышении источник отменяется, и
- * остаток не скачивается и не распаковывается.
+ * остаток не скачивается и не распаковывается. Начало на байт длиннее лимита — признак
+ * превышения: поток длиной ровно в лимит проходит.
  *
  * @param stream — поток байтов
  * @param maxBytes — предел размера
@@ -130,31 +194,9 @@ export const readLimited = async (
   stream: ReadableStream<Uint8Array>,
   maxBytes: number
 ) => {
-  const reader = stream.getReader();
-  const chunks: Uint8Array[] = [];
-  let total = 0;
+  const bytes = await readPrefix(stream, maxBytes + 1);
 
-  for (;;) {
-    const { done, value } = await reader.read();
-
-    if (done) break;
-    total += value.byteLength;
-
-    if (total > maxBytes) {
-      await reader.cancel();
-      throw tooBigError(maxBytes);
-    }
-
-    chunks.push(value);
-  }
-
-  const bytes = new Uint8Array(total);
-  let offset = 0;
-
-  for (const chunk of chunks) {
-    bytes.set(chunk, offset);
-    offset += chunk.byteLength;
-  }
+  if (bytes.byteLength > maxBytes) throw tooBigError(maxBytes);
 
   return bytes;
 };
@@ -180,9 +222,40 @@ export const readResponseLimited = async (res: Response, maxBytes: number) => {
 };
 
 /**
+ * JSON-ответ не больше `MAX_JSON_BYTES` — общий разбор для всех путей через fetch. Превышение —
+ * та же ошибка, что у файлов. `TextDecoder` снимает BOM, как `Response.json()`.
+ *
+ * @param res — успешный ответ fetch
+ * @returns разобранный JSON; форму сужает вызывающая сторона
+ */
+export const readJson = async (res: Response) => {
+  const bytes = await readResponseLimited(res, MAX_JSON_BYTES);
+  const json: unknown = JSON.parse(new TextDecoder().decode(bytes));
+
+  return json;
+};
+
+/**
+ * Начало тела не-2xx ответа текстом: не больше `ERROR_BODY_MAX_BYTES`, остаток не скачивается.
+ * Сбой чтения — пустая строка: ошибка HTTP важнее тела.
+ *
+ * @param res — ответ fetch
+ * @returns начало тела; пустая строка — тела нет или оно не прочиталось
+ */
+const readErrorBody = async (res: Response) => {
+  if (!res.body) return '';
+
+  try {
+    return new TextDecoder().decode(await readPrefix(res.body, ERROR_BODY_MAX_BYTES));
+  } catch {
+    return '';
+  }
+};
+
+/**
  * fetch в рамках сетевой политики. Адрес вне политики — исключение без обращения к сети;
  * редирект fetch проходит сам, поэтому политика проверяется и на итоговом адресе. Не-2xx
- * ответ — исключение с HTTP-статусом и началом тела.
+ * ответ — исключение с HTTP-статусом и началом тела; остаток тела не скачивается.
  *
  * @param url — адрес запроса
  * @returns успешный ответ
@@ -196,13 +269,7 @@ export const fetchChecked = async (url: string) => {
     throw notAllowedError();
   }
 
-  if (!res.ok) {
-    const body = await res.text().catch(() => {
-      return '';
-    });
-
-    throw httpError(res.status, body);
-  }
+  if (!res.ok) throw httpError(res.status, await readErrorBody(res));
 
   return res;
 };
