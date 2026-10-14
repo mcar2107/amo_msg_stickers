@@ -185,6 +185,10 @@ const BUBBLE_FRAME = '[data-amo-bubble-frame]';
  * отсекает чужие строки одной проверкой, и `:has()` не проверяется у каждого `div` ленты. Они
  * нужны только плашке цитаты: ответ, направление и колонка аватара в ряду (узел перед окном
  * хвоста, своего или чужого).
+ *
+ * Приставки `outgoing` и `withAvatar` начинаются с атрибута строки, а не с `:has()`: правило,
+ * составной селектор которого начинается с `:has()`, при прокрутке ленты пересчитывало стиль у
+ * десятков тысяч узлов страницы, а не у тысяч.
  */
 const WITH_REPLY = `:has(${BUBBLE} > .pt-1 > ${QUOTE})`;
 const OUTGOING = `:has(${BUBBLE}.amo-bubble-out)`;
@@ -254,8 +258,8 @@ const MESSAGE: MessageSelectors = {
   quoteSpacing: QUOTE_SPACING,
   replyRow: `${ROW}${WITH_REPLY} > [data-amo-feed-row]`,
   replyControls: `${ROW}${WITH_REPLY} ${BUBBLE} > ${BUBBLE_FRAME}:not(:first-child)`,
-  outgoing: OUTGOING,
-  withAvatar: WITH_AVATAR,
+  outgoing: `${ROW}${OUTGOING}`,
+  withAvatar: `${ROW}${WITH_AVATAR}`,
 };
 
 export const workerMarkup: AmoMarkup = {
