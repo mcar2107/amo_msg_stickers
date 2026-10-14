@@ -1,7 +1,14 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { setLocale } from '../src/core/i18n/translate';
-import { BYTES_IN_MB, httpError, notAllowedError, tooBigError } from '../src/core/net';
+import {
+  BYTES_IN_MB,
+  ERROR_BODY_MAX_BYTES,
+  httpError,
+  MAX_JSON_BYTES,
+  notAllowedError,
+  tooBigError,
+} from '../src/core/net';
 import { gmNetwork } from '../src/userscript/gmNetwork';
 
 import { gmResponse, mockGmRequest } from './helpers/mockGmRequest';
@@ -15,6 +22,7 @@ const FILE_URL = `https://api.telegram.org/file/bot123:${SECRET}/stickers/a.webm
 const EVIL_URL = 'https://evil.example/x.gif';
 const LIMIT = BYTES_IN_MB;
 const TOO_BIG = tooBigError(LIMIT).message;
+const JSON_TOO_BIG = tooBigError(MAX_JSON_BYTES).message;
 const NOT_ALLOWED = notAllowedError().message;
 const HEADERS_RECEIVED = 2;
 const LONG_BODY = 'x'.repeat(300);
@@ -227,6 +235,110 @@ describe('gmNetwork: лимит размера', () => {
     await expect(gmNetwork(request).fetchBlob(FILE_URL, LIMIT)).resolves.toHaveProperty(
       'size',
       LIMIT
+    );
+    expect(abort).not.toHaveBeenCalled();
+  });
+});
+
+describe('gmNetwork: лимит JSON', () => {
+  it('Content-Length больше лимита — обрыв на заголовках', async () => {
+    const { request, abort } = mockGmRequest(({ onreadystatechange }) => {
+      onreadystatechange(
+        gmResponse({
+          readyState: HEADERS_RECEIVED,
+          responseHeaders: `Content-Length: ${MAX_JSON_BYTES + 1}`,
+        })
+      );
+    });
+
+    await expect(gmNetwork(request).fetchJson(TG_URL)).rejects.toThrow(JSON_TOO_BIG);
+    expect(abort).toHaveBeenCalledTimes(1);
+  });
+
+  it('loaded больше лимита в onprogress — обрыв по ходу загрузки', async () => {
+    const { request, abort } = mockGmRequest(({ onprogress }) => {
+      onprogress(gmResponse({ readyState: 3, loaded: MAX_JSON_BYTES + 1 }));
+    });
+
+    await expect(gmNetwork(request).fetchJson(TG_URL)).rejects.toThrow(JSON_TOO_BIG);
+    expect(abort).toHaveBeenCalledTimes(1);
+  });
+
+  it('текст больше лимита в байтах UTF-8 только на onload — ошибка', async () => {
+    /**
+     * «я» — 2 байта UTF-8: символов меньше лимита, байтов — больше.
+     */
+    const body = 'я'.repeat(MAX_JSON_BYTES / 2 + 1);
+    const { request, abort } = mockGmRequest(({ onload }) => {
+      onload(gmResponse({ response: body }));
+    });
+
+    await expect(gmNetwork(request).fetchJson(TG_URL)).rejects.toThrow(JSON_TOO_BIG);
+    expect(abort).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('gmNetwork: тело ошибки', () => {
+  it('не-2xx больше предела тела ошибки в onprogress — обрыв с HTTP-ошибкой', async () => {
+    const { request, abort } = mockGmRequest(({ onprogress }) => {
+      onprogress(
+        gmResponse({
+          status: 502,
+          readyState: 3,
+          loaded: ERROR_BODY_MAX_BYTES + 1,
+          responseText: LONG_BODY,
+        })
+      );
+    });
+
+    await expect(gmNetwork(request).fetchJson(TG_URL)).rejects.toThrow(
+      httpError(502, LONG_BODY).message
+    );
+    expect(abort).toHaveBeenCalledTimes(1);
+  });
+
+  it('статус с заголовков, тело ошибки больше предела — обрыв', async () => {
+    const { request, abort } = mockGmRequest(({ onreadystatechange, onprogress }) => {
+      onreadystatechange(gmResponse({ status: 502, readyState: HEADERS_RECEIVED }));
+      onprogress(
+        gmResponse({ status: 0, readyState: 3, loaded: ERROR_BODY_MAX_BYTES + 1 })
+      );
+    });
+
+    await expect(gmNetwork(request).fetchBlob(FILE_URL, LIMIT)).rejects.toThrow(
+      httpError(502, '').message
+    );
+    expect(abort).toHaveBeenCalledTimes(1);
+  });
+
+  it('тело ошибки в пределах — дочитывается до onload', async () => {
+    const { request, abort } = mockGmRequest(({ onprogress, onload }) => {
+      onprogress(
+        gmResponse({ status: 404, readyState: 3, loaded: ERROR_BODY_MAX_BYTES })
+      );
+      onload(gmResponse({ status: 404, response: 'Not Found' }));
+    });
+
+    await expect(gmNetwork(request).fetchJson(TG_URL)).rejects.toThrow(
+      httpError(404, 'Not Found').message
+    );
+    expect(abort).not.toHaveBeenCalled();
+  });
+
+  it('Content-Length тела ошибки больше предела, но в лимите — на заголовках не обрывается', async () => {
+    const { request, abort } = mockGmRequest(({ onreadystatechange, onload }) => {
+      onreadystatechange(
+        gmResponse({
+          status: 404,
+          readyState: HEADERS_RECEIVED,
+          responseHeaders: `Content-Length: ${ERROR_BODY_MAX_BYTES + 1}`,
+        })
+      );
+      onload(gmResponse({ status: 404, response: 'Not Found' }));
+    });
+
+    await expect(gmNetwork(request).fetchBlob(FILE_URL, LIMIT)).rejects.toThrow(
+      httpError(404, 'Not Found').message
     );
     expect(abort).not.toHaveBeenCalled();
   });

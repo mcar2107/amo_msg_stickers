@@ -1,4 +1,4 @@
-import { fetchChecked, readResponseLimited } from '../core/net';
+import { fetchChecked, readJson, readResponseLimited } from '../core/net';
 
 import { actionIconPaths, isIconThemeMessage } from './actionIcon';
 import { toFailureResponse } from './fetchResponse';
@@ -31,7 +31,7 @@ const readBody = async (res: Response, request: FetchRequest): Promise<FetchResp
 
   switch (request.as) {
     case 'json': {
-      return { ok: true, json: await res.json() };
+      return { ok: true, json: await readJson(res) };
     }
 
     case 'blob': {

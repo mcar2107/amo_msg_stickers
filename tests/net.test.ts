@@ -3,12 +3,16 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { LocalizedError, setLocale } from '../src/core/i18n/translate';
 import {
   BYTES_IN_MB,
+  ERROR_BODY_MAX_BYTES,
   fetchChecked,
   httpError,
   httpStatus,
   isAllowedUrl,
+  MAX_JSON_BYTES,
   notAllowedError,
+  readJson,
   readLimited,
+  readPrefix,
   readResponseLimited,
   tooBigError,
 } from '../src/core/net';
@@ -76,6 +80,49 @@ describe('readResponseLimited', () => {
     const res = new Response(chunkedStream([8, 8]));
 
     await expect(readResponseLimited(res, 10)).rejects.toThrow('Файл больше');
+  });
+});
+
+describe('readPrefix', () => {
+  it('короткий поток читает целиком', async () => {
+    const bytes = await readPrefix(chunkedStream([3, 4]), 10);
+
+    expect(bytes).toHaveLength(7);
+  });
+
+  it('читает не больше лимита и отменяет остаток без ошибки', async () => {
+    const onCancel = vi.fn();
+    const bytes = await readPrefix(chunkedStream([6, 6, 6], onCancel), 10);
+
+    expect(bytes).toHaveLength(10);
+    expect(onCancel).toHaveBeenCalled();
+  });
+});
+
+describe('readJson', () => {
+  it('разбирает JSON', async () => {
+    await expect(readJson(new Response('{"ok":true,"result":[1]}'))).resolves.toEqual({
+      ok: true,
+      result: [1],
+    });
+  });
+
+  it('отклоняет JSON больше лимита по Content-Length, не читая тело', async () => {
+    const onCancel = vi.fn();
+    const res = new Response(chunkedStream([1], onCancel), {
+      headers: { 'content-length': String(MAX_JSON_BYTES + 1) },
+    });
+
+    await expect(readJson(res)).rejects.toThrow(tooBigError(MAX_JSON_BYTES));
+    expect(onCancel).toHaveBeenCalled();
+  });
+
+  it('обрывает JSON больше лимита без Content-Length', async () => {
+    const onCancel = vi.fn();
+    const res = new Response(chunkedStream([MAX_JSON_BYTES, 1, 1], onCancel));
+
+    await expect(readJson(res)).rejects.toThrow(tooBigError(MAX_JSON_BYTES));
+    expect(onCancel).toHaveBeenCalled();
   });
 });
 
@@ -166,6 +213,43 @@ describe('fetchChecked', () => {
 
     await expect(fetchChecked('https://api.giphy.com/v1/gifs/trending')).rejects.toThrow(
       'HTTP 401 Unauthorized'
+    );
+  });
+
+  it('тело огромной ошибки читает только начало', async () => {
+    const onCancel = vi.fn();
+    const sizes = Array.from({ length: 100 }, () => {
+      return ERROR_BODY_MAX_BYTES;
+    });
+
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => {
+        return mockResponse(chunkedStream(sizes, onCancel), { status: 502 });
+      })
+    );
+
+    await expect(fetchChecked('https://api.giphy.com/v1/gifs/trending')).rejects.toThrow(
+      'HTTP 502'
+    );
+    expect(onCancel).toHaveBeenCalled();
+  });
+
+  it('многобайтное тело ошибки не режется посреди символа', async () => {
+    /**
+     * «€» — 3 байта UTF-8: граница чтения тела ошибки попадает внутрь символа.
+     */
+    const body = '€'.repeat(1000);
+
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => {
+        return mockResponse(body, { status: 500 });
+      })
+    );
+
+    await expect(fetchChecked('https://api.giphy.com/v1/gifs/trending')).rejects.toThrow(
+      `HTTP 500 ${'€'.repeat(200)}`
     );
   });
 
