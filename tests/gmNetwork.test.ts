@@ -324,6 +324,24 @@ describe('gmNetwork: тело ошибки', () => {
     );
     expect(abort).not.toHaveBeenCalled();
   });
+
+  it('Content-Length тела ошибки больше предела, но в лимите — на заголовках не обрывается', async () => {
+    const { request, abort } = mockGmRequest(({ onreadystatechange, onload }) => {
+      onreadystatechange(
+        gmResponse({
+          status: 404,
+          readyState: HEADERS_RECEIVED,
+          responseHeaders: `Content-Length: ${ERROR_BODY_MAX_BYTES + 1}`,
+        })
+      );
+      onload(gmResponse({ status: 404, response: 'Not Found' }));
+    });
+
+    await expect(gmNetwork(request).fetchBlob(FILE_URL, LIMIT)).rejects.toThrow(
+      httpError(404, 'Not Found').message
+    );
+    expect(abort).not.toHaveBeenCalled();
+  });
 });
 
 describe('gmNetwork: успешные ответы', () => {

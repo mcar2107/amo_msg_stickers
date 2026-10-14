@@ -973,7 +973,8 @@ IndexedDB `amo-stickers` на домене amo: паки (`tg:<имя>` для �
   `fetch` — `readJson` поверх `readResponseLimited`, у менеджера — тот же обрыв по `Content-Length`, `onprogress` и
   размеру текста в байтах UTF-8 на `onload`. Тело не-2xx ответа читается ради текста ошибки не больше
   `ERROR_BODY_MAX_BYTES` (800 байт — 200 символов UTF-8): у `fetch` — `readPrefix` с отменой остатка, у менеджера —
-  обрыв в `onprogress`; на заголовках тело ошибки не обрывается, иначе текст остался бы без начала тела;
+  обрыв в `onprogress`; на заголовках тело ошибки обрывается только по `maxBytes`, а не по `ERROR_BODY_MAX_BYTES`,
+  иначе текст остался бы без начала тела;
 - состав пака — `resolveTelegramSet`: битая ссылка и отсутствие токена — ошибка без запроса, ответ `getStickerSet`
   проходит гард набора; им показывают карточку пака до импорта, и он же уходит в `importTelegramSet`;
 - токен Bot API — свой из «Настроек» или встроенный в сборку (`resolveTelegramSet` и `importTelegramSet`: свой важнее,
