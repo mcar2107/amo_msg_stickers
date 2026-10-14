@@ -50,3 +50,13 @@ export type LocaleDocument = {
    */
   documentElement: Pick<HTMLElement, 'lang'>;
 };
+
+/**
+ * Чтение сохранённого языка, когда хранилище страницы доступно.
+ */
+export type StoredLocale = {
+  /**
+   * Сохранённое значение; `null` — значения нет.
+   */
+  value: string | null;
+};

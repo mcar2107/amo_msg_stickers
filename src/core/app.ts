@@ -19,6 +19,7 @@ import { createHoverPopup } from './hoverPopup';
 import type { OpenedBy } from './hoverPopup.types';
 import { MAX_REMOTE_GIF_BYTES } from './net';
 import { createPageClient, fileInputOf } from './pageClient';
+import { isPageEscape } from './pageEscape';
 import { SendError, sendFile, toCheckedGifFile, toGifFile } from './sender';
 import { MAX_GIF_BYTES } from './sidePick';
 
@@ -180,7 +181,7 @@ export const start = (host: Host) => {
     },
     /**
      * Фокус в поле попапа, диалог файла, импорт или конвертация — уход курсора попап не
-     * закрывает, клик вне него и Escape закрывают всегда.
+     * закрывает, клик вне него и Escape закрывают всегда, в том числе Escape вне панели.
      */
     isHeld: () => {
       return picker.isHeld();
@@ -270,6 +271,20 @@ export const start = (host: Host) => {
   };
 
   /**
+   * Перехват в capture-фазе окна — раньше обработчиков страницы на любом узле: Escape вне пикера закрывает только
+   * пикер и до страницы не доходит. Закрытый пикер Escape страницы не трогает.
+   */
+  const handleWindowKeyDown = (event: KeyboardEvent) => {
+    if (!hoverPopup.isOpen || !activeButton) return;
+
+    if (!isPageEscape(event, [activeButton, picker.previewElement])) return;
+
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    hoverPopup.dismiss();
+  };
+
+  /**
    * `mouseout` без `relatedTarget` — курсор ушёл за окно: `mouseleave` обёртки при быстром
    * уходе с края страницы может не прийти, и попап, открытый наведением, остался бы висеть.
    */
@@ -289,6 +304,7 @@ export const start = (host: Host) => {
 
   document.addEventListener('mousedown', handleDocumentMouseDown, true);
   document.addEventListener('mouseout', handleDocumentMouseOut);
+  window.addEventListener('keydown', handleWindowKeyDown, true);
 
   scan();
   console.info(`[amo-stickers] started (${host.name})`);

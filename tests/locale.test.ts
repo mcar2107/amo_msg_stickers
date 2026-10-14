@@ -104,12 +104,20 @@ describe('readAmoLocale', () => {
     expect(readAmoLocale(pageDocument('ru'))).toBe('en');
   });
 
-  it('при бросающем localStorage берёт язык документа', () => {
+  it('при бросающем localStorage язык документа не читает — берёт языки браузера', () => {
     stubPage(() => {
       throw new Error('SecurityError');
     }, ['ru-RU']);
 
-    expect(readAmoLocale(pageDocument('en-US'))).toBe('en');
+    expect(readAmoLocale(pageDocument('en-US'))).toBe('ru');
+  });
+
+  it('при бросающем localStorage и статичном lang="ru" прежней amo — английский по en-GB браузера', () => {
+    stubPage(() => {
+      throw new Error('SecurityError');
+    }, ['en-GB']);
+
+    expect(readAmoLocale(pageDocument('ru'))).toBe('en');
   });
 
   it('без значения в localStorage и языка документа берёт navigator.languages', () => {

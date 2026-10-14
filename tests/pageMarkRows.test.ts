@@ -121,7 +121,7 @@ class FakeFeedNode {
 type RowFields = Record<string, unknown>;
 
 /**
- * Данные строки ленты, как в пропсах страницы: стикер без подписи, пересылки и реакций.
+ * Данные строки ленты, как в пропсах страницы: стикер без подписи, адресата, пересылки и реакций.
  *
  * @param key — ключ строки
  * @param fields — поля поверх стикера
@@ -134,6 +134,7 @@ const rowData = (key: string, fields: RowFields = {}) => {
     text: null,
     blocks: null,
     forwardedFrom: null,
+    to: null,
     reactions: [],
     ...fields,
   };
@@ -218,6 +219,8 @@ describe('markRows', () => {
     ['пересылка', { forwardedFrom: 'Анна' }],
     ['подпись текстом', { text: 'привет' }],
     ['подпись с разметкой', { blocks: [{ kind: 'p' }] }],
+    ['адресат', { to: { id: 'u1', name: 'Анна', kind: 'user' } }],
+    ['адресат @all', { to: { id: '', name: '', kind: 'all' } }],
     ['реакция', { reactions: [{ emoji: '👍', count: 1 }] }],
     ['не фото', { media: { kind: 'video', name: STICKER_NAME, w: 512, h: 512 } }],
     ['без сторон', { media: { kind: 'photo', name: STICKER_NAME, w: 0, h: 512 } }],

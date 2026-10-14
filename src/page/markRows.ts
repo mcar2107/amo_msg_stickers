@@ -80,8 +80,8 @@ const rowDataOf = (node: FeedRowNode) => {
 };
 
 /**
- * Стикером показывается только фото с маркером в имени, без пересылки, подписи и реакций: у такого сообщения amo
- * держит пузырь, и стиль его не трогает.
+ * Стикером показывается только фото с маркером в имени, без пересылки, подписи, адресата «@Имя» и реакций: у
+ * остальных сообщений amo держит пузырь, и стиль их не трогает.
  *
  * @param node — строка ленты
  * @returns пометка; null — строка не своя или её нельзя показать стикером
@@ -101,6 +101,7 @@ const rowMarkOf = (node: FeedRowNode): RowMark | null => {
     isFilled(fieldOf(row, 'forwardedFrom')) ||
     isFilled(fieldOf(row, 'text')) ||
     isFilled(fieldOf(row, 'blocks')) ||
+    isFilled(fieldOf(row, 'to')) ||
     isFilled(fieldOf(row, 'reactions'))
   ) {
     return null;

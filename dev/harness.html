@@ -788,6 +788,7 @@
         >
         <label class="toggle"><input type="checkbox" id="w-reaction" /> реакция</label>
         <label class="toggle"><input type="checkbox" id="w-forward" /> пересылка</label>
+        <label class="toggle"><input type="checkbox" id="w-to" /> адресат «@Имя»</label>
         <button id="w-delete">Удалить последнее</button>
         <button id="w-history">История</button>
         <button id="w-reenter">Уйти и вернуться в чат</button>
@@ -1572,6 +1573,11 @@
         const MARK_BOLD = 1;
         const PHOTO_SIDES = { width: 480, height: 270 };
         const PEER = 'Собеседник';
+        /**
+         * Адресат «@Имя» строки — как поле `to` данных строки в живой Worker-версии: в групповом чате
+         * сообщение с адресатом amo держит в пузыре.
+         */
+        const ADDRESSEE = { id: 'peer-1', name: PEER, kind: 'user' };
         const THEME_KEY = 'harness:worker-theme';
         const CORE_MISSED_KEY = 'harness:core-missed';
         const LANG_KEY = 'harness:worker-lang';
@@ -1719,7 +1725,7 @@
         const CORE_SOURCE = `
           const EMPTY_DRAFT = { text: '', entities: [], reply: null };
           const drafts = new Map();
-          let config = { uploadMs: 0, isRefusing: false, isIncoming: false, hasAuthor: false, isForwarded: false };
+          let config = { uploadMs: 0, isRefusing: false, isIncoming: false, hasAuthor: false, isForwarded: false, hasAddressee: false };
           let keySeq = 0;
           const call = (dir, name) => postMessage({ kind: 'call', dir, name, at: Date.now() });
           const report = (message) => {
@@ -1736,6 +1742,7 @@
             mine: !config.isIncoming,
             author: config.hasAuthor ? ${JSON.stringify(PEER)} : null,
             forwardedFrom: config.isForwarded ? ${JSON.stringify(PEER)} : null,
+            to: config.hasAddressee ? ${JSON.stringify(ADDRESSEE)} : null,
             reactions: [],
             text: '',
             blocks: [],
@@ -1810,6 +1817,7 @@
               isIncoming: isChecked('incoming'),
               hasAuthor: isChecked('author'),
               isForwarded: isChecked('w-forward'),
+              hasAddressee: isChecked('w-to'),
             },
           });
 
@@ -2004,7 +2012,7 @@
         const rowContent = (entry) => {
           const { row } = entry;
           const hasHead = Boolean(
-            (row.author && !row.mine) || row.forwardedFrom || row.replyTo
+            (row.author && !row.mine) || row.forwardedFrom || row.replyTo || row.to
           );
           const bubble = h('div', {
             'data-amo-bubble': '',
@@ -2031,6 +2039,14 @@
           }
           if (row.replyTo)
             bubble.append(quoteNode(row.replyTo, Boolean(row.author && !row.mine)));
+          if (row.to)
+            bubble.append(
+              h(
+                'span',
+                { 'data-to': '', class: 'hw-forward' },
+                `@${row.to.name || 'all'}`
+              )
+            );
           if (row.deleted) {
             bubble.append(
               h('div', { class: 'hw-deleted' }, t('Сообщение удалено', 'Message deleted'))
@@ -2173,6 +2189,7 @@
               mine: !isChecked('incoming'),
               author: isChecked('author') ? PEER : null,
               forwardedFrom: isChecked('w-forward') ? PEER : null,
+              to: isChecked('w-to') ? ADDRESSEE : null,
               reactions: [],
               text: '',
               blocks: [],
@@ -2702,7 +2719,14 @@
           localStorage.setItem(CORE_MISSED_KEY, String(coreMissed.checked));
           location.reload();
         };
-        for (const id of ['slow', 'core-refuse', 'incoming', 'author', 'w-forward']) {
+        for (const id of [
+          'slow',
+          'core-refuse',
+          'incoming',
+          'author',
+          'w-forward',
+          'w-to',
+        ]) {
           $(id).addEventListener('change', sendConfig);
         }
 

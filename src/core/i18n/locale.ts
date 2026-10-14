@@ -1,4 +1,4 @@
-import type { Locale, LocaleDocument } from './i18n.types';
+import type { Locale, LocaleDocument, StoredLocale } from './i18n.types';
 
 /**
  * Ключ, под которым amo web хранит применённый язык: мы идём за языком страницы, а не браузера, и выбор
@@ -20,7 +20,7 @@ const TAG_SEPARATOR = /[-_]/;
  * страница на английском, а по языкам браузера пикер был бы на русском.
  *
  * @param stored — язык, сохранённый amo; `null` или пустая строка — не сохранён
- * @param documentLang — `lang` у `<html>`; пустая строка — не задан
+ * @param documentLang — `lang` у `<html>`; пустая строка — не задан или не годится как источник
  * @param languages — языки браузера по приоритету
  * @returns язык интерфейса
  */
@@ -37,20 +37,22 @@ export const resolveLocale = (
 };
 
 /**
- * `localStorage` бросает при запрете хранилища сайта и в части приватных режимов — тогда язык берётся из
- * языков браузера, и пикер работает.
+ * `localStorage` бросает при запрете хранилища сайта и в части приватных режимов — пикер при этом работает.
  *
- * @returns сохранённое значение; `null` — значения нет или хранилище недоступно
+ * @returns сохранённое значение; `null` — хранилище недоступно
  */
-const readStoredLocale = (): string | null => {
+const readStoredLocale = (): StoredLocale | null => {
   try {
-    return localStorage.getItem(AMO_LOCALE_KEY);
+    return { value: localStorage.getItem(AMO_LOCALE_KEY) };
   } catch {
     return null;
   }
 };
 
 /**
+ * При недоступном хранилище `<html lang>` не читается, и язык берётся сразу из языков браузера: прежняя amo держит
+ * в документе статичный `lang="ru"` при любом языке интерфейса, а её выбор языка без хранилища — по браузеру.
+ *
  * Пустой список `navigator.languages` не ломает выбор: тогда язык берётся из `navigator.language`.
  *
  * @param page — документ страницы amo: из него читается `lang` корня
@@ -58,10 +60,11 @@ const readStoredLocale = (): string | null => {
  */
 export const readAmoLocale = (page: LocaleDocument = document): Locale => {
   const { languages, language } = navigator;
+  const stored = readStoredLocale();
 
   return resolveLocale(
-    readStoredLocale(),
-    page.documentElement.lang,
+    stored && stored.value,
+    stored ? page.documentElement.lang : '',
     languages.length > 0 ? languages : [language]
   );
 };
