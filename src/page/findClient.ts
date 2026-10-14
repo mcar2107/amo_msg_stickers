@@ -1,4 +1,5 @@
 import type { AmoClient } from './amo.types';
+import { fiberOf } from './fiber';
 import { fieldOf } from './field';
 
 /**
@@ -7,21 +8,11 @@ import { fieldOf } from './field';
  * не API, поэтому форма значения проверяется на каждом шаге, а не принимается на веру.
  */
 
-const FIBER_KEY_PREFIX = '__reactFiber$';
-
 /**
  * Провайдер лежит в десятках узлов от поля ввода (в живом amo — 40); предел — страховка от
  * зацикливания на неожиданной структуре.
  */
 const MAX_FIBER_DEPTH = 200;
-
-const fiberOf = (node: object): unknown => {
-  const key = Object.keys(node).find((name) => {
-    return name.startsWith(FIBER_KEY_PREFIX);
-  });
-
-  return key ? Reflect.get(node, key) : null;
-};
 
 const isAmoClient = (value: unknown): value is AmoClient => {
   const store = fieldOf(value, 'reduxStore');

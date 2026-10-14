@@ -3,6 +3,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { startAgent } from '../src/page/agent';
 import type { AmoRequest } from '../src/page/amo.types';
+import { nextSeq, SENDING_MAX } from '../src/page/coreSend';
+import { fieldOf } from '../src/page/field';
 import {
   PAGE_FILE_ATTR,
   PAGE_REQUEST_EVENT,
@@ -13,12 +15,16 @@ import {
 
 import { FakeDocument, FakeElement } from './helpers/fakeDocument';
 import { fiberChain, nodeWithFiber } from './helpers/fakeFiber';
+import { FakePageNode } from './helpers/fakePageNode';
+import { CALL_LOADED, FakeWorker } from './helpers/fakeWorker';
 import { makeGif } from './helpers/makeGif';
 
 const CHAT_ID = 'chat-1';
 const DRAFT_TEXT = 'привет, это черновик';
 
 const REPLY_ID = 'msg-1';
+
+const DIMS = { w: 8, h: 8 };
 
 const amoState = () => {
   return {
@@ -124,7 +130,8 @@ const setup = (options: Setup = {}) => {
     input.setAttribute(PAGE_FILE_ATTR, id);
     doc.dispatchEvent(
       new CustomEvent(PAGE_REQUEST_EVENT, {
-        detail: detail === undefined ? JSON.stringify({ id, op: 'send' }) : detail,
+        detail:
+          detail === undefined ? JSON.stringify({ id, op: 'send', dims: DIMS }) : detail,
       })
     );
   };
@@ -212,7 +219,7 @@ describe('startAgent', () => {
     target.setAttribute(PAGE_TARGET_ATTR, 'другая');
     doc.dispatchEvent(
       new CustomEvent(PAGE_REQUEST_EVENT, {
-        detail: JSON.stringify({ id: 'cmd-1', op: 'send' }),
+        detail: JSON.stringify({ id: 'cmd-1', op: 'send', dims: DIMS }),
       })
     );
 
@@ -523,5 +530,496 @@ describe('startAgent: ответ на сообщение', () => {
       'sendNewMessages',
       'updateConversationDraughtRefersToId',
     ]);
+  });
+});
+
+const SEQ_MIN = 1_000_000_000;
+
+/**
+ * `InputEvent` для окружения `node`, где его нет: агент получает конструктор параметром.
+ */
+class FakeInputEvent extends Event {
+  readonly inputType: string;
+
+  constructor(type: string, init: InputEventInit = {}) {
+    super(type, init);
+    this.inputType = init.inputType || '';
+  }
+}
+
+type WorkerSetup = {
+  /**
+   * Пропсы поля поверх рабочих: `edit`, `attached`.
+   */
+  compose?: Record<string, unknown>;
+
+  /**
+   * Полоса вложений `[data-attachments]` в капсуле.
+   */
+  hasAttachmentStrip?: boolean;
+
+  /**
+   * Текст в поле ввода.
+   */
+  text?: string;
+
+  /**
+   * Ядро страницы поймано.
+   */
+  hasCore?: boolean;
+
+  /**
+   * Fiber поля указывает на устаревшую копию с правкой, а текущая — `alternate`.
+   */
+  isFiberStale?: boolean;
+};
+
+/**
+ * Колонка чата Worker-версии: лента `[role="log"]`, кнопки ленты с пропсами `down` на 4 шага fiber от кнопки,
+ * полоса поля с капсулой и полем ввода с пропсами компонента поля на 5 шагов fiber — как в живой Worker-версии.
+ *
+ * @param options — что поменять в рабочей колонке
+ * @returns колонка, ядро страницы, журнал вызовов и отправка команды
+ */
+const setupWorker = (options: WorkerSetup = {}) => {
+  const log: string[] = [];
+  const onDraftChange = vi.fn();
+  const compose: Record<string, unknown> = {
+    chat: CHAT_ID,
+    onSend: vi.fn(),
+    onFilesPick: vi.fn(),
+    reply: null,
+    edit: null,
+    attached: false,
+    draft: { text: '', entities: [] },
+    onDraftChange,
+    ...options.compose,
+  };
+  const fresh = fiberChain(5, compose);
+  let fiber = fresh.leaf;
+
+  if (options.isFiberStale) {
+    const stale = fiberChain(5, { ...compose, chat: 'старый', edit: { key: 'm-1' } });
+
+    stale.leaf.alternate = fresh.leaf;
+    fresh.leaf.alternate = stale.leaf;
+    fiber = stale.leaf;
+  }
+
+  const field = new FakePageNode(
+    'div',
+    { contenteditable: 'true', role: 'textbox' },
+    { __reactFiber$w1: fiber, __reactProps$w1: fresh.leaf.memoizedProps }
+  );
+
+  field.textContent = options.text || '';
+
+  field.onDispatch = (event) => {
+    log.push(`${event.type}:${event instanceof FakeInputEvent ? event.inputType : ''}`);
+  };
+
+  const onDownClick = vi.fn();
+  const feedButtons = {
+    down: { shown: true, count: 0, label: 'Вниз', onClick: onDownClick },
+    reactions: { shown: false, count: 0, label: '', onClick: vi.fn() },
+    bottom: false,
+  };
+  const downButton = new FakePageNode(
+    'button',
+    {},
+    { __reactFiber$w1: fiberChain(4, feedButtons).leaf }
+  );
+  const attachmentsSlot = new FakePageNode('div', { 'data-attachments-slot': '' });
+
+  if (options.hasAttachmentStrip) {
+    attachmentsSlot.append(new FakePageNode('div', { 'data-attachments': '' }));
+  }
+
+  const column = new FakePageNode('div').append(
+    new FakePageNode('div', { role: 'log' }).append(new FakePageNode('button')),
+    new FakePageNode('div').append(new FakePageNode('button'), downButton),
+    new FakePageNode('div').append(
+      new FakePageNode('div').append(
+        new FakePageNode('div').append(
+          new FakePageNode('div', { 'data-capsule-top': '' })
+        ),
+        attachmentsSlot,
+        new FakePageNode('div').append(new FakePageNode('div').append(field))
+      ),
+      new FakePageNode('button')
+    )
+  );
+  const file = new File([makeGif(8, 8)], 'a.amostk.k-sticker.gif', { type: 'image/gif' });
+  const input = new FakeElement({ files: [file] });
+  const doc = new FakeDocument([field, input]);
+  const host = { Worker: FakeWorker, InputEvent: FakeInputEvent };
+  const responses: unknown[] = [];
+  const rawDetails: unknown[] = [];
+
+  doc.addEventListener(PAGE_RESPONSE_EVENT, (event) => {
+    rawDetails.push('detail' in event ? event.detail : null);
+    responses.push(parsePageResponse(event));
+  });
+  startAgent(doc, host);
+
+  const Created = host.Worker;
+  const core = new Created('blob:core', { type: 'module' });
+
+  if (!(core instanceof FakeWorker)) throw new Error('Worker не подменён');
+
+  if (options.hasCore !== false) core.emit(CALL_LOADED);
+
+  const postMessage = vi.spyOn(core, 'postMessage').mockImplementation((command) => {
+    log.push(String(fieldOf(command, 'kind')));
+  });
+
+  const send = (id = 'cmd-1') => {
+    field.setAttribute(PAGE_TARGET_ATTR, id);
+    input.setAttribute(PAGE_FILE_ATTR, id);
+    doc.dispatchEvent(
+      new CustomEvent(PAGE_REQUEST_EVENT, {
+        detail: JSON.stringify({ id, op: 'send', dims: { w: 300, h: 70 } }),
+      })
+    );
+  };
+
+  /**
+   * @param index — номер команды ядру
+   * @returns `seq` этой команды
+   */
+  const seqOf = (index = 0) => {
+    const [command] = postMessage.mock.calls[index] || [];
+
+    return fieldOf(command, 'seq');
+  };
+
+  return {
+    column,
+    compose,
+    core,
+    feedButtons,
+    field,
+    file,
+    log,
+    onDownClick,
+    onDraftChange,
+    postMessage,
+    rawDetails,
+    responses,
+    send,
+    seqOf,
+  };
+};
+
+describe('startAgent: Worker-версия', () => {
+  it('шлёт ядру sendFiles с одним GIF и сторонами из команды, accepted синхронно', () => {
+    const { file, postMessage, responses, send } = setupWorker();
+
+    send();
+
+    expect(responses).toEqual([{ id: 'cmd-1', status: 'accepted' }]);
+    expect(postMessage).toHaveBeenCalledTimes(1);
+    expect(postMessage).toHaveBeenCalledWith({
+      kind: 'sendFiles',
+      chat: CHAT_ID,
+      text: '',
+      seq: SEQ_MIN,
+      files: [
+        {
+          file: expect.any(String),
+          bytes: file,
+          kind: 'photo',
+          name: 'a.amostk.k-sticker.gif',
+          mime: 'image/gif',
+          size: file.size,
+          w: 300,
+          h: 70,
+          durationMs: 0,
+        },
+      ],
+    });
+  });
+
+  it('каждой отправке — свой seq и свой file', () => {
+    const { postMessage, send, seqOf } = setupWorker();
+
+    send('cmd-1');
+    send('cmd-2');
+
+    const files = postMessage.mock.calls.map(([command]) => {
+      return fieldOf(fieldOf(fieldOf(command, 'files'), '0'), 'file');
+    });
+
+    expect([seqOf(0), seqOf(1)]).toEqual([SEQ_MIN, SEQ_MIN + 1]);
+    expect(new Set(files).size).toBe(2);
+  });
+
+  it('seq ходит по кругу в [10⁹, 2³²)', () => {
+    expect(nextSeq(SEQ_MIN)).toBe(SEQ_MIN + 1);
+    expect(nextSeq(2 ** 32 - 2)).toBe(2 ** 32 - 1);
+    expect(nextSeq(2 ** 32 - 1)).toBe(SEQ_MIN);
+  });
+
+  it('пустое поле — без события ввода и без onDraftChange', () => {
+    const { field, log, onDraftChange, send } = setupWorker();
+
+    send();
+
+    expect(log).toEqual(['sendFiles']);
+    expect(field.dispatched).toEqual([]);
+    expect(onDraftChange).not.toHaveBeenCalled();
+  });
+
+  it('текст в поле — сначала sendFiles, потом input с insertText, всплывающий', () => {
+    const { field, log, onDraftChange, send } = setupWorker({ text: 'привет' });
+
+    send();
+
+    expect(log).toEqual(['sendFiles', 'input:insertText']);
+    expect(field.dispatched[0]?.bubbles).toBe(true);
+    expect(onDraftChange).not.toHaveBeenCalled();
+  });
+
+  it('в ответе на странице только id и статус, без текста поля', () => {
+    const { rawDetails, send } = setupWorker({ text: DRAFT_TEXT });
+
+    send();
+
+    expect(rawDetails).toEqual([JSON.stringify({ id: 'cmd-1', status: 'accepted' })]);
+  });
+
+  it.each([
+    ['идёт правка', { compose: { edit: { key: 'm-1' } } }],
+    ['вложения в пропсах', { compose: { attached: true } }],
+    ['полоса вложений в капсуле', { hasAttachmentStrip: true }],
+  ] satisfies [string, WorkerSetup][])(
+    '%s — rejected draft-busy без команды',
+    (_case, options) => {
+      const { postMessage, responses, send } = setupWorker({
+        ...options,
+        text: 'привет',
+      });
+
+      send();
+
+      expect(responses).toEqual([
+        { id: 'cmd-1', status: 'rejected', reason: 'draft-busy' },
+      ]);
+      expect(postMessage).not.toHaveBeenCalled();
+    }
+  );
+
+  it('ядро не поймано — rejected no-core', () => {
+    const { responses, send } = setupWorker({ hasCore: false });
+
+    send();
+
+    expect(responses).toEqual([{ id: 'cmd-1', status: 'rejected', reason: 'no-core' }]);
+  });
+
+  it('пропсы поля — из актуальной копии fiber, а не из устаревшей', () => {
+    const { postMessage, responses, send } = setupWorker({ isFiberStale: true });
+
+    send();
+
+    expect(responses).toEqual([{ id: 'cmd-1', status: 'accepted' }]);
+    expect(postMessage).toHaveBeenCalledWith(expect.objectContaining({ chat: CHAT_ID }));
+  });
+
+  it('postMessage бросил — rejected send-threw, без события ввода', () => {
+    vi.spyOn(console, 'warn').mockImplementation(noop);
+
+    const { field, postMessage, responses, send } = setupWorker({ text: 'привет' });
+
+    postMessage.mockImplementation(() => {
+      throw new Error('нельзя клонировать');
+    });
+    send();
+
+    expect(responses).toEqual([
+      { id: 'cmd-1', status: 'rejected', reason: 'send-threw' },
+    ]);
+    expect(field.dispatched).toEqual([]);
+  });
+
+  it('sent со своим seq и key в открытом чате — лента вниз, если кнопка показана', () => {
+    const { core, onDownClick, send, seqOf } = setupWorker();
+
+    send();
+    core.emit({ kind: 'sent', chat: CHAT_ID, seq: seqOf(), key: 'k-1', refused: null });
+
+    expect(onDownClick).toHaveBeenCalledTimes(1);
+  });
+
+  it('лента у низа (down.shown: false) — вниз не зовётся', () => {
+    const { core, feedButtons, onDownClick, send, seqOf } = setupWorker();
+
+    feedButtons.down.shown = false;
+    send();
+    core.emit({ kind: 'sent', chat: CHAT_ID, seq: seqOf(), key: 'k-1', refused: null });
+
+    expect(onDownClick).not.toHaveBeenCalled();
+  });
+
+  it('sent с чужим seq или повтор своего — вниз не зовётся', () => {
+    const { core, onDownClick, send, seqOf } = setupWorker();
+
+    send();
+    core.emit({ kind: 'sent', chat: CHAT_ID, seq: 5, key: 'k-0', refused: null });
+
+    expect(onDownClick).not.toHaveBeenCalled();
+
+    core.emit({ kind: 'sent', chat: CHAT_ID, seq: seqOf(), key: 'k-1', refused: null });
+    core.emit({ kind: 'sent', chat: CHAT_ID, seq: seqOf(), key: 'k-1', refused: null });
+
+    expect(onDownClick).toHaveBeenCalledTimes(1);
+  });
+
+  it('отправок без доклада больше границы — самая старая забыта, остальные ждут доклада', () => {
+    const { core, onDownClick, send, seqOf } = setupWorker();
+
+    for (let index = 0; index <= SENDING_MAX; index++) send(`cmd-${index}`);
+
+    core.emit({ kind: 'sent', chat: CHAT_ID, seq: seqOf(0), key: 'k-0', refused: null });
+
+    expect(onDownClick).not.toHaveBeenCalled();
+
+    core.emit({ kind: 'sent', chat: CHAT_ID, seq: seqOf(1), key: 'k-1', refused: null });
+    core.emit({
+      kind: 'sent',
+      chat: CHAT_ID,
+      seq: seqOf(SENDING_MAX),
+      key: 'k-last',
+      refused: null,
+    });
+
+    expect(onDownClick).toHaveBeenCalledTimes(2);
+  });
+
+  it('открыт уже другой чат — вниз не зовётся', () => {
+    const { compose, core, onDownClick, send, seqOf } = setupWorker();
+
+    send();
+    compose.chat = 'chat-2';
+    core.emit({ kind: 'sent', chat: CHAT_ID, seq: seqOf(), key: 'k-1', refused: null });
+
+    expect(onDownClick).not.toHaveBeenCalled();
+  });
+
+  it('доклад о другом чате — вниз не зовётся', () => {
+    const { core, onDownClick, send, seqOf } = setupWorker();
+
+    send();
+    core.emit({ kind: 'sent', chat: 'chat-2', seq: seqOf(), key: 'k-1', refused: null });
+
+    expect(onDownClick).not.toHaveBeenCalled();
+  });
+
+  it('поле ушло из документа — вниз не зовётся', () => {
+    const { core, field, onDownClick, send, seqOf } = setupWorker();
+
+    send();
+    field.remove();
+    core.emit({ kind: 'sent', chat: CHAT_ID, seq: seqOf(), key: 'k-1', refused: null });
+
+    expect(onDownClick).not.toHaveBeenCalled();
+  });
+
+  it('возврат черновика бросил — предупреждение, стикер принят', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(noop);
+    const failure = new Error('сбой');
+    const { field, responses, send } = setupWorker({ text: 'привет' });
+
+    field.onDispatch = () => {
+      throw failure;
+    };
+
+    send();
+
+    expect(responses).toEqual([{ id: 'cmd-1', status: 'accepted' }]);
+    expect(warn).toHaveBeenCalledWith('[amo-stickers] draft restore failed:', failure);
+  });
+
+  it.each([
+    ['отказ', { key: null, refused: 'tooBig' }],
+    ['без key', { key: null, refused: null }],
+  ])(
+    'sent со своим seq: %s — предупреждение в консоли, вниз не зовётся',
+    (_case, outcome) => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(noop);
+      const { core, onDownClick, send, seqOf } = setupWorker();
+
+      send();
+      core.emit({ kind: 'sent', chat: CHAT_ID, seq: seqOf(), ...outcome });
+
+      expect(warn).toHaveBeenCalledTimes(1);
+      expect(warn.mock.calls[0]).toContain(outcome.refused);
+      expect(onDownClick).not.toHaveBeenCalled();
+    }
+  );
+
+  it('пропсы поля бросают при чтении — отказ build-threw с предупреждением', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(noop);
+    const fiber = {
+      get memoizedProps() {
+        throw new Error('сбой');
+      },
+    };
+    const field = new FakePageNode('div', {}, { __reactFiber$w1: fiber });
+    const input = new FakeElement({
+      files: [new File([makeGif(8, 8)], 'a.amostk.k-sticker.gif', { type: 'image/gif' })],
+    });
+    const doc = new FakeDocument([field, input]);
+    const responses: unknown[] = [];
+
+    doc.addEventListener(PAGE_RESPONSE_EVENT, (event) => {
+      responses.push(parsePageResponse(event));
+    });
+    startAgent(doc, { Worker: FakeWorker, InputEvent: FakeInputEvent });
+    field.setAttribute(PAGE_TARGET_ATTR, 'cmd-1');
+    input.setAttribute(PAGE_FILE_ATTR, 'cmd-1');
+    doc.dispatchEvent(
+      new CustomEvent(PAGE_REQUEST_EVENT, {
+        detail: JSON.stringify({ id: 'cmd-1', op: 'send', dims: DIMS }),
+      })
+    );
+
+    expect(responses).toEqual([
+      { id: 'cmd-1', status: 'rejected', reason: 'build-threw' },
+    ]);
+    expect(warn).toHaveBeenCalledTimes(1);
+  });
+
+  it('у поля без пропсов Worker-версии — прежний путь sendRequest', () => {
+    const sendRequest = vi.fn(async (_request: AmoRequest): Promise<unknown> => {
+      return undefined;
+    });
+    const client = { sendRequest, reduxStore: { getState: amoState } };
+    const field = new FakePageNode(
+      'div',
+      {},
+      { __reactFiber$w1: fiberChain(3, { value: client }).leaf }
+    );
+    const file = new File([makeGif(8, 8)], 'a.amostk.k-sticker.gif', {
+      type: 'image/gif',
+    });
+    const input = new FakeElement({ files: [file] });
+    const doc = new FakeDocument([field, input]);
+    const responses: unknown[] = [];
+
+    doc.addEventListener(PAGE_RESPONSE_EVENT, (event) => {
+      responses.push(parsePageResponse(event));
+    });
+    startAgent(doc, { Worker: FakeWorker, InputEvent: FakeInputEvent });
+    field.setAttribute(PAGE_TARGET_ATTR, 'cmd-1');
+    input.setAttribute(PAGE_FILE_ATTR, 'cmd-1');
+    doc.dispatchEvent(
+      new CustomEvent(PAGE_REQUEST_EVENT, {
+        detail: JSON.stringify({ id: 'cmd-1', op: 'send', dims: DIMS }),
+      })
+    );
+
+    expect(responses).toEqual([{ id: 'cmd-1', status: 'accepted' }]);
+    expect(requestTypes(sendRequest)).toEqual(['sendNewMessages']);
   });
 });

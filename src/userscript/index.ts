@@ -51,19 +51,27 @@ const host: Host = {
 };
 
 /**
- * Агент — до ядра: к первому клику по стикеру он уже слушает команды, а ядро ни от чего в
- * нём не зависит на старте. Сбой вставки (Trusted Types, CSP) ядро не роняет: без агента
- * отправка идёт запасным путём.
+ * Агент — сразу, до скриптов страницы: в Worker-версии amo web ядро страницы видно только тому, кто начал работу
+ * раньше неё (`@run-at document-start`). Сбой вставки (Trusted Types, CSP) ядро не роняет: без агента отправка идёт
+ * запасным путём.
  */
-const boot = () => {
-  try {
-    injectPageAgent(document, PAGE_AGENT_CODE);
-  } catch (error) {
-    console.warn('[amo-stickers] page agent not injected:', error);
-  }
+try {
+  injectPageAgent(document, PAGE_AGENT_CODE);
+} catch (error) {
+  console.warn('[amo-stickers] page agent not injected:', error);
+}
 
+/**
+ * Ядро — после загрузки DOM, как при запуске на готовом документе: ему нужны `body` и поле ввода.
+ */
+if (document.readyState === 'loading') {
+  document.addEventListener(
+    'DOMContentLoaded',
+    () => {
+      start(host);
+    },
+    { once: true }
+  );
+} else {
   start(host);
-};
-
-if (document.body) boot();
-else document.addEventListener('DOMContentLoaded', boot, { once: true });
+}

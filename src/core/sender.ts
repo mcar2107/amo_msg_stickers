@@ -1,8 +1,8 @@
 import { t } from './i18n/translate';
-import { isDraftEmpty, isEditing } from './amoDom';
+import { isDraftEmpty, isEditing, sendButtonOf } from './amoDom';
 import type { SendComposer } from './amoDom.types';
-import { inspectGif } from './gif';
-import type { PageClient } from './pageClient.types';
+import { GIF_HEADER_BYTES, gifScreenSize, inspectGif } from './gif';
+import type { PageClient, PageSendResult } from './pageClient.types';
 
 export class SendError extends Error {}
 
@@ -37,12 +37,16 @@ const waitFor = async (check: () => boolean, timeoutMs: number) => {
  * «Отправить».
  *
  * В DataTransfer кладём ТОЛЬКО файл: при наличии text/plain поле вставит текст, а не вложение.
+ *
+ * Ждём саму кнопку «Отправить», а не непустой черновик: где кнопка появляется только с готовым
+ * вложением, полоса вложений показывается раньше неё. Кнопка ищется заново в момент нажатия —
+ * найденная до вставки могла смениться.
  */
 const sendViaPaste = async (composer: SendComposer, file: File) => {
   if (isEditing(composer)) throw new SendError(t('error.send.editing'));
   if (!isDraftEmpty(composer)) throw new SendError(t('error.send.draftNotEmpty'));
 
-  const { editable, sendButton } = composer;
+  const { editable } = composer;
   const dataTransfer = new DataTransfer();
 
   dataTransfer.items.add(file);
@@ -57,19 +61,43 @@ const sendViaPaste = async (composer: SendComposer, file: File) => {
   );
 
   const isAttached = await waitFor(() => {
-    return !isDraftEmpty(composer);
+    return Boolean(sendButtonOf(composer));
   }, ATTACH_TIMEOUT_MS);
 
   if (!isAttached) throw new SendError(t('error.send.notAttached'));
 
   await wait(RENDER_SETTLE_MS);
-  sendButton?.click();
+  const sendButton = sendButtonOf(composer);
+
+  /**
+   * Кнопка пропала за паузу дорисовки — нажимать нечего, и «отправлено» было бы ложью.
+   */
+  if (!sendButton) throw new SendError(t('error.send.notAttached'));
+  sendButton.click();
+};
+
+const NO_DIMS: PageSendResult = { status: 'unavailable', reason: 'no-dims' };
+
+/**
+ * Стороны считаются здесь, до команды, а не агентом: агент отвечает синхронно и прочитать
+ * `File` не успевает. Читается только заголовок — файл целиком не нужен.
+ *
+ * @param file — отправляемый GIF
+ * @returns стороны для команды; null — заголовок GIF не прочитался
+ */
+const dimsOf = async (file: File) => {
+  const size = gifScreenSize(
+    new Uint8Array(await file.slice(0, GIF_HEADER_BYTES).arrayBuffer())
+  );
+
+  return size ? { w: size.width, h: size.height } : null;
 };
 
 /**
  * Отправляет стикер отдельным сообщением через очередь amo, не трогая поле ввода. Если amo
- * сообщение не принял — агента нет, внутренности amo сменились, открыт не чат, — стикер
- * уходит запасным путём, вставкой в поле, с проверками черновика. После приёма в очередь
+ * сообщение не принял — агента нет, внутренности amo сменились, открыт не чат, у GIF не
+ * прочитались стороны, — стикер уходит запасным путём, вставкой в поле, с проверками
+ * черновика. После приёма в очередь
  * запасной путь закрыт при любом исходе загрузки: иначе один клик дал бы два стикера.
  *
  * @param composer — поле ввода, от которого идёт отправка
@@ -81,7 +109,8 @@ export const sendFile = async (
   file: File,
   pageClient: PageClient
 ) => {
-  const result = pageClient.send(composer.editable, file);
+  const dims = await dimsOf(file);
+  const result = dims ? pageClient.send(composer.editable, file, dims) : NO_DIMS;
 
   switch (result.status) {
     case 'accepted': {

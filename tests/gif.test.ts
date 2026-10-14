@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { inspectGif } from '../src/core/gif';
+import { GIF_HEADER_BYTES, gifScreenSize, inspectGif } from '../src/core/gif';
 
 import { makeGif } from './helpers/makeGif';
 
@@ -58,5 +58,39 @@ describe('inspectGif', () => {
     gif[7] = 0;
 
     expect(inspectGif(gif)).toBeNull();
+  });
+});
+
+describe('gifScreenSize', () => {
+  it('читает стороны больше 255 и неравные: 300×70', () => {
+    expect(gifScreenSize(makeGif(300, 70))).toEqual({ width: 300, height: 70 });
+    expect(inspectGif(makeGif(300, 70))).toEqual({ width: 300, height: 70, frames: 1 });
+  });
+
+  it('обходится одним заголовком', () => {
+    expect(gifScreenSize(makeGif(70, 300).subarray(0, GIF_HEADER_BYTES))).toEqual({
+      width: 70,
+      height: 300,
+    });
+  });
+
+  it('отклоняет заголовок короче Logical Screen Descriptor', () => {
+    expect(gifScreenSize(makeGif(300, 70).subarray(0, GIF_HEADER_BYTES - 1))).toBeNull();
+  });
+
+  it('отклоняет не GIF', () => {
+    expect(gifScreenSize(TEXT.encode('<!doctype html><html>'))).toBeNull();
+  });
+
+  it.each([
+    ['ширина', 6],
+    ['высота', 8],
+  ])('отклоняет нулевую сторону: %s', (_side, offset) => {
+    const gif = makeGif(4, 4);
+
+    gif[offset] = 0;
+    gif[offset + 1] = 0;
+
+    expect(gifScreenSize(gif)).toBeNull();
   });
 });

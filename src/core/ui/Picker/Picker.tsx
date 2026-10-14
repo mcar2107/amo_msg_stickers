@@ -2,6 +2,7 @@ import { cva } from 'class-variance-authority';
 import type { FunctionComponent as FC, TargetedFocusEvent } from 'preact';
 import { useState } from 'preact/hooks';
 
+import type { ButtonAnchor } from '../../amoDom.types';
 import type { PanelPhase } from '../../hoverPopup.types';
 import { t } from '../../i18n/translate';
 
@@ -23,12 +24,7 @@ import type { PickerScreen } from './usePickerView/usePickerView.types';
 import type { PickerProps } from './Picker.types';
 
 /**
- * Геометрия, тень и радиус повторяют попап эмодзи amo: панель встаёт на его место над
- * правым краем поля ввода.
- *
- * `bottom-12`, а не `bottom-9.5` контейнера эмодзи: тот на 10px выше своей панели (410px
- * против 400px), панель прижата к его верху, и между ней и полем ввода остаётся зазор.
- * На `bottom-9.5` наша панель заходила бы на поле ввода.
+ * Геометрия, тень и радиус повторяют попап эмодзи amo; место панели — вариант `anchor`.
  *
  * `left-auto m-0 p-0` снимают стили `<dialog>` браузера: без них панель встала бы по
  * центру между `left: 0` и `right`.
@@ -38,7 +34,7 @@ import type { PickerProps } from './Picker.types';
  * от страницы.
  */
 const PANEL_CLASS = [
-  'fixed bottom-12 right-7.5 z-[2] h-[400px] w-[352px] flex-col overflow-hidden rounded-lgx',
+  'fixed z-[2] h-[400px] w-[352px] flex-col overflow-hidden rounded-lgx',
   'left-auto m-0 p-0',
   'font-primary text-xsm leading-[1.3]',
   'bg-white-0 text-gray-30 dark:bg-gray-10 dark:text-gray-40',
@@ -69,8 +65,31 @@ const panelVariants = cva([...PANEL_CLASS, OPEN_ANIMATION_CLASS], {
     isDark: {
       true: 'dark',
     },
+    /**
+     * `composer` — от контейнера поля ввода с transform, на месте попапа эмодзи над правым
+     * краем поля. `bottom-12`, а не `bottom-9.5` контейнера эмодзи: тот на 10px выше своей
+     * панели (410px против 400px), панель прижата к его верху, и между ней и полем ввода
+     * остаётся зазор; на `bottom-9.5` наша панель заходила бы на поле ввода.
+     *
+     * `button` — от обёртки кнопки с transform: низ на 9px выше кнопки, как у панели эмодзи
+     * Worker-версии, правый край — по обёртке. Зазор — пара `PANEL_GAP_PX` в `amoDomWorker.ts`.
+     */
+    anchor: {
+      composer: 'bottom-12 right-7.5',
+      button: 'bottom-[calc(100%+9px)] right-0',
+    } satisfies Record<ButtonAnchor, string>,
   },
 });
+
+/**
+ * Высота панели, посчитанная на открытии, — inline: число известно только в момент открытия.
+ *
+ * @param maxHeight — наибольшая высота панели, px; null — высота постоянная
+ * @returns стиль панели; undefined — без ограничения
+ */
+const panelStyle = (maxHeight: number | null) => {
+  return maxHeight === null ? undefined : { maxHeight: `${maxHeight}px` };
+};
 
 /**
  * Область над футером. Экран и строка статуса лежат в ней слоями поверх режима, а не в
@@ -108,7 +127,7 @@ const renderScreen = (screen: PickerScreen) => {
 };
 
 export const Picker: FC<PickerProps> = (props) => {
-  const { phase, isDark, previewRoot, onClose } = props;
+  const { phase, isDark, anchor, previewRoot, onClose } = props;
   const { setHold } = usePicker();
   const { mode, screen } = usePickerView();
   /**
@@ -149,7 +168,8 @@ export const Picker: FC<PickerProps> = (props) => {
     <dialog
       open={isOpen}
       aria-label={t('picker.title')}
-      className={panelVariants({ phase, isDark })}
+      className={panelVariants({ phase, isDark, anchor: anchor.by })}
+      style={panelStyle(anchor.maxHeight)}
       onKeyDown={handlePanelKeyDown}
       onFocusIn={handlePanelFocusIn}
       onFocusOut={handlePanelFocusOut}

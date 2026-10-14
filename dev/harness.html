@@ -269,6 +269,434 @@
         background: var(--tools-bg);
         color: var(--tools-fg);
       }
+      #tools [hidden] {
+        display: none;
+      }
+      #tools output {
+        width: 100%;
+        color: var(--tools-muted);
+        overflow-wrap: anywhere;
+      }
+      /* Worker-версия amo web: токены страницы — CSS-переменные; тёмная тема — по
+       `data-amo-theme` на <html>, без него — по системе. `--amo-*` — переменные страницы, которые
+       читает стиль ленты amo stickers, `--hw-*` — стенда. Всё — только под `.harness-worker`:
+       прежние разметки этих переменных и классов не видят. */
+      body.harness-worker {
+        --amo-color-bubble-in-from: #ffffff;
+        --amo-color-bubble-in-to: #f6f7f9;
+        --amo-color-bubble-out-from: #e3ecff;
+        --amo-color-bubble-out-to: #d2e0ff;
+        --amo-radius-lgx: 10px;
+        --amo-shadow-flat: 0 1px 2px rgba(16, 24, 40, 0.14);
+        --hw-bg: #e9edf2;
+        --hw-surface: #ffffff;
+        --hw-fg: #1f2329;
+        --hw-fg-muted: #8a919c;
+        --hw-accent: #3d6cf4;
+        --hw-line: rgba(0, 0, 0, 0.1);
+        background: var(--hw-bg);
+        color: var(--hw-fg);
+      }
+      [data-amo-theme='dark'] body.harness-worker {
+        --amo-color-bubble-in-from: #2f3034;
+        --amo-color-bubble-in-to: #2a2b2e;
+        --amo-color-bubble-out-from: #44475c;
+        --amo-color-bubble-out-to: #3a3d52;
+        --amo-shadow-flat: 0 1px 2px rgba(0, 0, 0, 0.5);
+        --hw-bg: #18181a;
+        --hw-surface: #26272a;
+        --hw-fg: #ececec;
+        --hw-fg-muted: #8d8d8d;
+        --hw-accent: #f3cf9e;
+        --hw-line: rgba(255, 255, 255, 0.12);
+      }
+      [data-amo-theme='dark'] #tools {
+        --tools-bg: rgb(38, 38, 38);
+        --tools-fg: #ececec;
+        --tools-muted: #8d8d8d;
+        --tools-line: rgba(255, 255, 255, 0.14);
+        --tools-hover: rgba(255, 255, 255, 0.08);
+        --tools-accent: #f3cf9e;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-amo-theme]) body.harness-worker {
+          --amo-color-bubble-in-from: #2f3034;
+          --amo-color-bubble-in-to: #2a2b2e;
+          --amo-color-bubble-out-from: #44475c;
+          --amo-color-bubble-out-to: #3a3d52;
+          --amo-shadow-flat: 0 1px 2px rgba(0, 0, 0, 0.5);
+          --hw-bg: #18181a;
+          --hw-surface: #26272a;
+          --hw-fg: #ececec;
+          --hw-fg-muted: #8d8d8d;
+          --hw-accent: #f3cf9e;
+          --hw-line: rgba(255, 255, 255, 0.12);
+        }
+        :root:not([data-amo-theme]) .harness-worker #tools {
+          --tools-bg: rgb(38, 38, 38);
+          --tools-fg: #ececec;
+          --tools-muted: #8d8d8d;
+          --tools-line: rgba(255, 255, 255, 0.14);
+          --tools-hover: rgba(255, 255, 255, 0.08);
+          --tools-accent: #f3cf9e;
+        }
+      }
+      /* Классы страницы, которых нет в CSS прежней amo (`amo.css`): ими красится и кнопка
+       стикеров, повторяющая кнопку эмодзи. */
+      .harness-worker .text-fg-muted {
+        color: var(--hw-fg-muted);
+      }
+      .harness-worker .text-accent {
+        color: var(--hw-accent);
+      }
+      .harness-worker .hover\:text-accent:hover {
+        color: var(--hw-accent);
+      }
+      .harness-worker .ease-base {
+        transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      .harness-worker .isolate {
+        isolation: isolate;
+      }
+      .harness-worker .grid {
+        display: grid;
+      }
+      .harness-worker .invisible {
+        visibility: hidden;
+      }
+      .harness-worker .rounded-capsule {
+        border-radius: 21px;
+      }
+      .harness-worker .rounded-lgx {
+        border-radius: var(--amo-radius-lgx);
+      }
+      .harness-worker .shadow-flat {
+        box-shadow: var(--amo-shadow-flat);
+      }
+      .harness-worker .amo-bubble-in {
+        background-image: linear-gradient(
+          var(--amo-color-bubble-in-from),
+          var(--amo-color-bubble-in-to)
+        );
+      }
+      .harness-worker .amo-bubble-out {
+        background-image: linear-gradient(
+          var(--amo-color-bubble-out-from),
+          var(--amo-color-bubble-out-to)
+        );
+      }
+      .harness-worker button {
+        padding: 0;
+        border: 0;
+        background: transparent;
+        color: inherit;
+        font: inherit;
+      }
+      .hw-column {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+      }
+      .hw-header {
+        position: relative;
+        z-index: 20;
+        display: flex;
+        flex: none;
+        align-items: center;
+        justify-content: center;
+        height: 57px;
+        border-bottom: 1px solid var(--hw-line);
+        background: var(--hw-surface);
+        font-weight: 600;
+      }
+      .hw-feed {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        gap: 4px;
+        min-height: 0;
+        padding: 16px 16px 150px;
+        overflow-y: auto;
+      }
+      .hw-feed-buttons {
+        position: absolute;
+        right: 16px;
+        bottom: 90px;
+        z-index: 15;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .harness-worker .hw-feed-buttons button {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--hw-surface);
+        color: var(--hw-fg-muted);
+        box-shadow: var(--amo-shadow-flat);
+        pointer-events: auto;
+        cursor: pointer;
+      }
+      .hw-feed-row {
+        display: flex;
+      }
+      .hw-wrapper {
+        align-items: flex-end;
+        width: 100%;
+        max-width: 100%;
+      }
+      .hw-tail {
+        flex: none;
+        width: 8px;
+        height: 10px;
+        margin: 0 -1px;
+        fill: var(--amo-color-bubble-in-to);
+      }
+      .flex-row-reverse > .hw-tail {
+        transform: scaleX(-1);
+        fill: var(--amo-color-bubble-out-to);
+      }
+      .hw-bubble {
+        position: relative;
+        min-width: 0;
+        font-size: 14px;
+        line-height: 18px;
+      }
+      .hw-media {
+        position: relative;
+        z-index: 10;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-end;
+      }
+      .hw-box {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        max-width: 100%;
+        overflow: hidden;
+      }
+      .hw-box-empty {
+        background: var(--hw-line);
+      }
+      .hw-box > span {
+        display: block;
+        height: 0;
+        max-width: 100%;
+      }
+      .hw-preview {
+        position: absolute;
+        inset: -48px;
+        width: calc(100% + 96px);
+        height: calc(100% + 96px);
+        max-width: none;
+        object-fit: cover;
+        filter: blur(16px);
+        pointer-events: none;
+      }
+      .hw-photo {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        max-width: none;
+        object-fit: contain;
+        pointer-events: none;
+      }
+      .hw-uploading {
+        position: absolute;
+        inset: 0;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        max-width: 100%;
+        margin: 0 auto;
+        background: #7a828e;
+        opacity: 0.5;
+      }
+      .hw-media-time {
+        position: absolute;
+        right: 4px;
+        bottom: 4px;
+        padding: 1px 6px;
+        border-radius: var(--amo-radius-lgx);
+        background: rgba(0, 0, 0, 0.45);
+        color: #fff;
+        font-size: 11px;
+        line-height: 16px;
+      }
+      .hw-quote-block {
+        margin: -8px -4px 8px;
+        padding-top: 4px;
+      }
+      .hw-quote-block.mt-0\.5 {
+        margin-top: 2px;
+      }
+      .hw-quote {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+        box-sizing: border-box;
+        min-height: 42px;
+        padding: 2px 6px;
+        border-left: 2px solid var(--hw-accent);
+        border-radius: 8px;
+        font-size: 12px;
+      }
+      .hw-quote img {
+        width: 36px;
+        height: 36px;
+        object-fit: cover;
+        border-radius: 4px;
+      }
+      .hw-author,
+      .hw-forward {
+        display: block;
+        margin-bottom: 4px;
+        color: var(--hw-accent);
+        font-size: 13px;
+        font-weight: 600;
+      }
+      .hw-deleted {
+        color: var(--hw-fg-muted);
+        font-style: italic;
+      }
+      .hw-foot {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+        justify-content: flex-end;
+        margin-top: 2px;
+        color: var(--hw-fg-muted);
+        font-size: 11px;
+      }
+      .hw-foot:empty {
+        display: none;
+      }
+      .hw-reaction {
+        padding: 1px 6px;
+        border-radius: 10px;
+        background: var(--hw-line);
+        color: var(--hw-fg);
+        font-size: 12px;
+      }
+      .hw-avatar-spacer {
+        flex: none;
+        align-self: flex-end;
+        width: 46px;
+      }
+      .hw-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: #7b8cde;
+      }
+      .hw-controls {
+        align-self: center;
+        margin: 0 6px;
+        color: var(--hw-fg-muted);
+        opacity: 0;
+        transition: opacity 0.12s;
+      }
+      .hw-wrapper:hover > .hw-controls {
+        opacity: 1;
+      }
+      .hw-capsule {
+        flex: 1;
+        min-width: 0;
+        background: var(--hw-surface);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.14);
+      }
+      .hw-cell {
+        flex: 1;
+        min-width: 0;
+        padding: 7px 0 7px 14px;
+      }
+      .hw-field,
+      .hw-placeholder {
+        grid-area: 1 / 1;
+        font-size: 14px;
+        line-height: 18px;
+      }
+      .hw-field {
+        max-height: 200px;
+        overflow-y: auto;
+        outline: none;
+      }
+      .hw-placeholder {
+        color: var(--hw-fg-muted);
+        pointer-events: none;
+      }
+      .harness-worker .hw-round {
+        display: flex;
+        flex: none;
+        align-items: center;
+        align-self: flex-end;
+        justify-content: center;
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        cursor: pointer;
+        transition: opacity 0.3s;
+      }
+      .harness-worker .hw-send {
+        margin-left: 6px;
+        background: var(--hw-accent);
+        color: var(--hw-surface);
+      }
+      .harness-worker .hw-cancel {
+        margin-right: 6px;
+        background: var(--hw-surface);
+        color: var(--hw-fg-muted);
+      }
+      .hw-cancel[data-leaving] {
+        opacity: 0;
+      }
+      .hw-reply {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        padding: 8px 14px 0;
+        font-size: 13px;
+      }
+      [data-reply-leaving] {
+        opacity: 0.4;
+      }
+      .hw-attachments {
+        display: flex;
+        gap: 6px;
+        padding: 8px 12px 0;
+      }
+      .hw-attachments img {
+        height: 48px;
+        border-radius: 6px;
+      }
+      .hw-attachments[data-preparing] img {
+        opacity: 0.5;
+      }
+      .hw-format {
+        position: fixed;
+        z-index: 1000;
+        display: flex;
+        gap: 4px;
+        margin: 0;
+        padding: 4px 8px;
+        border-radius: 8px;
+        background: var(--hw-surface);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+        list-style: none;
+      }
+      .hw-format[hidden] {
+        display: none;
+      }
+      /* Панель стенда — над шапкой чата и медиа ленты Worker-версии, у которых свой `z-index`. */
+      .harness-worker #tools {
+        z-index: 25;
+      }
       #attachments {
         display: flex;
         gap: 6px;
@@ -302,6 +730,7 @@
           <select id="markup">
             <option value="legacy">прежняя</option>
             <option value="stable">стабильная</option>
+            <option value="worker">Worker-версия</option>
           </select>
         </label>
       </div>
@@ -337,12 +766,40 @@
           ><input type="checkbox" id="slow-clear" /> медленное снятие ответа</label
         >
       </div>
+      <div class="group" id="worker-tools" hidden>
+        <span class="group-title">Worker-версия</span>
+        <label class="toggle">
+          Тема
+          <select id="worker-theme">
+            <option value="light">светлая</option>
+            <option value="dark">тёмная</option>
+            <option value="">система</option>
+          </select>
+        </label>
+        <label class="toggle"
+          ><input type="checkbox" id="core-missed" /> ядро не поймано</label
+        >
+        <label class="toggle"
+          ><input type="checkbox" id="core-refuse" /> отказ ядра</label
+        >
+        <label class="toggle"><input type="checkbox" id="w-attachment" /> вложение</label>
+        <label class="toggle"
+          ><input type="checkbox" id="w-editing" /> редактирование</label
+        >
+        <label class="toggle"><input type="checkbox" id="w-reaction" /> реакция</label>
+        <label class="toggle"><input type="checkbox" id="w-forward" /> пересылка</label>
+        <label class="toggle"><input type="checkbox" id="w-to" /> адресат «@Имя»</label>
+        <button id="w-delete">Удалить последнее</button>
+        <button id="w-history">История</button>
+        <button id="w-reenter">Уйти и вернуться в чат</button>
+        <output id="w-draft">черновик ядра: —</output>
+      </div>
       <div class="group">
         <span class="group-title">Библиотека</span>
         <button id="library">20×120 паков</button>
       </div>
     </div>
-    <div class="relative h-screen">
+    <div id="legacy-root" class="relative h-screen">
       <div id="chat"></div>
       <div class="absolute inset-x-0 bottom-0 translate-y-0">
         <div class="z-10 flex w-full flex-nowrap px-2.5 pb-1.5 pt-0">
@@ -411,13 +868,32 @@
     <script>
       /**
        * Разметка amo: стабильная — те же классы и структура плюс атрибуты `data-*`, которые новая
-       * amo ставит для внешних скриптов; выбор — с перезагрузкой, как язык.
+       * amo ставит для внешних скриптов; Worker-версия — своя разметка поля и ленты и ядро
+       * страницы в Worker-е (скрипт ниже); выбор — с перезагрузкой, как язык.
        */
       const MARKUP_KEY = 'harness:markup';
-      const isStableMarkup = localStorage.getItem(MARKUP_KEY) === 'stable';
+      const MARKUPS = ['legacy', 'stable', 'worker'];
+      const storedMarkup = localStorage.getItem(MARKUP_KEY);
+      const markup = MARKUPS.includes(storedMarkup) ? storedMarkup : 'legacy';
+      const isStableMarkup = markup === 'stable';
+      const isWorkerMarkup = markup === 'worker';
       const markupSelect = document.getElementById('markup');
-      markupSelect.value = isStableMarkup ? 'stable' : 'legacy';
+      markupSelect.value = markup;
+
+      /**
+       * `i18nextLng` у Worker-версии нет — он перебил бы `<html lang>`: на время Worker-версии
+       * значение прежних разметок лежит под своим ключом стенда и возвращается при выходе из неё.
+       */
+      const LEGACY_LOCALE_KEY = 'harness:legacy-i18nextLng';
+      const moveStored = (from, to) => {
+        const value = localStorage.getItem(from);
+        localStorage.removeItem(from);
+        if (value !== null) localStorage.setItem(to, value);
+      };
       markupSelect.onchange = () => {
+        const isNextWorker = markupSelect.value === 'worker';
+        if (isNextWorker && !isWorkerMarkup) moveStored(LOCALE_KEY, LEGACY_LOCALE_KEY);
+        if (!isNextWorker && isWorkerMarkup) moveStored(LEGACY_LOCALE_KEY, LOCALE_KEY);
         localStorage.setItem(MARKUP_KEY, markupSelect.value);
         location.reload();
       };
@@ -436,15 +912,20 @@
       };
 
       // --- мок amo: вставка файла + кнопка «Отправить» ---
-      const editable = document.querySelector('[contenteditable]');
-      const sendBtn = document.querySelector('[aria-label="Send message"]');
-      const attachments = document.getElementById('attachments');
-      const chat = document.getElementById('chat');
+      /**
+       * Поиск — внутри корня прежних разметок: в Worker-версии его место занимает её колонка
+       * чата, а мок прежних разметок работает на снятом из документа корне и странице не виден.
+       */
+      const legacyRoot = document.getElementById('legacy-root');
+      const editable = legacyRoot.querySelector('[contenteditable]');
+      const sendBtn = legacyRoot.querySelector('[aria-label="Send message"]');
+      const attachments = legacyRoot.querySelector('#attachments');
+      const chat = legacyRoot.querySelector('#chat');
       let files = [];
 
       const composeRow = editable.closest('.flex.size-full');
       mark(sendBtn.parentElement, { 'data-compose': true });
-      mark(document.querySelector('[aria-label="cancel edit"]'), {
+      mark(legacyRoot.querySelector('[aria-label="cancel edit"]'), {
         'data-compose-cancel-edit': true,
       });
       mark(composeRow.parentElement, { 'data-compose-field': true });
@@ -1043,6 +1524,1373 @@
         window.addEventListener('resize', () => place(tools.offsetLeft, tools.offsetTop));
       }
     </script>
+    <script>
+      /**
+       * Worker-версия amo web (design.md change next-amo-markup, «Context» и решение 9): полоса
+       * поля с капсулой, лента строк `[data-key]` и поддельное ядро страницы в Worker-е. Данные
+       * поля, строк и кнопок ленты лежат в поддельных `__reactFiber$harness` /
+       * `__reactProps$harness`, как в пропсах компонентов страницы: агент в мире страницы ищет их
+       * так же, как в живой Worker-версии. Ядро создаётся скриптом после userscript — после
+       * агента, как страница, которую агент опережает; «ядро не поймано» создаёт его до агента.
+       *
+       * @returns `startCore` — создание ядра, если его ещё нет
+       */
+      const mountWorkerHarness = () => {
+        const FIBER_KEY = '__reactFiber$harness';
+        const PROPS_KEY = '__reactProps$harness';
+        const CHAT_ID = 'harness-chat';
+        /**
+         * Имена Worker-ов стенда — свои, не имя Worker-а живой страницы: ядро узнаётся по
+         * докладам, а не по имени.
+         */
+        const CORE_NAME = 'harness-core';
+        const PHOTO_WORKER_NAME = 'harness-photo';
+        /**
+         * Шаги fiber от узла до пропсов компонента — как в живой Worker-версии (журнал разведки):
+         * поле — 5, кнопки ленты — 4; строка — в пределах 12, которые проходит агент.
+         */
+        const COMPOSE_DEPTH = 5;
+        const FEED_BUTTONS_DEPTH = 4;
+        const ROW_DEPTH = 3;
+        const MEDIA_MAX_SIDE = 420;
+        const MEDIA_MIN_SIDE = 100;
+        const MEDIA_BLEED_PX = 7;
+        /**
+         * От шапки пузыря (имя, цитата, «переслано») до картинки, как у страницы.
+         */
+        const HEAD_GAP_PX = 8;
+        const UPLOAD_MS = 300;
+        const PREPARE_MS = 600;
+        const LEAVE_MS = 300;
+        const REENTER_MS = 300;
+        const HISTORY_ROWS = 40;
+        const HISTORY_SIDES = [
+          [512, 512],
+          [512, 256],
+          [256, 512],
+          [128, 128],
+        ];
+        const MARK_BOLD = 1;
+        const PHOTO_SIDES = { width: 480, height: 270 };
+        const PEER = 'Собеседник';
+        /**
+         * Адресат «@Имя» строки — как поле `to` данных строки в живой Worker-версии: в групповом чате
+         * сообщение с адресатом amo держит в пузыре.
+         */
+        const ADDRESSEE = { id: 'peer-1', name: PEER, kind: 'user' };
+        const THEME_KEY = 'harness:worker-theme';
+        const CORE_MISSED_KEY = 'harness:core-missed';
+        const LANG_KEY = 'harness:worker-lang';
+        /**
+         * Языки интерфейса Worker-версии: страница пишет в `<html lang>` первый поддержанный из
+         * языков браузера, иначе английский.
+         */
+        const PAGE_LANGS = ['ru', 'en', 'id', 'pt-BR', 'es-419', 'tr'];
+
+        const $ = (id) => document.getElementById(id);
+        const isChecked = (id) => $(id).checked;
+        const root = document.documentElement;
+
+        const h = (tag, attrs, ...children) => {
+          const node = document.createElement(tag);
+          for (const [name, value] of Object.entries(attrs || {})) {
+            if (value === false || value === null || value === undefined) continue;
+            if (name === 'class') node.className = value;
+            else if (name === 'style') Object.assign(node.style, value);
+            else node.setAttribute(name, value === true ? '' : String(value));
+          }
+          node.append(...children.filter((child) => child !== null && child !== false));
+          return node;
+        };
+        const icon = (
+          d,
+          { isStroke = false, className = 'size-4.5', width = 18, height = 18 } = {}
+        ) => {
+          const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+          if (className) svg.setAttribute('class', className);
+          svg.setAttribute('width', String(width));
+          svg.setAttribute('height', String(height));
+          svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+          const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+          path.setAttribute('d', d);
+          if (isStroke) {
+            path.setAttribute('fill', 'none');
+            path.setAttribute('stroke', 'currentColor');
+            path.setAttribute('stroke-width', '1.5');
+            path.setAttribute('stroke-linecap', 'round');
+          } else {
+            path.setAttribute('fill', 'currentColor');
+          }
+          svg.append(path);
+          return svg;
+        };
+        const SMILE_D = legacyRoot.querySelector('svg path').getAttribute('d');
+        const SEND_D = sendBtn.querySelector('path').getAttribute('d');
+        const CLIP_D = 'M6 9.5V4.5a3 3 0 0 1 6 0v7a1.75 1.75 0 0 1-3.5 0V5.5';
+        const MIC_D =
+          'M9 2a2 2 0 0 1 2 2v5a2 2 0 0 1-4 0V4a2 2 0 0 1 2-2ZM4.5 8.5a4.5 4.5 0 0 0 9 0M9 13v3';
+        const TAIL_D = 'M8 0v10H0C4 9 8 6 8 0Z';
+
+        // --- язык и тема страницы ---
+        const browserLang = () => {
+          for (const tag of navigator.languages) {
+            const lower = tag.toLowerCase();
+            const primary = lower.split('-')[0];
+            const found =
+              PAGE_LANGS.find((lang) => lang.toLowerCase() === lower) ||
+              PAGE_LANGS.find((lang) => lang.split('-')[0] === primary);
+            if (found) return found;
+          }
+          return 'en';
+        };
+        root.lang = localStorage.getItem(LANG_KEY) || browserLang();
+        const isRu = root.lang === 'ru';
+        const t = (ru, en) => (isRu ? ru : en);
+        localeSelect.value = localStorage.getItem(LANG_KEY) || '';
+        localeSelect.onchange = () => {
+          if (localeSelect.value) localStorage.setItem(LANG_KEY, localeSelect.value);
+          else localStorage.removeItem(LANG_KEY);
+          location.reload();
+        };
+
+        root.classList.remove('dark');
+        document.body.classList.add('harness-worker');
+        const themeSelect = $('worker-theme');
+        themeSelect.value = localStorage.getItem(THEME_KEY) || '';
+        const applyTheme = () => {
+          if (themeSelect.value) root.setAttribute('data-amo-theme', themeSelect.value);
+          else root.removeAttribute('data-amo-theme');
+        };
+        themeSelect.onchange = () => {
+          localStorage.setItem(THEME_KEY, themeSelect.value);
+          applyTheme();
+        };
+        applyTheme();
+
+        $('worker-tools').hidden = false;
+        for (const node of [
+          $('theme'),
+          $('queue').closest('label'),
+          $('reply-missing').closest('label'),
+          $('slow-clear').closest('label'),
+        ]) {
+          node.hidden = true;
+        }
+
+        // --- поддельный fiber ---
+        const chainTo = (props, depth) => {
+          let fiber = { memoizedProps: props, alternate: null, return: null };
+          for (let step = 1; step < depth; step++) {
+            fiber = { memoizedProps: { children: null }, alternate: null, return: fiber };
+          }
+          return fiber;
+        };
+
+        /**
+         * Коммит пропсов узла, как у React с двумя копиями дерева: `__reactFiber$` остаётся
+         * копией, с которой узел создан, а текущей становится то она, то её `alternate`;
+         * текущая — та, чьи `memoizedProps` равны `__reactProps$` узла. Устаревшая копия
+         * держит прежний путь `return` и прежние пропсы компонента.
+         */
+        const commitFiber = (node, hostProps, ownerProps, depth) => {
+          const parent = chainTo(ownerProps, depth);
+          const fiber = node[FIBER_KEY];
+          if (!fiber) {
+            node[FIBER_KEY] = {
+              memoizedProps: hostProps,
+              alternate: null,
+              return: parent,
+            };
+          } else {
+            if (!fiber.alternate) {
+              fiber.alternate = { memoizedProps: null, alternate: fiber, return: null };
+            }
+            const next =
+              fiber.memoizedProps === node[PROPS_KEY] ? fiber.alternate : fiber;
+            next.memoizedProps = hostProps;
+            next.return = parent;
+          }
+          node[PROPS_KEY] = hostProps;
+        };
+
+        // --- поддельное ядро ---
+        /**
+         * Ядро в Worker-е типа `module`: первым сообщением — запись журнала `call` о загрузке,
+         * затем запись `call` на каждую команду и перед каждым докладом. `sendFiles` — каждый файл
+         * строкой ленты с ответом из черновика чата, доклад `sent` и снятие черновика целиком;
+         * `draft` и `reply` меняют черновик и докладывают его (`draftState`). `harnessConfig` —
+         * команда стенда: направление, автор и пересылка новых строк, время загрузки, отказ.
+         * Форма отказа условная: агенту важно, что `refused` непустой, а `key` нет.
+         */
+        const CORE_SOURCE = `
+          const EMPTY_DRAFT = { text: '', entities: [], reply: null };
+          const drafts = new Map();
+          let config = { uploadMs: 0, isRefusing: false, isIncoming: false, hasAuthor: false, isForwarded: false, hasAddressee: false };
+          let keySeq = 0;
+          const call = (dir, name) => postMessage({ kind: 'call', dir, name, at: Date.now() });
+          const report = (message) => {
+            call('out', message.kind);
+            postMessage(message);
+          };
+          const draftOf = (chat) => drafts.get(chat) || EMPTY_DRAFT;
+          const setDraft = (chat, draft) => {
+            drafts.set(chat, draft);
+            report({ kind: 'draftState', chat, draft });
+          };
+          const rowOf = (fields) => ({
+            key: 'core-' + ++keySeq,
+            mine: !config.isIncoming,
+            author: config.hasAuthor ? ${JSON.stringify(PEER)} : null,
+            forwardedFrom: config.isForwarded ? ${JSON.stringify(PEER)} : null,
+            to: config.hasAddressee ? ${JSON.stringify(ADDRESSEE)} : null,
+            reactions: [],
+            text: '',
+            blocks: [],
+            replyTo: null,
+            media: null,
+            uploading: false,
+            deleted: false,
+            ...fields,
+          });
+          const handlers = {
+            harnessConfig: ({ config: next }) => {
+              config = { ...config, ...next };
+            },
+            draft: ({ chat, text, entities }) =>
+              setDraft(chat, { ...draftOf(chat), text: text || '', entities: entities || [] }),
+            reply: ({ chat, key }) => setDraft(chat, { ...draftOf(chat), reply: key || null }),
+            sendMessage: ({ chat, seq, text, entities }) => {
+              const row = rowOf({ text, entities, replyTo: draftOf(chat).reply });
+              report({ kind: 'row', chat, row });
+              report({ kind: 'sent', chat, seq, key: row.key, refused: null });
+              setDraft(chat, EMPTY_DRAFT);
+            },
+            sendFiles: ({ chat, seq, text, files }) => {
+              if (config.isRefusing) {
+                report({ kind: 'sent', chat, seq, key: null, refused: 'harness' });
+                return;
+              }
+              let key = null;
+              files.forEach(({ bytes, name, w, h, size }, index) => {
+                const row = rowOf({
+                  text: index === 0 ? text || '' : '',
+                  replyTo: index === 0 ? draftOf(chat).reply : null,
+                  media: { kind: 'photo', name, w, h, size, bytes },
+                  uploading: true,
+                });
+                key = row.key;
+                report({ kind: 'row', chat, row });
+                setTimeout(() => report({ kind: 'row', chat, row: { ...row, uploading: false } }), config.uploadMs);
+              });
+              report({ kind: 'sent', chat, seq, key, refused: null });
+              setDraft(chat, EMPTY_DRAFT);
+            },
+          };
+          onmessage = ({ data }) => {
+            const kind = data && data.kind;
+            call('in', kind);
+            if (Object.hasOwn(handlers, kind)) handlers[kind](data);
+          };
+          call('out', 'loaded');
+        `;
+        /**
+         * Worker подготовки фото: первым сообщением отвечает не докладом ядра, а сторонами
+         * картинки, и сразу завершается.
+         */
+        const PHOTO_WORKER_SOURCE =
+          'onmessage = ({ data }) => postMessage({ w: data.w, h: data.h });';
+        const scriptUrl = (source) =>
+          URL.createObjectURL(new Blob([source], { type: 'text/javascript' }));
+        const coreUrl = scriptUrl(CORE_SOURCE);
+        const photoWorkerUrl = scriptUrl(PHOTO_WORKER_SOURCE);
+
+        let core = null;
+        let ownSeq = 1;
+        const ownSeqs = new Set();
+        const postCore = (command) => core?.postMessage(command);
+        const sendConfig = () =>
+          postCore({
+            kind: 'harnessConfig',
+            config: {
+              uploadMs: isChecked('slow') ? SLOW_DELAY_MS : UPLOAD_MS,
+              isRefusing: isChecked('core-refuse'),
+              isIncoming: isChecked('incoming'),
+              hasAuthor: isChecked('author'),
+              isForwarded: isChecked('w-forward'),
+              hasAddressee: isChecked('w-to'),
+            },
+          });
+
+        const startPhotoWorker = ({ width, height }) => {
+          const worker = new Worker(photoWorkerUrl, { name: PHOTO_WORKER_NAME });
+          worker.onmessage = () => worker.terminate();
+          worker.postMessage({ w: width, h: height });
+        };
+
+        // --- колонка чата ---
+        const header = h('header', { class: 'hw-header' }, PEER);
+        const feed = h('div', { role: 'log', class: 'hw-feed' });
+        const reactionsButton = h(
+          'button',
+          {
+            type: 'button',
+            'aria-label': t('Непрочитанные реакции', 'Unread reactions'),
+            hidden: true,
+          },
+          '♥'
+        );
+        const downButton = h(
+          'button',
+          { type: 'button', 'aria-label': t('Вниз', 'Down'), hidden: true },
+          '↓'
+        );
+        const feedButtons = h(
+          'div',
+          { class: 'hw-feed-buttons', style: { pointerEvents: 'none' } },
+          reactionsButton,
+          downButton
+        );
+        const bar = h('div', {
+          class: 'z-10 flex w-full flex-nowrap px-2.5 pb-1.5 absolute inset-x-0 bottom-0',
+        });
+        const column = h('div', { class: 'hw-column' }, header, feed, feedButtons, bar);
+        legacyRoot.replaceWith(column);
+
+        // --- лента ---
+        /**
+         * Строки по ключу и их порядок; у строки — данные (`row`, как в пропсах страницы),
+         * байты картинки и её адрес, размытая заглушка и признак «картинка скачана».
+         */
+        const entries = new Map();
+        const order = [];
+        let localKeySeq = 0;
+        let isFeedMounted = true;
+
+        const isAtBottom = () =>
+          feed.scrollHeight - feed.scrollTop - feed.clientHeight < 2;
+        const scrollToBottom = () =>
+          feed.scrollTo({ top: feed.scrollHeight, behavior: 'smooth' });
+
+        /**
+         * Кнопки ленты: пропсы `{ down, reactions, bottom }` на 4 шага fiber от каждой кнопки;
+         * `down.shown` — лента не у низа, `down.onClick` — штатная прокрутка вниз.
+         */
+        let isDownShown = null;
+        const syncDown = () => {
+          const isShown = !isAtBottom();
+          if (isShown === isDownShown) return;
+          isDownShown = isShown;
+          downButton.hidden = !isShown;
+          const ownerProps = {
+            down: {
+              shown: isShown,
+              count: 0,
+              label: t('Вниз', 'Down'),
+              onClick: scrollToBottom,
+            },
+            reactions: {
+              shown: false,
+              count: 0,
+              label: t('Непрочитанные реакции', 'Unread reactions'),
+              onClick: () => {},
+            },
+            bottom: isAtBottom(),
+          };
+          for (const button of [reactionsButton, downButton]) {
+            commitFiber(
+              button,
+              { type: 'button', hidden: button.hidden },
+              ownerProps,
+              FEED_BUTTONS_DEPTH
+            );
+          }
+        };
+        feed.addEventListener('scroll', syncDown, { passive: true });
+        window.addEventListener('resize', syncDown);
+
+        /**
+         * Коробка фото — по сторонам оригинала: не больше 420 по стороне, не меньше 100×100.
+         */
+        const pictureBox = (width, height) => {
+          const scale = Math.min(1, MEDIA_MAX_SIDE / width, MEDIA_MAX_SIDE / height);
+          return {
+            width: Math.max(MEDIA_MIN_SIDE, Math.round(width * scale)),
+            height: Math.max(MEDIA_MIN_SIDE, Math.round(height * scale)),
+          };
+        };
+
+        /**
+         * Размытая заглушка — крошечный JPEG без прозрачности, как у страницы: под прозрачным
+         * стикером она видна, пока её не спрячет стиль ленты.
+         */
+        const makePreview = async (bytes) => {
+          const bitmap = await createImageBitmap(bytes);
+          const canvas = Object.assign(document.createElement('canvas'), {
+            width: 16,
+            height: 16,
+          });
+          const ctx = canvas.getContext('2d');
+          ctx.fillStyle = '#c8ccd2';
+          ctx.fillRect(0, 0, 16, 16);
+          ctx.drawImage(bitmap, 0, 0, 16, 16);
+          bitmap.close();
+          return canvas.toDataURL('image/jpeg');
+        };
+
+        /**
+         * Цитата в пузыре — в блоке со своими полями, как у страницы: `-mx-1 mb-2 pt-1` и
+         * `-mt-2`, под именем автора — `mt-0.5`. Поля — правилом стенда, а не inline: у
+         * страницы они из классов, и стиль ленты их перебивает.
+         */
+        const quoteNode = (key, isNamed) => {
+          const quoted = entries.get(key);
+          const media = quoted?.row.media;
+          return h(
+            'div',
+            {
+              class: `-mx-1 mb-2 w-auto pt-1 ${isNamed ? 'mt-0.5' : '-mt-2'} hw-quote-block`,
+            },
+            h(
+              'div',
+              { class: 'amo-quote hw-quote', 'data-quote-id': key },
+              media && quoted.url ? h('img', { src: quoted.url, alt: '' }) : null,
+              h('div', {}, media?.name || quoted?.row.text || t('Сообщение', 'Message'))
+            )
+          );
+        };
+
+        const mediaNode = (entry) => {
+          const { media, uploading } = entry.row;
+          const box = pictureBox(media.w, media.h);
+          const boxNode = h(
+            'div',
+            {
+              'data-media': 'photo',
+              'data-media-box': '',
+              class: `hw-box${entry.preview ? '' : ' hw-box-empty'}`,
+              style: { height: `${box.height}px`, borderRadius: `${MEDIA_BLEED_PX}px` },
+            },
+            h('span', { style: { width: `${box.width}px` } }),
+            entry.preview &&
+              h('img', {
+                'data-media-preview': '',
+                src: entry.preview,
+                alt: '',
+                class: 'hw-preview',
+              }),
+            entry.url &&
+              h('img', {
+                'data-media-photo': entry.isImageShown ? 'shown' : 'loading',
+                src: entry.url,
+                alt: '',
+                class: `hw-photo${entry.isImageShown ? '' : ' invisible'}`,
+              }),
+            uploading &&
+              h(
+                'div',
+                {
+                  'data-media-uploading': '',
+                  class: 'hw-uploading',
+                  style: { width: `${box.width}px` },
+                },
+                h('div', { class: 'loader-x' })
+              )
+          );
+          return h(
+            'div',
+            { class: 'hw-media' },
+            boxNode,
+            !entry.row.text &&
+              h(
+                'span',
+                { 'data-media-time': 'over', class: 'hw-media-time' },
+                `${entry.time} ✓`
+              )
+          );
+        };
+
+        const rowContent = (entry) => {
+          const { row } = entry;
+          const hasHead = Boolean(
+            (row.author && !row.mine) || row.forwardedFrom || row.replyTo || row.to
+          );
+          const bubble = h('div', {
+            'data-amo-bubble': '',
+            class: `rounded-lgx p-2 shadow-flat ${row.mine ? 'amo-bubble-out' : 'amo-bubble-in'} hw-bubble`,
+            style: row.media ? { maxWidth: 'min(422px, 65%)' } : null,
+          });
+          if (row.author && !row.mine) {
+            bubble.append(
+              h(
+                'div',
+                { 'data-amo-bubble-frame': '' },
+                h('span', { 'data-author': '', class: 'hw-author' }, row.author)
+              )
+            );
+          }
+          if (row.forwardedFrom) {
+            bubble.append(
+              h(
+                'div',
+                { 'data-forward-from': '', class: 'hw-forward' },
+                `${t('Переслано от', 'Forwarded from')} ${row.forwardedFrom}`
+              )
+            );
+          }
+          if (row.replyTo)
+            bubble.append(quoteNode(row.replyTo, Boolean(row.author && !row.mine)));
+          if (row.to)
+            bubble.append(
+              h(
+                'span',
+                { 'data-to': '', class: 'hw-forward' },
+                `@${row.to.name || 'all'}`
+              )
+            );
+          if (row.deleted) {
+            bubble.append(
+              h('div', { class: 'hw-deleted' }, t('Сообщение удалено', 'Message deleted'))
+            );
+          } else if (row.media) {
+            const media = mediaNode(entry);
+            media.style.margin = `${hasHead ? HEAD_GAP_PX : -MEDIA_BLEED_PX}px -${MEDIA_BLEED_PX}px ${row.text ? 6 : -MEDIA_BLEED_PX}px`;
+            bubble.append(media);
+          }
+          if (row.text)
+            bubble.append(h('div', { class: 'whitespace-pre-wrap' }, row.text));
+          bubble.append(
+            h(
+              'div',
+              { 'data-amo-bubble-foot': '', class: 'hw-foot' },
+              ...row.reactions.map(({ emoji, count }) =>
+                h('span', { class: 'hw-reaction' }, `${emoji} ${count}`)
+              ),
+              (!row.media || row.text || row.deleted) && h('span', {}, entry.time)
+            )
+          );
+          const wrapper = h('div', {
+            class: `relative flex${row.mine ? ' flex-row-reverse' : ''} hw-wrapper`,
+          });
+          if (row.author && !row.mine) {
+            wrapper.append(
+              h(
+                'div',
+                { class: 'hw-avatar-spacer' },
+                h('div', { 'data-amo-pack-face': '', class: 'hw-avatar' })
+              )
+            );
+          }
+          wrapper.append(
+            h(
+              'div',
+              { 'data-amo-tail': '', class: 'hw-tail' },
+              icon(TAIL_D, { className: '', width: 8, height: 10 })
+            ),
+            bubble,
+            h(
+              'div',
+              { class: 'amo-message-controls hw-controls' },
+              h('button', { type: 'button', 'aria-label': t('Ответить', 'Reply') }, '↩')
+            )
+          );
+          return h(
+            'div',
+            {
+              'data-amo-feed-row': '',
+              'data-amo-lead': '',
+              'data-amo-tail': '',
+              class: 'hw-feed-row',
+              style: { justifyContent: row.mine ? 'flex-end' : 'flex-start' },
+            },
+            wrapper
+          );
+        };
+
+        const rowNodeOf = (key) =>
+          feed.querySelector(`:scope > [data-key="${CSS.escape(key)}"]`);
+
+        /**
+         * Строка ленты: узел `[data-key]` переживает перерисовку, его содержимое и пропсы
+         * меняются в одной задаче — как коммит React.
+         */
+        const renderRow = (entry, { isPrepend = false } = {}) => {
+          if (!isFeedMounted) return;
+          const { key } = entry.row;
+          let rowNode = rowNodeOf(key);
+          const isNew = !rowNode;
+          const shouldStick = isNew && !isPrepend && isAtBottom();
+          if (isNew) rowNode = h('div', { 'data-key': key, class: 'amo-glides' });
+          rowNode.replaceChildren(rowContent(entry));
+          commitFiber(
+            rowNode,
+            { 'data-key': key, className: 'amo-glides' },
+            { row: entry.row, chat: CHAT_ID },
+            ROW_DEPTH
+          );
+          if (isNew && isPrepend) feed.prepend(rowNode);
+          else if (isNew) feed.append(rowNode);
+          if (shouldStick) feed.scrollTop = feed.scrollHeight;
+          syncDown();
+        };
+
+        /**
+         * Скачивание картинки: до него в коробке заглушка, картинка — `loading` и не видна.
+         */
+        const scheduleImage = (entry) => {
+          if (!entry.url || entry.isImageShown || entry.isImageLoading) return;
+          entry.isImageLoading = true;
+          setTimeout(
+            () => {
+              entry.isImageLoading = false;
+              entry.isImageShown = true;
+              renderRow(entry);
+            },
+            isChecked('slow-image') ? SLOW_IMAGE_LOAD_MS : IMAGE_LOAD_MS
+          );
+        };
+
+        const upsertRow = (row, bytes, { isPrepend = false } = {}) => {
+          let entry = entries.get(row.key);
+          if (!entry) {
+            entry = {
+              row,
+              bytes: null,
+              url: null,
+              preview: null,
+              isImageShown: false,
+              isImageLoading: false,
+              time: new Date().toTimeString().slice(0, 5),
+            };
+            entries.set(row.key, entry);
+            if (isPrepend) order.unshift(row.key);
+            else order.push(row.key);
+          }
+          entry.row = row;
+          if (bytes && !entry.bytes) {
+            entry.bytes = bytes;
+            entry.url = URL.createObjectURL(bytes);
+            makePreview(bytes).then((preview) => {
+              entry.preview = preview;
+              renderRow(entry);
+            });
+          }
+          renderRow(entry, { isPrepend });
+          scheduleImage(entry);
+          return entry;
+        };
+
+        /**
+         * Строка «с сервера» мимо ядра: история, картинка без метки, текстовый ответ.
+         */
+        const addServerRow = (fields, bytes, options) =>
+          upsertRow(
+            {
+              key: `server-${++localKeySeq}`,
+              mine: !isChecked('incoming'),
+              author: isChecked('author') ? PEER : null,
+              forwardedFrom: isChecked('w-forward') ? PEER : null,
+              to: isChecked('w-to') ? ADDRESSEE : null,
+              reactions: [],
+              text: '',
+              blocks: [],
+              replyTo: null,
+              media: null,
+              uploading: false,
+              deleted: false,
+              ...fields,
+            },
+            bytes,
+            options
+          );
+
+        const lastEntry = (isMatch) => {
+          for (let index = order.length - 1; index >= 0; index--) {
+            const entry = entries.get(order[index]);
+            if (!entry.row.deleted && isMatch(entry)) return entry;
+          }
+          return null;
+        };
+        const lastMediaEntry = () => lastEntry((entry) => Boolean(entry.row.media));
+
+        // --- полоса поля ---
+        const EMOJI_CLASS =
+          'z-20 mr-3 flex h-8 shrink-0 cursor-pointer items-center self-end transition-colors duration-base ease-base hover:text-accent';
+        const SIDE_BUTTON_CLASS =
+          'mr-3 flex h-8 shrink-0 cursor-pointer items-center self-end text-fg-muted';
+        /**
+         * Вложения и правка — состояние страницы; текст и ответ черновика — у ядра (`coreDraft` —
+         * его последний доклад). Вложения готовятся: полоса вложений видна сразу, «Отправить» —
+         * когда они готовы.
+         */
+        const compose = { edit: null, attachments: [], isPrepared: false };
+        let coreDraft = { text: '', entities: [], reply: null };
+        let composer = null;
+        let prepareTimer = 0;
+
+        const readDraft = (field) => {
+          const walker = document.createTreeWalker(field, NodeFilter.SHOW_TEXT);
+          let text = '';
+          const entities = [];
+          while (walker.nextNode()) {
+            const { currentNode } = walker;
+            const from = text.length;
+            text += currentNode.data;
+            if (!currentNode.parentElement.closest('b, strong')) continue;
+            const last = entities.at(-1);
+            if (last && last.to === from) last.to = text.length;
+            else entities.push({ from, to: text.length, marks: MARK_BOLD });
+          }
+          return { text, entities };
+        };
+        const renderDraft = (field, { text, entities }) => {
+          const parts = [];
+          let at = 0;
+          for (const { from, to } of entities) {
+            if (from > at) parts.push(text.slice(at, from));
+            parts.push(h('b', {}, text.slice(from, to)));
+            at = to;
+          }
+          if (at < text.length) parts.push(text.slice(at));
+          field.replaceChildren(...parts);
+        };
+        const draftLabel = ({ text, entities, reply }) => {
+          let label = '';
+          let at = 0;
+          for (const { from, to } of entities) {
+            label += `${text.slice(at, from)}**${text.slice(from, to)}**`;
+            at = to;
+          }
+          label += text.slice(at);
+          return `черновик ядра: ${label ? `«${label}»` : '—'}${reply ? ` · ответ на ${reply}` : ''}`;
+        };
+
+        const hasFieldText = () => composer.field.textContent.trim() !== '';
+
+        const commitComposer = () => {
+          const ownerProps = {
+            chat: CHAT_ID,
+            onSend: handleSendClick,
+            onFilesPick: attachFiles,
+            reply: coreDraft.reply ? { key: coreDraft.reply } : null,
+            edit: compose.edit,
+            attached: compose.attachments.length > 0,
+            draft: { text: coreDraft.text, entities: coreDraft.entities },
+            onDraftChange: (draft) =>
+              postCore({ kind: 'draft', chat: CHAT_ID, ...draft }),
+          };
+          commitFiber(
+            composer.field,
+            { contentEditable: true, role: 'textbox', 'aria-multiline': true },
+            ownerProps,
+            COMPOSE_DEPTH
+          );
+        };
+
+        const leave = (node, attr) => {
+          node.setAttribute(attr, '');
+          setTimeout(() => node.remove(), LEAVE_MS);
+        };
+
+        const syncComposer = () => {
+          if (!composer) return;
+          const c = composer;
+          const isEditing = Boolean(compose.edit);
+          const hasAttachments = compose.attachments.length > 0;
+
+          if (isEditing && !c.cancel) {
+            c.cancel = h(
+              'button',
+              {
+                type: 'button',
+                'data-compose-edit-cancel': '',
+                'aria-label': t('Отменить редактирование', 'Cancel editing'),
+                class: 'hw-round hw-cancel',
+              },
+              '×'
+            );
+            c.cancel.onclick = () => setEditing(false);
+            c.capsule.before(c.cancel);
+          }
+          if (!isEditing && c.cancel) {
+            leave(c.cancel, 'data-leaving');
+            c.cancel = null;
+          }
+          c.capsule.toggleAttribute('data-editing', isEditing);
+
+          const replyEntry = coreDraft.reply && entries.get(coreDraft.reply);
+          const replyText = `${t('Ответ на', 'Reply to')}: ${replyEntry?.row.media?.name || replyEntry?.row.text || coreDraft.reply}`;
+          if (coreDraft.reply && !c.replySlot) {
+            const close = h(
+              'button',
+              { type: 'button', 'aria-label': t('Отменить ответ', 'Cancel reply') },
+              '×'
+            );
+            close.onclick = () => postCore({ kind: 'reply', chat: CHAT_ID, key: null });
+            c.replyLabel = h('div', { class: 'truncate' }, replyText);
+            c.replySlot = h(
+              'div',
+              { 'data-reply-slot': '', 'data-compose-slot': '' },
+              h(
+                'div',
+                { 'data-reply-plate': '', class: 'amo-reply-plate hw-reply' },
+                c.replyLabel,
+                close
+              )
+            );
+            c.fill.after(c.replySlot);
+          } else if (coreDraft.reply) {
+            c.replyLabel.textContent = replyText;
+          } else if (c.replySlot) {
+            leave(c.replySlot, 'data-reply-leaving');
+            c.replySlot = null;
+          }
+
+          if (hasAttachments) {
+            if (!c.attachmentsSlot) {
+              c.attachmentsStrip = h('div', {
+                'data-attachments': '',
+                class: 'hw-attachments',
+              });
+              c.attachmentsSlot = h(
+                'div',
+                { 'data-attachments-slot': '' },
+                c.attachmentsStrip
+              );
+              c.row.before(c.attachmentsSlot);
+            }
+            c.attachmentsStrip.toggleAttribute('data-preparing', !compose.isPrepared);
+            c.attachmentsStrip.replaceChildren(
+              ...compose.attachments.map(({ url }) => h('img', { src: url, alt: '' }))
+            );
+          } else if (c.attachmentsSlot) {
+            c.attachmentsSlot.remove();
+            c.attachmentsSlot = null;
+          }
+
+          const hasClip = !isEditing && !hasAttachments;
+          if (hasClip && !c.clip) {
+            const input = h('input', { type: 'file', multiple: true, hidden: true });
+            input.onchange = () => {
+              attachFiles([...input.files]);
+              input.value = '';
+            };
+            c.clip = h(
+              'label',
+              {
+                'data-compose-clip': '',
+                'aria-label': t('Прикрепить файл', 'Attach file'),
+                class: SIDE_BUTTON_CLASS,
+              },
+              icon(CLIP_D, { isStroke: true }),
+              input
+            );
+            c.row.prepend(c.clip);
+          }
+          if (!hasClip && c.clip) {
+            c.clip.remove();
+            c.clip = null;
+          }
+
+          const isSendable = hasFieldText() || (hasAttachments && compose.isPrepared);
+          if (isSendable && !c.send) {
+            c.send = h(
+              'button',
+              {
+                type: 'button',
+                'aria-label': t('Отправить', 'Send'),
+                class: 'hw-round hw-send',
+              },
+              icon(SEND_D)
+            );
+            c.send.onclick = handleSendClick;
+            c.capsule.after(c.send);
+          }
+          if (!isSendable && c.send) {
+            c.send.remove();
+            c.send = null;
+          }
+          c.placeholder.hidden = hasFieldText();
+          commitComposer();
+        };
+
+        /**
+         * Как у страницы: обработчик ввода читает `inputType` и после чтения поля шлёт черновик
+         * ядру командой `draft` — синхронно. Событие без `inputType` он не переживает, и черновик
+         * не уходит. При правке сообщения поле — текст сообщения, а не черновик.
+         */
+        const handleFieldInput = (event) => {
+          if (typeof event.inputType !== 'string')
+            throw new TypeError('input без inputType');
+          if (!compose.edit)
+            postCore({ kind: 'draft', chat: CHAT_ID, ...readDraft(composer.field) });
+          syncComposer();
+        };
+
+        /**
+         * Вставка: файлы из буфера важнее текста и уходят во вложения; без файлов — только текст.
+         */
+        const handleFieldPaste = (event) => {
+          event.preventDefault();
+          const files = [...(event.clipboardData?.files || [])];
+          if (files.length) {
+            attachFiles(files);
+            return;
+          }
+          document.execCommand(
+            'insertText',
+            false,
+            event.clipboardData?.getData('text/plain') || ''
+          );
+        };
+
+        const syncToolbar = () => {
+          if (!composer) return;
+          const selection = document.getSelection();
+          const isInField =
+            selection &&
+            !selection.isCollapsed &&
+            composer.field.contains(selection.anchorNode);
+          composer.toolbar.hidden = !isInField;
+          if (!isInField) return;
+          const rect = selection.getRangeAt(0).getBoundingClientRect();
+          composer.toolbar.style.left = `${rect.left}px`;
+          composer.toolbar.style.top = `${rect.top - 40}px`;
+        };
+        document.addEventListener('selectionchange', syncToolbar);
+
+        const mountComposer = () => {
+          const placeholderText = t('Написать сообщение', 'Write a message');
+          const field = h('div', {
+            contenteditable: 'true',
+            role: 'textbox',
+            'aria-multiline': 'true',
+            'aria-label': placeholderText,
+            class: 'hw-field',
+          });
+          const placeholder = h(
+            'span',
+            { 'data-compose-placeholder': '', class: 'hw-placeholder' },
+            placeholderText
+          );
+          const emoji = h(
+            'button',
+            {
+              type: 'button',
+              'aria-label': t('Смайлик', 'Emoji'),
+              'aria-haspopup': 'dialog',
+              'aria-expanded': 'false',
+              class: `${EMOJI_CLASS} text-fg-muted`,
+            },
+            icon(SMILE_D)
+          );
+          emoji.addEventListener('mousedown', (event) => event.preventDefault());
+          emoji.onclick = () => {
+            const isOpen = emoji.getAttribute('aria-expanded') !== 'true';
+            emoji.setAttribute('aria-expanded', String(isOpen));
+            emoji.className = `${EMOJI_CLASS} ${isOpen ? 'text-accent' : 'text-fg-muted'}`;
+          };
+          const mic = h(
+            'button',
+            {
+              type: 'button',
+              'aria-label': t('Голосовое сообщение', 'Voice message'),
+              class: SIDE_BUTTON_CLASS,
+            },
+            icon(MIC_D, { isStroke: true })
+          );
+          const row = h(
+            'div',
+            { class: 'flex min-w-0 grow' },
+            h('div', { class: 'relative z-10 grid hw-cell' }, field, placeholder),
+            emoji,
+            mic
+          );
+          const fill = h(
+            'div',
+            { class: 'amo-capsule-fill' },
+            h('div', { 'data-capsule-top': '' })
+          );
+          const capsule = h(
+            'div',
+            { class: 'relative isolate flex flex-col rounded-capsule hw-capsule' },
+            fill,
+            row
+          );
+          const bold = h(
+            'button',
+            { type: 'button', 'aria-label': t('Жирный', 'Bold') },
+            h('b', {}, 'B')
+          );
+          bold.addEventListener('mousedown', (event) => event.preventDefault());
+          bold.onclick = () => document.execCommand('bold');
+          const toolbar = h(
+            'ul',
+            { class: 'hw-format', hidden: true },
+            h('li', {}, bold)
+          );
+          bar.replaceChildren(capsule, toolbar);
+          composer = {
+            field,
+            placeholder,
+            row,
+            fill,
+            capsule,
+            toolbar,
+            cancel: null,
+            clip: null,
+            send: null,
+            replySlot: null,
+            replyLabel: null,
+            attachmentsSlot: null,
+            attachmentsStrip: null,
+          };
+
+          field.addEventListener('input', handleFieldInput);
+          field.addEventListener('paste', handleFieldPaste);
+          field.addEventListener('keydown', (event) => {
+            if (event.key !== 'Enter' || event.shiftKey) return;
+            event.preventDefault();
+            handleSendClick();
+          });
+          renderDraft(field, coreDraft);
+          syncComposer();
+        };
+
+        const attachFiles = (files) => {
+          compose.attachments.push(
+            ...files.map((file) => ({ file, url: URL.createObjectURL(file) }))
+          );
+          compose.isPrepared = false;
+          $('w-attachment').checked = true;
+          startPhotoWorker(PHOTO_SIDES);
+          syncComposer();
+          clearTimeout(prepareTimer);
+          prepareTimer = setTimeout(
+            () => {
+              compose.isPrepared = true;
+              syncComposer();
+            },
+            isChecked('slow') ? SLOW_DELAY_MS : PREPARE_MS
+          );
+        };
+        const clearAttachments = () => {
+          clearTimeout(prepareTimer);
+          compose.attachments = [];
+          compose.isPrepared = false;
+          $('w-attachment').checked = false;
+          syncComposer();
+        };
+
+        /**
+         * Картинка-образец: эллипс на прозрачном или залитом фоне с подписью сторон.
+         */
+        const drawSample = ({ width, height }, fill = 'transparent') => {
+          const canvas = new OffscreenCanvas(width, height);
+          const ctx = canvas.getContext('2d');
+          const side = Math.min(width, height);
+          ctx.fillStyle = fill;
+          ctx.fillRect(0, 0, width, height);
+          ctx.fillStyle = `hsl(${(width * 7 + height * 3) % 360} 70% 60%)`;
+          ctx.beginPath();
+          ctx.ellipse(
+            width / 2,
+            height / 2,
+            width * 0.45,
+            height * 0.45,
+            0,
+            0,
+            Math.PI * 2
+          );
+          ctx.fill();
+          ctx.fillStyle = '#000';
+          ctx.font = `bold ${Math.round(side / 6)}px sans-serif`;
+          ctx.textAlign = 'center';
+          ctx.fillText(`${width}×${height}`, width / 2, height / 2 + side / 18);
+          return canvas.convertToBlob({ type: 'image/png' });
+        };
+        const PHOTO_FILL = '#7b8cde';
+
+        /**
+         * Своя отправка страницы: файлы — `sendFiles` со своим `seq` от 1, текст — `sendMessage`;
+         * по докладу `sent` со своим `seq` страница ведёт ленту к низу.
+         */
+        const sendOwn = async (files, draft) => {
+          const seq = ownSeq++;
+          ownSeqs.add(seq);
+          if (!files.length) {
+            postCore({ kind: 'sendMessage', chat: CHAT_ID, seq, ...draft });
+            return;
+          }
+          const described = await Promise.all(
+            files.map(async (file, index) => {
+              const bitmap = await createImageBitmap(file);
+              const { width, height } = bitmap;
+              bitmap.close();
+              return {
+                file: `harness-${seq}-${index}`,
+                bytes: file,
+                kind: 'photo',
+                name: file.name,
+                mime: file.type,
+                size: file.size,
+                w: width,
+                h: height,
+                durationMs: 0,
+              };
+            })
+          );
+          postCore({
+            kind: 'sendFiles',
+            chat: CHAT_ID,
+            text: draft.text,
+            seq,
+            files: described,
+          });
+        };
+
+        const handleSendClick = () => {
+          if (!composer.send) return;
+          if (compose.edit) {
+            setEditing(false);
+            return;
+          }
+          const draft = readDraft(composer.field);
+          const files = compose.attachments.map(({ file }) => file);
+          composer.field.replaceChildren();
+          clearAttachments();
+          sendOwn(files, draft);
+        };
+
+        const setEditing = (isOn) => {
+          $('w-editing').checked = isOn;
+          if (isOn) {
+            const target = lastEntry(
+              (entry) => entry.row.mine && Boolean(entry.row.text)
+            );
+            compose.edit = { key: target?.row.key || null };
+            renderDraft(composer.field, {
+              text: target?.row.text || t('Редактируемое сообщение', 'Edited message'),
+              entities: [],
+            });
+          } else {
+            compose.edit = null;
+            renderDraft(composer.field, coreDraft);
+          }
+          syncComposer();
+        };
+
+        // --- доклады ядра ---
+        const handleReport = ({ data }) => {
+          switch (data?.kind) {
+            case 'draftState':
+              if (data.chat !== CHAT_ID) return;
+              coreDraft = data.draft;
+              $('w-draft').textContent = draftLabel(coreDraft);
+              syncComposer();
+              return;
+            case 'row': {
+              if (data.chat !== CHAT_ID) return;
+              const { bytes, ...media } = data.row.media || {};
+              upsertRow({ ...data.row, media: data.row.media ? media : null }, bytes);
+              return;
+            }
+            case 'sent':
+              if (!ownSeqs.delete(data.seq)) return;
+              if (data.key) scrollToBottom();
+              else console.warn('[harness] своя отправка отклонена', data.refused);
+              return;
+            default:
+              return;
+          }
+        };
+
+        const startCore = () => {
+          if (core) return;
+          core = new Worker(coreUrl, { type: 'module', name: CORE_NAME });
+          core.onmessage = handleReport;
+          sendConfig();
+          console.log('[harness] ядро страницы создано');
+        };
+
+        // --- переключатели ---
+        const coreMissed = $('core-missed');
+        coreMissed.checked = localStorage.getItem(CORE_MISSED_KEY) === 'true';
+        coreMissed.onchange = () => {
+          localStorage.setItem(CORE_MISSED_KEY, String(coreMissed.checked));
+          location.reload();
+        };
+        for (const id of [
+          'slow',
+          'core-refuse',
+          'incoming',
+          'author',
+          'w-forward',
+          'w-to',
+        ]) {
+          $(id).addEventListener('change', sendConfig);
+        }
+
+        $('w-attachment').onchange = async () => {
+          if (!isChecked('w-attachment')) {
+            clearAttachments();
+            return;
+          }
+          const blob = await drawSample(PHOTO_SIDES, PHOTO_FILL);
+          attachFiles([new File([blob], 'photo.png', { type: 'image/png' })]);
+        };
+        $('w-editing').onchange = () => setEditing(isChecked('w-editing'));
+
+        let reactedKey = null;
+        $('w-reaction').onchange = () => {
+          const entry = isChecked('w-reaction')
+            ? lastMediaEntry() || lastEntry(() => true)
+            : entries.get(reactedKey);
+          if (!entry) {
+            $('w-reaction').checked = false;
+            return;
+          }
+          reactedKey = isChecked('w-reaction') ? entry.row.key : null;
+          upsertRow({
+            ...entry.row,
+            reactions: reactedKey ? [{ emoji: '👍', count: 1 }] : [],
+          });
+        };
+
+        $('w-delete').onclick = () => {
+          const entry = lastEntry(() => true);
+          if (entry)
+            upsertRow({
+              ...entry.row,
+              deleted: true,
+              media: null,
+              text: '',
+              reactions: [],
+            });
+        };
+
+        $('reply-to').onclick = () => {
+          const entry = lastEntry(() => true);
+          if (entry) postCore({ kind: 'reply', chat: CHAT_ID, key: entry.row.key });
+        };
+
+        $('plain').onclick = async () => {
+          const source = lastMediaEntry();
+          const bytes = source?.bytes || (await drawSample(PHOTO_SIDES, PHOTO_FILL));
+          const sides = source
+            ? source.row.media
+            : { w: PHOTO_SIDES.width, h: PHOTO_SIDES.height };
+          addServerRow(
+            {
+              media: {
+                kind: 'photo',
+                name: 'photo.gif',
+                w: sides.w,
+                h: sides.h,
+                size: bytes.size,
+              },
+            },
+            bytes
+          );
+        };
+
+        $('reply').onclick = () => {
+          const source = lastMediaEntry();
+          if (source)
+            addServerRow({
+              text: t('Ответ на картинку', 'Reply to the picture'),
+              replyTo: source.row.key,
+            });
+        };
+
+        /**
+         * История: строки «с сервера» над лентой — текст, стикеры четырёх пропорций с маркером в
+         * имени и фото без маркера; лента остаётся у низа. Направление медиа-строк чередуется по
+         * своему счёту, а не по чётности индекса: она у них всегда одна, и все были бы входящими.
+         */
+        $('w-history').onclick = async () => {
+          const button = $('w-history');
+          button.disabled = true;
+          const rows = [];
+          for (let index = 0; index < HISTORY_ROWS; index++) {
+            if (index % 4 === 1) {
+              const mine = (index >> 2) % 2 === 0;
+              const [width, height] = HISTORY_SIDES[(index >> 2) % HISTORY_SIDES.length];
+              const bytes = await drawSample({ width, height });
+              const media = {
+                kind: 'photo',
+                name: `${index}.amostk.k-sticker.gif`,
+                w: width,
+                h: height,
+                size: bytes.size,
+              };
+              rows.push([{ mine, media }, bytes]);
+            } else if (index % 8 === 3) {
+              const mine = (index >> 3) % 2 === 0;
+              const bytes = await drawSample(PHOTO_SIDES, PHOTO_FILL);
+              const media = {
+                kind: 'photo',
+                name: 'photo.jpg',
+                w: PHOTO_SIDES.width,
+                h: PHOTO_SIDES.height,
+                size: bytes.size,
+              };
+              rows.push([{ mine, media }, bytes]);
+            } else {
+              rows.push([
+                {
+                  mine: index % 2 === 0,
+                  text: `${t('Сообщение истории', 'History message')} ${index + 1}`,
+                },
+                null,
+              ]);
+            }
+          }
+          for (const [fields, bytes] of rows.reverse())
+            addServerRow(fields, bytes, { isPrepend: true });
+          feed.scrollTop = feed.scrollHeight;
+          syncDown();
+          button.disabled = false;
+        };
+
+        /**
+         * Уход в другой чат и возврат: поле и лента монтируются заново, поле — из черновика ядра,
+         * картинки строк снова «скачиваются»; правка снимается.
+         */
+        $('w-reenter').onclick = () => {
+          isFeedMounted = false;
+          feed.replaceChildren();
+          bar.replaceChildren();
+          composer = null;
+          compose.edit = null;
+          $('w-editing').checked = false;
+          setTimeout(() => {
+            isFeedMounted = true;
+            mountComposer();
+            for (const key of order) {
+              const entry = entries.get(key);
+              entry.isImageShown = false;
+              renderRow(entry);
+              scheduleImage(entry);
+            }
+            feed.scrollTop = feed.scrollHeight;
+            syncDown();
+          }, REENTER_MS);
+        };
+
+        mountComposer();
+        syncDown();
+        if (coreMissed.checked) startCore();
+        return { startCore };
+      };
+      const workerHarness = isWorkerMarkup ? mountWorkerHarness() : null;
+    </script>
     <script src="../dist/amo-stickers.user.js"></script>
+    <script>
+      /**
+       * Ядро страницы Worker-версии — после userscript, то есть после агента в мире страницы:
+       * в живой Worker-версии агент стартует до скриптов страницы.
+       */
+      workerHarness?.startCore();
+    </script>
   </body>
 </html>

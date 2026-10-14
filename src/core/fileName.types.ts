@@ -1,9 +1,11 @@
+import type { StickerKind } from '../shared/stickerMark.types';
+
 import type { StickerRec } from './db.types';
 
 /**
- * Вид отправленного файла: стикер из пака (своего или из Telegram) или GIF из поиска.
+ * Вид отправленного файла — тот же, что у пометки строки ленты.
  */
-export type StickerFileKind = 'sticker' | 'gif';
+export type StickerFileKind = StickerKind;
 
 export type StickerFileNameParams = {
   /**

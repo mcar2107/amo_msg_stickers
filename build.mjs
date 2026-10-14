@@ -98,7 +98,11 @@ const USERSCRIPT_BANNER = [
    */
   '// @sandbox      DOM',
   '// @inject-into  content',
-  '// @run-at       document-idle',
+  /**
+   * До скриптов страницы: агент ловит ядро Worker-версии amo web при его создании. Ядро amo stickers ждёт
+   * `DOMContentLoaded` само (`src/userscript/index.ts`).
+   */
+  '// @run-at       document-start',
   ...updateDirectives,
   '// ==/UserScript==',
 ].join('\n');

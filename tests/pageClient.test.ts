@@ -13,6 +13,7 @@ import { FakeDocument, FakeElement } from './helpers/fakeDocument';
 import { makeGif } from './helpers/makeGif';
 
 const file = new File([makeGif(8, 8)], 'a.amostk.k-sticker.gif', { type: 'image/gif' });
+const dims = { w: 8, h: 8 };
 
 /**
  * Агент-двойник: на каждую команду синхронно отвечает `detail`, который строит `reply` по
@@ -59,8 +60,22 @@ describe('createPageClient', () => {
       return { id, status: 'accepted' };
     });
 
-    expect(client.send(editable, file)).toEqual({ status: 'accepted' });
+    expect(client.send(editable, file, dims)).toEqual({ status: 'accepted' });
     expect(seen).toEqual([true, true, true]);
+  });
+
+  it('передаёт стороны GIF в команде', () => {
+    const { client, doc, editable } = setup();
+    const requests: unknown[] = [];
+
+    doc.addEventListener(PAGE_REQUEST_EVENT, (event) => {
+      requests.push(parsePageRequest(event));
+    });
+    client.send(editable, file, { w: 300, h: 70 });
+
+    expect(requests).toEqual([
+      { id: expect.any(String), op: 'send', dims: { w: 300, h: 70 } },
+    ]);
   });
 
   it('rejected: unavailable с причиной агента', () => {
@@ -70,7 +85,7 @@ describe('createPageClient', () => {
       return { id, status: 'rejected', reason: 'no-client' };
     });
 
-    expect(client.send(editable, file)).toEqual({
+    expect(client.send(editable, file, dims)).toEqual({
       status: 'unavailable',
       reason: 'no-client',
     });
@@ -79,7 +94,7 @@ describe('createPageClient', () => {
   it('агента нет: unavailable сразу, без ожидания', () => {
     const { client, editable } = setup();
 
-    expect(client.send(editable, file)).toEqual({
+    expect(client.send(editable, file, dims)).toEqual({
       status: 'unavailable',
       reason: 'no-agent',
     });
@@ -95,7 +110,7 @@ describe('createPageClient', () => {
       doc.dispatchEvent(new CustomEvent(PAGE_RESPONSE_EVENT, { detail: '{' }));
     });
 
-    expect(client.send(editable, file)).toEqual({
+    expect(client.send(editable, file, dims)).toEqual({
       status: 'unavailable',
       reason: 'no-agent',
     });
@@ -111,7 +126,7 @@ describe('createPageClient', () => {
       return { id, status: 'rejected', reason: 'no-client' };
     });
 
-    expect(client.send(editable, file)).toEqual({ status: 'accepted' });
+    expect(client.send(editable, file, dims)).toEqual({ status: 'accepted' });
   });
 
   it.each([
@@ -133,7 +148,7 @@ describe('createPageClient', () => {
     const { client, doc, editable, inputs } = setup();
 
     arrange(doc);
-    client.send(editable, file);
+    client.send(editable, file, dims);
 
     expect(editable.getAttribute(PAGE_TARGET_ATTR)).toBeNull();
     expect(inputs[0]?.isConnected).toBe(false);
@@ -150,8 +165,8 @@ describe('createPageClient', () => {
 
       return { id, status: 'accepted' };
     });
-    client.send(editable, file);
-    client.send(editable, file);
+    client.send(editable, file, dims);
+    client.send(editable, file, dims);
 
     expect(new Set(ids).size).toBe(2);
   });

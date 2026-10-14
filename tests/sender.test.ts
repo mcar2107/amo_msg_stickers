@@ -114,6 +114,22 @@ const clientAnswering = (result: PageSendResult): PageClient => {
   };
 };
 
+/**
+ * Вставка без DOM: `DataTransfer` и `ClipboardEvent` в окружении `node` нет.
+ */
+const stubPaste = () => {
+  vi.spyOn(console, 'info').mockImplementation(() => {
+    return undefined;
+  });
+  vi.stubGlobal(
+    'DataTransfer',
+    class {
+      readonly items = { add: vi.fn() };
+    }
+  );
+  vi.stubGlobal('ClipboardEvent', class extends Event {});
+};
+
 describe.each<[string, ComposeMarkup, ShownSignal]>([
   ['прежняя разметка', legacyMarkup, 'class'],
   ['стабильная разметка', stableMarkup, 'attribute'],
@@ -126,22 +142,40 @@ describe.each<[string, ComposeMarkup, ShownSignal]>([
 
     await sendFile(composer, file, client);
 
-    expect(client.send).toHaveBeenCalledWith(composer.editable, file);
+    expect(client.send).toHaveBeenCalledWith(composer.editable, file, { w: 8, h: 8 });
     expect(paste).not.toHaveBeenCalled();
     expect(click).not.toHaveBeenCalled();
   });
 
+  it('стороны в команде — из заголовка GIF: 300×70', async () => {
+    const { composer } = fakeComposer(true, markup, signal);
+    const client = clientAnswering({ status: 'accepted' });
+    const wide = new File([makeGif(300, 70)], GIF_NAME, { type: 'image/gif' });
+
+    await sendFile(composer, wide, client);
+
+    expect(client.send).toHaveBeenCalledWith(composer.editable, wide, { w: 300, h: 70 });
+  });
+
+  it('стороны не читаются — агенту не шлётся, вставка и «Отправить»', async () => {
+    stubPaste();
+
+    const info = vi.mocked(console.info);
+
+    const { click, composer, paste } = fakeComposer(false, markup, signal);
+    const client = clientAnswering({ status: 'accepted' });
+    const broken = new File(['<html>'], GIF_NAME, { type: 'image/gif' });
+
+    await sendFile(composer, broken, client);
+
+    expect(client.send).not.toHaveBeenCalled();
+    expect(info).toHaveBeenCalledWith(expect.stringContaining('(no-dims)'));
+    expect(paste).toHaveBeenCalledTimes(1);
+    expect(click).toHaveBeenCalledTimes(1);
+  });
+
   it('очередь недоступна, поле пустое — вставка и «Отправить»', async () => {
-    vi.spyOn(console, 'info').mockImplementation(() => {
-      return undefined;
-    });
-    vi.stubGlobal(
-      'DataTransfer',
-      class {
-        readonly items = { add: vi.fn() };
-      }
-    );
-    vi.stubGlobal('ClipboardEvent', class extends Event {});
+    stubPaste();
 
     const { click, composer, paste } = fakeComposer(false, markup, signal);
 
@@ -174,7 +208,88 @@ describe.each<[string, ComposeMarkup, ShownSignal]>([
   });
 });
 
+/**
+ * Поле ввода, в котором «Отправить» не смонтирована, пока вложение не готово: после вставки
+ * сначала появляется полоса вложений (черновик уже не пуст), а кнопка — только на
+ * `buttonAfterPolls + 1`-й вопрос о ней.
+ *
+ * @param buttonAfterPolls — сколько вопросов после вставки кнопки ещё нет
+ * @returns композер и шпионы вставки и клика
+ */
+const lateButtonComposer = (buttonAfterPolls: number) => {
+  let isPasted = false;
+  let polls = 0;
+  const click = vi.fn();
+  const paste = vi.fn(() => {
+    isPasted = true;
+
+    return true;
+  });
+  const markup: ComposeMarkup = {
+    isEditing: () => {
+      return false;
+    },
+    isDraftEmpty: () => {
+      return !isPasted;
+    },
+    sendButtonOf: () => {
+      if (!isPasted) return null;
+      polls += 1;
+
+      return polls > buttonAfterPolls ? { click } : null;
+    },
+  };
+  const composer: SendComposer = {
+    editable: {
+      focus: vi.fn(),
+      dispatchEvent: paste,
+      setAttribute: vi.fn(),
+      removeAttribute: vi.fn(),
+    },
+    sendButton: null,
+    cancelEditButton: null,
+    markup,
+  };
+
+  return { click, composer, paste };
+};
+
+describe('sendFile, «Отправить» появляется после вложения', () => {
+  const file = new File([makeGif(8, 8)], GIF_NAME, { type: 'image/gif' });
+  const unavailable = clientAnswering({ status: 'unavailable', reason: 'no-agent' });
+
+  it('кнопка, появившаяся после вставки, нажимается один раз', async () => {
+    vi.useFakeTimers();
+    stubPaste();
+
+    const { click, composer, paste } = lateButtonComposer(3);
+    const sending = sendFile(composer, file, unavailable);
+
+    await vi.advanceTimersByTimeAsync(2000);
+    await sending;
+
+    expect(paste).toHaveBeenCalledTimes(1);
+    expect(click).toHaveBeenCalledTimes(1);
+  });
+
+  it('полоса вложений без кнопки — не готово: SendError через 15 с без клика', async () => {
+    vi.useFakeTimers();
+    stubPaste();
+
+    const { click, composer } = lateButtonComposer(Number.POSITIVE_INFINITY);
+    const sending = expect(sendFile(composer, file, unavailable)).rejects.toBeInstanceOf(
+      SendError
+    );
+
+    await vi.advanceTimersByTimeAsync(16_000);
+    await sending;
+
+    expect(click).not.toHaveBeenCalled();
+  });
+});
+
 afterEach(() => {
+  vi.useRealTimers();
   setLocale('ru');
   vi.unstubAllGlobals();
   vi.restoreAllMocks();

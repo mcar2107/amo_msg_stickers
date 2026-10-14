@@ -9,6 +9,8 @@ import type {
   MessageSelectors,
   QuoteLayout,
   QuoteRoom,
+  QuoteSpacing,
+  QuoteSurface,
   StickerSizing,
 } from './amoDom.types';
 
@@ -27,22 +29,33 @@ const { borderRadius } = tailwindConfig.theme.extend;
 const { boxShadow, colors } = tailwindConfig.theme;
 
 /**
- * Фон плашки — фон пузыря amo того же направления и темы: цвета текста цитаты amo подобраны под
- * него. Значения — из токенов классов пузыря: входящий — `from-gray-110 to-white-0`,
- * `dark:bg-black-60`; исходящий — `from-flowerBlue-20 to-blue-120`, `dark:bg-beige-80`.
+ * Поверхность плашки в стабильной и прежней разметках — фон, скругление и тень пузыря amo того
+ * же направления и темы: цвета текста цитаты amo подобраны под него. Значения — из токенов
+ * классов пузыря: входящий — `from-gray-110 to-white-0`, `dark:bg-black-60`; исходящий —
+ * `from-flowerBlue-20 to-blue-120`, `dark:bg-beige-80`; `rounded-lgx` и `shadow-md`. Тёмная тема
+ * этих разметок — класс `dark` на `<html>`.
  */
-const BUBBLE_BACKGROUND = {
+export const TOKEN_QUOTE_SURFACE: QuoteSurface = {
   incoming: `linear-gradient(to top, ${colors.gray[110]}, ${colors.white[0]})`,
-  incomingDark: colors.black[60],
   outgoing: `linear-gradient(to top, ${colors.flowerBlue[20]}, ${colors.blue[120]})`,
-  outgoingDark: colors.beige[80],
+  dark: {
+    incoming: colors.black[60],
+    outgoing: colors.beige[80],
+  },
+  radius: borderRadius.lgx,
+  shadow: boxShadow.md,
 };
 
 /**
- * Скругление и тень пузыря amo — `rounded-lgx` и `shadow-md`.
+ * Отступы плашки в стабильной и прежней разметках: картинка сдвинута от края пузыря на `p-2`
+ * минус выход обёртки медиа за отступ (`-m-1`), у края ряда — слот чекбокса выбора сообщений
+ * (`size-5`).
  */
-const BUBBLE_RADIUS = borderRadius.lgx;
-const BUBBLE_SHADOW = boxShadow.md;
+export const TOKEN_QUOTE_SPACING: QuoteSpacing = {
+  mediaInsetPx: 4,
+  mediaBleedPx: 4,
+  rowEdgePx: 20,
+};
 
 /**
  * Плашка занимает свободное место ряда рядом с картинкой, но не шире 260 px; длинную цитату
@@ -52,28 +65,28 @@ const QUOTE_MAX_WIDTH_PX = 260;
 const QUOTE_MIN_WIDTH_PX = 90;
 
 /**
- * Картинка в пузыре сдвинута от его края на `p-2` минус выход обёртки медиа за отступ
- * (`-m-1`): плашка отсчитывается от того же места, чтобы её верх совпал с верхом картинки, а
- * между ними было 10 px.
+ * Плашка отсчитывается от места картинки в пузыре (`QuoteSpacing.mediaInsetPx`), чтобы её верх
+ * совпал с верхом картинки, а между ними было 10 px.
  */
-const MEDIA_INSET_PX = 4;
-const QUOTE_GAP_PX = 10 - MEDIA_INSET_PX;
+const QUOTE_TO_MEDIA_PX = 10;
 
 /**
- * Что ещё занимает ряд рядом с пузырём: слот чекбокса выбора сообщений (`size-5`) у края ряда
- * и, у входящего под заголовком автора, аватар (`w-11.5`).
+ * Колонка аватара в ряду (`w-11.5`).
  */
-const ROW_CHECKBOX_PX = 20;
 const ROW_AVATAR_PX = 46;
-const ROW_RESERVE_PX = QUOTE_GAP_PX + ROW_CHECKBOX_PX;
-const AVATAR_ROW_RESERVE_PX = ROW_RESERVE_PX + ROW_AVATAR_PX;
 
 /**
- * Пузырь стикера — стикер и его отступы в пузыре; пузырь GIF amo не шире 65% ряда, и рядом
- * с ним остаётся не меньше 35%.
+ * Пузырь GIF amo не шире 65% ряда, и рядом с ним остаётся не меньше 35%.
  */
-const STICKER_BUBBLE_MAX_PX = STICKER_MAX_SIDE_PX + 2 * MEDIA_INSET_PX;
 const GIF_FREE_ROW_SHARE = 35;
+
+/**
+ * @param spacing — отступы плашки разметки
+ * @returns зазор между краем пузыря и плашкой, px
+ */
+const quoteGapOf = ({ mediaInsetPx }: QuoteSpacing) => {
+  return QUOTE_TO_MEDIA_PX - mediaInsetPx;
+};
 
 /**
  * Над зоной наведения пузыря (`::after`, поверх соседнего места ряда) и панелью действий
@@ -92,19 +105,27 @@ const quoteLayoutsOf = ({
   gifQuote,
   stickerQuote,
   withAvatar,
+  quoteSpacing,
+  headedMedia,
 }: MessageSelectors): QuoteLayout[] => {
+  const reservePx = quoteGapOf(quoteSpacing) + quoteSpacing.rowEdgePx;
+  const avatarReservePx = reservePx + ROW_AVATAR_PX;
+  const common = { spacing: quoteSpacing, headShiftPx: headedMedia?.shiftPx || 0 };
+
   return [
-    { selector: gifQuote, media: 'gif', reservePx: ROW_RESERVE_PX },
-    { selector: stickerQuote, media: 'sticker', reservePx: ROW_RESERVE_PX },
+    { selector: gifQuote, media: 'gif', reservePx, ...common },
+    { selector: stickerQuote, media: 'sticker', reservePx, ...common },
     {
       selector: `${withAvatar}${gifQuote}`,
       media: 'gif',
-      reservePx: AVATAR_ROW_RESERVE_PX,
+      reservePx: avatarReservePx,
+      ...common,
     },
     {
       selector: `${withAvatar}${stickerQuote}`,
       media: 'sticker',
-      reservePx: AVATAR_ROW_RESERVE_PX,
+      reservePx: avatarReservePx,
+      ...common,
     },
   ];
 };
@@ -117,7 +138,12 @@ const quoteLayoutsOf = ({
  * @param layout — вариант плашки
  * @returns свободное место рядом с картинкой (выражение `calc`) и порог узкого ряда, px
  */
-const quoteRoomOf = ({ media, reservePx }: QuoteLayout): QuoteRoom => {
+const quoteRoomOf = ({ media, reservePx, spacing }: QuoteLayout): QuoteRoom => {
+  /**
+   * Пузырь стикера — стикер и его отступы в пузыре.
+   */
+  const stickerBubblePx = STICKER_MAX_SIDE_PX + 2 * spacing.mediaInsetPx;
+
   switch (media) {
     case 'gif': {
       return {
@@ -130,8 +156,8 @@ const quoteRoomOf = ({ media, reservePx }: QuoteLayout): QuoteRoom => {
 
     case 'sticker': {
       return {
-        freeCalc: `100cqw - ${STICKER_BUBBLE_MAX_PX + reservePx}px`,
-        narrowRowPx: QUOTE_MIN_WIDTH_PX + STICKER_BUBBLE_MAX_PX + reservePx,
+        freeCalc: `100cqw - ${stickerBubblePx + reservePx}px`,
+        narrowRowPx: QUOTE_MIN_WIDTH_PX + stickerBubblePx + reservePx,
       };
     }
 
@@ -146,14 +172,16 @@ const quoteRoomOf = ({ media, reservePx }: QuoteLayout): QuoteRoom => {
 /**
  * Сбоку плашка не шире свободного места; в узком ряду встаёт над картинкой шириной с неё —
  * `width: 0` не даёт ей растянуть пузырь, `min-width` растягивает по картинке, которая
- * выходит за отступ пузыря на `MEDIA_INSET_PX` с каждой стороны. `min-width` сильнее
- * `max-width` бокового режима.
+ * выходит за поле пузыря на `mediaBleedPx` с каждой стороны. `min-width` сильнее
+ * `max-width` бокового режима. Отступ до картинки — 10 px и подъём картинки под шапкой: она
+ * поднята и под плашкой в потоке.
  *
  * @param layout — вариант плашки
  * @returns CSS ширины плашки и её узкого режима
  */
 const quoteLayoutCss = (layout: QuoteLayout) => {
-  const { selector } = layout;
+  const { selector, spacing, headShiftPx } = layout;
+  const { mediaBleedPx } = spacing;
   const { freeCalc, narrowRowPx } = quoteRoomOf(layout);
 
   return `${selector} {
@@ -163,32 +191,38 @@ const quoteLayoutCss = (layout: QuoteLayout) => {
   ${selector} {
     position: static;
     width: 0;
-    min-width: calc(100% + ${2 * MEDIA_INSET_PX}px);
-    margin: 0 -${MEDIA_INSET_PX}px ${QUOTE_GAP_PX + MEDIA_INSET_PX}px;
+    min-width: calc(100% + ${2 * mediaBleedPx}px);
+    margin: 0 -${mediaBleedPx}px ${QUOTE_TO_MEDIA_PX + headShiftPx}px;
   }
 }`;
 };
 
 /**
- * Сторона места под стикер из переменной контейнера: размер контейнера, вписанный в
- * `STICKER_MAX_SIDE_PX` с сохранением пропорций и без увеличения. amo уже вписал натуральный
+ * Сторона места под стикер из переменных сторон: размер, вписанный в `STICKER_MAX_SIDE_PX` с
+ * сохранением пропорций и без увеличения. В стабильной разметке amo уже вписал натуральный
  * размер в свой предел без увеличения, а вписать в предел и потом в лимит — то же, что сразу в
  * лимит.
  *
  * @param side — переменная своей стороны
+ * @param widthVar — переменная ширины
+ * @param heightVar — переменная высоты
  * @returns выражение CSS для `width` или `height`
  */
-const fittedSide = (side: '--media-w' | '--media-h') => {
-  return `min(calc(var(${side}) * 1px), calc(${STICKER_MAX_SIDE_PX}px * var(${side}) / max(var(--media-w), var(--media-h))))`;
+const fittedSide = (side: string, widthVar: string, heightVar: string) => {
+  return `min(calc(var(${side}) * 1px), calc(${STICKER_MAX_SIDE_PX}px * var(${side}) / max(var(${widthVar}), var(${heightVar}))))`;
 };
+
+const MEDIA_WIDTH_VAR = '--media-w';
+const MEDIA_HEIGHT_VAR = '--media-h';
 
 /**
  * Место под картинку amo задаёт inline `width` / `height` контейнера над `img` — его размер
  * сбрасывается или пересчитывается, `!important` — только против inline-стиля amo.
  *
  * Размер по картинке: контейнер в `auto`, картинка вписывается в лимит сама — до загрузки
- * размер не известен. Размер по контейнеру: место встаёт в итоговый размер ещё в заглушке, а
- * картинка заполняет его, как у amo, поэтому её появление ничего не сдвигает.
+ * размер не известен. Размер по контейнеру или по переменным коробки: место встаёт в итоговый
+ * размер ещё в заглушке, а картинка заполняет его, как у amo, поэтому её появление ничего не
+ * сдвигает.
  *
  * @param sizing — чем задан размер места под стикер в разметке
  * @returns CSS размера стикера
@@ -210,8 +244,21 @@ ${sizing.image} {
 
     case 'frame': {
       return `${sizing.frame} {
-  width: ${fittedSide('--media-w')} !important;
-  height: ${fittedSide('--media-h')} !important;
+  width: ${fittedSide(MEDIA_WIDTH_VAR, MEDIA_WIDTH_VAR, MEDIA_HEIGHT_VAR)} !important;
+  height: ${fittedSide(MEDIA_HEIGHT_VAR, MEDIA_WIDTH_VAR, MEDIA_HEIGHT_VAR)} !important;
+}`;
+    }
+
+    case 'vars': {
+      const { box, boxWidth, widthVar, heightVar } = sizing;
+      const width = fittedSide(widthVar, widthVar, heightVar);
+
+      return `${box} {
+  width: ${width} !important;
+  height: ${fittedSide(heightVar, widthVar, heightVar)} !important;
+}
+${boxWidth} {
+  width: ${width} !important;
 }`;
     }
 
@@ -221,6 +268,39 @@ ${sizing.image} {
       throw new Error(`Unknown sticker sizing: ${JSON.stringify(unknownSizing)}`);
     }
   }
+};
+
+/**
+ * Картинка под шапкой, которую стиль убрал из потока, поднимается на место картинки без шапки:
+ * стикер-ответ стоит там же, где стикер без ответа.
+ *
+ * @param headedMedia — картинка под шапкой и подъём; null — правила нет
+ * @returns CSS правила с переводом строки или пустая строка
+ */
+const headedMediaCss = (headedMedia: MessageSelectors['headedMedia']) => {
+  if (!headedMedia) return '';
+
+  return `${headedMedia.selector} {
+  margin-top: -${headedMedia.shiftPx}px;
+}
+`;
+};
+
+/**
+ * Фон плашки в тёмной теме по классу `dark` на `<html>` — для поверхности из токенов; фон из
+ * переменных страницы следует её теме сам, и правила нет.
+ *
+ * @param selector — селектор плашки
+ * @param background — фон в тёмной теме; нет — правило не нужно
+ * @returns CSS правила с переводом строки или пустая строка
+ */
+const darkQuoteCss = (selector: string, background: string | undefined) => {
+  if (!background) return '';
+
+  return `html.dark ${selector} {
+  background: ${background};
+}
+`;
 };
 
 /**
@@ -254,7 +334,11 @@ export const messageCss = (selectors: MessageSelectors) => {
     replyRow,
     replyControls,
     outgoing,
+    quoteSurface,
+    quoteSpacing,
+    headedMedia,
   } = selectors;
+  const gapPx = quoteGapOf(quoteSpacing);
 
   return `
 ${bubble} {
@@ -279,31 +363,25 @@ ${stickerSizingCss(stickerSizing)}
 ${stickerSpinnerLayer} {
   background: none;
 }
-${quote} {
+${headedMediaCss(headedMedia)}${quote} {
   position: absolute;
-  top: ${MEDIA_INSET_PX}px;
-  left: calc(100% + ${QUOTE_GAP_PX}px);
+  top: ${quoteSpacing.mediaInsetPx}px;
+  left: calc(100% + ${gapPx}px);
   z-index: ${QUOTE_Z_INDEX};
   width: max-content;
   margin: 0;
   padding: 0;
   overflow: hidden;
-  border-radius: ${BUBBLE_RADIUS};
-  box-shadow: ${BUBBLE_SHADOW};
-  background: ${BUBBLE_BACKGROUND.incoming};
+  border-radius: ${quoteSurface.radius};
+  box-shadow: ${quoteSurface.shadow};
+  background: ${quoteSurface.incoming};
 }
-html.dark ${quote} {
-  background: ${BUBBLE_BACKGROUND.incomingDark};
-}
-${outgoing}${quote} {
+${darkQuoteCss(quote, quoteSurface.dark?.incoming)}${outgoing}${quote} {
   left: auto;
-  right: calc(100% + ${QUOTE_GAP_PX}px);
-  background: ${BUBBLE_BACKGROUND.outgoing};
+  right: calc(100% + ${gapPx}px);
+  background: ${quoteSurface.outgoing};
 }
-html.dark ${outgoing}${quote} {
-  background: ${BUBBLE_BACKGROUND.outgoingDark};
-}
-${replyRow} {
+${darkQuoteCss(`${outgoing}${quote}`, quoteSurface.dark?.outgoing)}${replyRow} {
   container: ${REPLY_CONTAINER} / inline-size;
 }
 ${quoteLayoutsOf(selectors).map(quoteLayoutCss).join('\n')}

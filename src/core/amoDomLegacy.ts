@@ -7,7 +7,13 @@
  */
 
 import type { AmoMarkup, Composer, ShownNode } from './amoDom.types';
-import { STABLE_COMPOSE_INPUT_ATTR, STABLE_MESSAGE_ATTR } from './amoDomStable';
+import {
+  COMPOSER_BUTTON,
+  shownCompose,
+  STABLE_COMPOSE_INPUT_ATTR,
+  STABLE_MESSAGE_ATTR,
+} from './amoDomStable';
+import { TOKEN_QUOTE_SPACING, TOKEN_QUOTE_SURFACE } from './amoDomStyle';
 import { MARKER_NAME_PART, STICKER_NAME_PART } from './fileName';
 
 const EDITABLE_SELECTOR = `div[contenteditable="true"][aria-placeholder]:not([${STABLE_COMPOSE_INPUT_ATTR}])`;
@@ -127,8 +133,10 @@ const QUOTE_SELECTOR = `${REPLY_BUBBLE_SELECTOR} > div${QUOTE_CLASS_SELECTOR}:no
 const STICKER_SELECTOR = `${MEDIA_PATH} > ${MEDIA_CONTAINER_SELECTOR}:has(> div > ${STICKER_IMG_SELECTOR})`;
 
 export const legacyMarkup: AmoMarkup = {
+  ...shownCompose(isShown),
   findComposers,
-  isShown,
+  button: COMPOSER_BUTTON,
+  pageSelector: `${EDITABLE_SELECTOR}, [id^="message+"]`,
   message: {
     bubble: BUBBLE_SELECTOR,
     tail: `${MESSAGE_SELECTOR}:has(${MEDIA_SELECTOR} ${OUR_IMG_SELECTOR}) [class*="message_tail-"]`,
@@ -184,5 +192,8 @@ export const legacyMarkup: AmoMarkup = {
      * Входящее под заголовком автора — в его ряду рядом с пузырём ещё и аватар.
      */
     withAvatar: '[class*="message_with_user-"]:not([class*="is_outgoing-"])',
+    headedMedia: null,
+    quoteSurface: TOKEN_QUOTE_SURFACE,
+    quoteSpacing: TOKEN_QUOTE_SPACING,
   },
 };
