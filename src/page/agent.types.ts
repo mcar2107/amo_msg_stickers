@@ -50,7 +50,8 @@ export type AgentMemory = {
   seq: number;
 
   /**
-   * Отправки в ожидании доклада `sent` ядра по `seq`.
+   * Отправки в ожидании доклада `sent` ядра по `seq`, не больше `SENDING_MAX` (`coreSend.ts`): самая старая
+   * вытесняется.
    */
   sending: Map<number, PendingSend>;
 };

@@ -1,4 +1,5 @@
 import type { AmoClient } from './amo.types';
+import { FIBER_KEY_PREFIX } from './fiber';
 import { fieldOf } from './field';
 
 /**
@@ -6,8 +7,6 @@ import { fieldOf } from './field';
  * дереву React. Добираемся до него от DOM-узла по fiber: это внутренности React, а
  * не API, поэтому форма значения проверяется на каждом шаге, а не принимается на веру.
  */
-
-const FIBER_KEY_PREFIX = '__reactFiber$';
 
 /**
  * Провайдер лежит в десятках узлов от поля ввода (в живом amo — 40); предел — страховка от

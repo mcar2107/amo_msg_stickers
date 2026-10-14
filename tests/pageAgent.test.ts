@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { startAgent } from '../src/page/agent';
 import type { AmoRequest } from '../src/page/amo.types';
-import { nextSeq } from '../src/page/coreSend';
+import { nextSeq, SENDING_MAX } from '../src/page/coreSend';
 import { fieldOf } from '../src/page/field';
 import {
   PAGE_FILE_ATTR,
@@ -873,6 +873,27 @@ describe('startAgent: Worker-версия', () => {
     core.emit({ kind: 'sent', chat: CHAT_ID, seq: seqOf(), key: 'k-1', refused: null });
 
     expect(onDownClick).toHaveBeenCalledTimes(1);
+  });
+
+  it('отправок без доклада больше границы — самая старая забыта, остальные ждут доклада', () => {
+    const { core, onDownClick, send, seqOf } = setupWorker();
+
+    for (let index = 0; index <= SENDING_MAX; index++) send(`cmd-${index}`);
+
+    core.emit({ kind: 'sent', chat: CHAT_ID, seq: seqOf(0), key: 'k-0', refused: null });
+
+    expect(onDownClick).not.toHaveBeenCalled();
+
+    core.emit({ kind: 'sent', chat: CHAT_ID, seq: seqOf(1), key: 'k-1', refused: null });
+    core.emit({
+      kind: 'sent',
+      chat: CHAT_ID,
+      seq: seqOf(SENDING_MAX),
+      key: 'k-last',
+      refused: null,
+    });
+
+    expect(onDownClick).toHaveBeenCalledTimes(2);
   });
 
   it('открыт уже другой чат — вниз не зовётся', () => {

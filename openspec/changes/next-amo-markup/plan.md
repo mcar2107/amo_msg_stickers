@@ -21,7 +21,7 @@
   `down { shown, onClick }`), ядро-Worker: `sendFiles` → `sent { chat, seq, key, refused }`, `draft`. G4 → G5–G8.
 - **K6 Fiber** — одна функция в `src/page/`: ключи по префиксу `__reactFiber$` / `__reactProps$`, актуальная копия из
   (`fiber`, `alternate`) — чьи `memoizedProps` равны `__reactProps$` узла. G6 → G7.
-- **K7 Ранний старт** — агент на `document_start` не требует `body`, наблюдатель ленты — на `documentElement`. G6 → G7.
+- **K7 Ранний старт** — агент на `document_start` не требует `body`, наблюдатель ленты — на `document`. G6 → G7.
 
 ## Группы
 

@@ -7,6 +7,7 @@ import type {
   CoreSendRequest,
   FeedButtonsProps,
   PageElement,
+  PendingSend,
 } from './coreSend.types';
 import { propsUp } from './fiber';
 import { fieldOf } from './field';
@@ -21,6 +22,15 @@ import { fieldOf } from './field';
  */
 export const SEQ_MIN = 1_000_000_000;
 const SEQ_LIMIT = 2 ** 32;
+
+/**
+ * Сколько отправок ждут доклада `sent` одновременно. Доклад о каждой обычно приходит, а запись без него — ядро
+ * сменилось или доклад потерялся — держала бы поле ввода до перезагрузки. Граница — числом, а не временем: когда
+ * приходит доклад о загруженном файле, зависит от сети, и запись по таймауту пропала бы у медленной загрузки. Столько
+ * стикеров без единого доклада подряд не отправить, и вытесняется самая старая запись — та, доклада о которой уже не
+ * будет.
+ */
+export const SENDING_MAX = 32;
 
 /**
  * Пропсы компонента поля в живой Worker-версии — в 5 шагах fiber от поля; предел — с запасом.
@@ -168,6 +178,23 @@ const restoreDraft = (field: PageElement, context: CoreSendContext) => {
 };
 
 /**
+ * @param memory — память агента
+ * @param seq — `seq` команды
+ * @param pending — чат и поле отправки
+ */
+const rememberSending = (memory: AgentMemory, seq: number, pending: PendingSend) => {
+  const { sending } = memory;
+
+  sending.set(seq, pending);
+
+  if (sending.size <= SENDING_MAX) return;
+
+  const [oldest] = sending.keys();
+
+  if (oldest !== undefined) sending.delete(oldest);
+};
+
+/**
  * Отправка синхронная: ответ агента уходит до возврата из `dispatchEvent` ядра amo stickers, исход — доклад `sent`
  * ядра страницы позже.
  *
@@ -214,7 +241,7 @@ export const sendToCore = (
   }
 
   memory.seq = nextSeq(seq);
-  memory.sending.set(seq, { chat: compose.chat, field });
+  rememberSending(memory, seq, { chat: compose.chat, field });
   restoreDraft(field, context);
 
   return null;

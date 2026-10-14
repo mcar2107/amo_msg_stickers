@@ -5,7 +5,7 @@ import { fieldOf } from './field';
  * проверяется на каждом шаге вызывающей стороной.
  */
 
-const FIBER_KEY_PREFIX = '__reactFiber$';
+export const FIBER_KEY_PREFIX = '__reactFiber$';
 const PROPS_KEY_PREFIX = '__reactProps$';
 
 const valueByPrefix = (node: object, prefix: string): unknown => {
@@ -24,7 +24,7 @@ const valueByPrefix = (node: object, prefix: string): unknown => {
  * @param node — DOM-узел страницы
  * @returns fiber; null — узел не из React
  */
-export const currentFiberOf = (node: object): unknown => {
+const currentFiberOf = (node: object): unknown => {
   const fiber = valueByPrefix(node, FIBER_KEY_PREFIX);
   const alternate = fieldOf(fiber, 'alternate');
   const props = valueByPrefix(node, PROPS_KEY_PREFIX);
