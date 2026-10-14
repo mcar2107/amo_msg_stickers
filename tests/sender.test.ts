@@ -160,6 +160,8 @@ describe.each<[string, ComposeMarkup, ShownSignal]>([
   it('стороны не читаются — агенту не шлётся, вставка и «Отправить»', async () => {
     stubPaste();
 
+    const info = vi.mocked(console.info);
+
     const { click, composer, paste } = fakeComposer(false, markup, signal);
     const client = clientAnswering({ status: 'accepted' });
     const broken = new File(['<html>'], GIF_NAME, { type: 'image/gif' });
@@ -167,6 +169,7 @@ describe.each<[string, ComposeMarkup, ShownSignal]>([
     await sendFile(composer, broken, client);
 
     expect(client.send).not.toHaveBeenCalled();
+    expect(info).toHaveBeenCalledWith(expect.stringContaining('(no-dims)'));
     expect(paste).toHaveBeenCalledTimes(1);
     expect(click).toHaveBeenCalledTimes(1);
   });

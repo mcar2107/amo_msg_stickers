@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 
 import { markRows, rowsOf, watchFeedRows } from '../src/page/markRows';
 import type { FeedMutation } from '../src/page/markRows.types';
@@ -446,6 +446,10 @@ class FakeObserver {
 }
 
 describe('watchFeedRows', () => {
+  beforeEach(() => {
+    FakeObserver.last = null;
+  });
+
   it('помечает уже стоящие строки и следит только за childList всего дерева', () => {
     const root = new FakeFeedNode();
     const existing = rowNode('k1');

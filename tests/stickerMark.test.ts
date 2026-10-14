@@ -12,6 +12,9 @@ describe('markKindOf', () => {
     ['amostk.k-emoji.gif', 'gif'],
     ['x.amostk.s-lg.gif', 'gif'],
     ['x.amostk.gif', 'gif'],
+    ['amostk.k-gif.k-sticker.gif', 'gif'],
+    ['amostk.k-sticker.k-gif.gif', 'sticker'],
+    ['amostk.k-.gif', 'gif'],
   ] satisfies [string, StickerKind][])('%s — %s', (name, expected) => {
     expect(markKindOf(name)).toBe(expected);
   });
@@ -22,6 +25,7 @@ describe('markKindOf', () => {
     ['маркер дальше сегмента 1', 'a.b.amostk.k-sticker.gif'],
     ['без расширения', 'amostk.k-sticker'],
     ['пустая строка', ''],
+    ['маркер в другом регистре', 'AMOSTK.k-sticker.gif'],
   ])('не своё имя: %s', (_case, name) => {
     expect(markKindOf(name)).toBeNull();
   });

@@ -82,11 +82,14 @@ describe('gifScreenSize', () => {
     expect(gifScreenSize(TEXT.encode('<!doctype html><html>'))).toBeNull();
   });
 
-  it('отклоняет нулевую сторону', () => {
+  it.each([
+    ['ширина', 6],
+    ['высота', 8],
+  ])('отклоняет нулевую сторону: %s', (_side, offset) => {
     const gif = makeGif(4, 4);
 
-    gif[8] = 0;
-    gif[9] = 0;
+    gif[offset] = 0;
+    gif[offset + 1] = 0;
 
     expect(gifScreenSize(gif)).toBeNull();
   });

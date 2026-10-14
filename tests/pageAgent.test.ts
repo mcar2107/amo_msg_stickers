@@ -906,6 +906,40 @@ describe('startAgent: Worker-версия', () => {
     expect(onDownClick).not.toHaveBeenCalled();
   });
 
+  it('доклад о другом чате — вниз не зовётся', () => {
+    const { core, onDownClick, send, seqOf } = setupWorker();
+
+    send();
+    core.emit({ kind: 'sent', chat: 'chat-2', seq: seqOf(), key: 'k-1', refused: null });
+
+    expect(onDownClick).not.toHaveBeenCalled();
+  });
+
+  it('поле ушло из документа — вниз не зовётся', () => {
+    const { core, field, onDownClick, send, seqOf } = setupWorker();
+
+    send();
+    field.remove();
+    core.emit({ kind: 'sent', chat: CHAT_ID, seq: seqOf(), key: 'k-1', refused: null });
+
+    expect(onDownClick).not.toHaveBeenCalled();
+  });
+
+  it('возврат черновика бросил — предупреждение, стикер принят', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(noop);
+    const failure = new Error('сбой');
+    const { field, responses, send } = setupWorker({ text: 'привет' });
+
+    field.onDispatch = () => {
+      throw failure;
+    };
+
+    send();
+
+    expect(responses).toEqual([{ id: 'cmd-1', status: 'accepted' }]);
+    expect(warn).toHaveBeenCalledWith('[amo-stickers] draft restore failed:', failure);
+  });
+
   it.each([
     ['отказ', { key: null, refused: 'tooBig' }],
     ['без key', { key: null, refused: null }],
@@ -923,6 +957,38 @@ describe('startAgent: Worker-версия', () => {
       expect(onDownClick).not.toHaveBeenCalled();
     }
   );
+
+  it('пропсы поля бросают при чтении — отказ build-threw с предупреждением', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(noop);
+    const fiber = {
+      get memoizedProps() {
+        throw new Error('сбой');
+      },
+    };
+    const field = new FakePageNode('div', {}, { __reactFiber$w1: fiber });
+    const input = new FakeElement({
+      files: [new File([makeGif(8, 8)], 'a.amostk.k-sticker.gif', { type: 'image/gif' })],
+    });
+    const doc = new FakeDocument([field, input]);
+    const responses: unknown[] = [];
+
+    doc.addEventListener(PAGE_RESPONSE_EVENT, (event) => {
+      responses.push(parsePageResponse(event));
+    });
+    startAgent(doc, { Worker: FakeWorker, InputEvent: FakeInputEvent });
+    field.setAttribute(PAGE_TARGET_ATTR, 'cmd-1');
+    input.setAttribute(PAGE_FILE_ATTR, 'cmd-1');
+    doc.dispatchEvent(
+      new CustomEvent(PAGE_REQUEST_EVENT, {
+        detail: JSON.stringify({ id: 'cmd-1', op: 'send', dims: DIMS }),
+      })
+    );
+
+    expect(responses).toEqual([
+      { id: 'cmd-1', status: 'rejected', reason: 'build-threw' },
+    ]);
+    expect(warn).toHaveBeenCalledTimes(1);
+  });
 
   it('у поля без пропсов Worker-версии — прежний путь sendRequest', () => {
     const sendRequest = vi.fn(async (_request: AmoRequest): Promise<unknown> => {

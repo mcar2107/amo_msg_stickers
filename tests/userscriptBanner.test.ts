@@ -108,7 +108,7 @@ describe('заголовок userscript', () => {
   });
 
   it('запуск до скриптов страницы — агент ловит ядро Worker-версии amo web при его создании', () => {
-    expect(buildSource).toContain("'// @run-at       document-start'");
+    expect(buildSource).toMatch(/'\/\/ @run-at\s+document-start'/);
   });
 
   it('код в обёртке разбирается как тело функции Userscripts для Safari', () => {

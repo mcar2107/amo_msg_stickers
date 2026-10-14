@@ -1,16 +1,23 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { catchCore } from '../src/page/workerCore';
 import type { CoreHost } from '../src/page/workerCore.types';
 
 import { CALL_LOADED, FakeWorker } from './helpers/fakeWorker';
 
-const setup = () => {
+/**
+ * @param onReport — слушатель докладов агента; по умолчанию копит их в `reports`
+ */
+const setup = (onReport?: (report: unknown) => void) => {
   const host: CoreHost = { Worker: FakeWorker };
   const reports: unknown[] = [];
-  const catcher = catchCore(host, (report) => {
-    reports.push(report);
-  });
+  const catcher = catchCore(
+    host,
+    onReport ||
+      ((report) => {
+        reports.push(report);
+      })
+  );
 
   const create = (name = 'worker') => {
     const Created = host.Worker;
@@ -121,7 +128,9 @@ describe('catchCore', () => {
     const worker = create();
 
     worker.terminate();
+    worker.emit(CALL_LOADED);
 
+    expect(catcher.core()).toBeNull();
     expect(catcher.pendingCount()).toBe(0);
     expect(worker.terminated).toBe(1);
   });
@@ -176,22 +185,25 @@ describe('catchCore', () => {
   });
 
   it('сбой слушателя агента не выходит в страницу', () => {
-    vi.spyOn(console, 'warn').mockImplementation(() => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {
       return undefined;
     });
-
-    const host: CoreHost = { Worker: FakeWorker };
-
-    catchCore(host, () => {
-      throw new Error('сбой');
+    const failure = new Error('сбой');
+    const { catcher, create } = setup(() => {
+      throw failure;
     });
+    const worker = create();
+    const onmessage = vi.fn();
 
-    const Created = host.Worker;
-    const worker = Created ? new Created('blob:script') : null;
+    worker.onmessage = onmessage;
+    worker.emit(CALL_LOADED);
 
-    expect(() => {
-      if (worker instanceof FakeWorker) worker.emit(CALL_LOADED);
-    }).not.toThrow();
+    expect(warn).toHaveBeenCalledWith(
+      '[amo-stickers] core report handling failed:',
+      failure
+    );
+    expect(catcher.core()).toBe(worker);
+    expect(onmessage).toHaveBeenCalledTimes(1);
   });
 
   it('без Worker в окне ничего не ловит', () => {
@@ -201,4 +213,8 @@ describe('catchCore', () => {
     expect(host.Worker).toBeUndefined();
     expect(catcher.core()).toBeNull();
   });
+});
+
+afterEach(() => {
+  vi.restoreAllMocks();
 });
