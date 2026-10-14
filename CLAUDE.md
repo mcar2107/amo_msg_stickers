@@ -169,8 +169,9 @@ src/
                      сохранённых настроек для адаптеров обоих окружений)
     builtinToken.ts  `BUILTIN_TELEGRAM_TOKEN` — токен встроенного Telegram-бота из сборки, пустой — сборка без него
     builtinKlipyKey.ts  `BUILTIN_KLIPY_KEY` — встроенный ключ KLIPY из сборки, пустой — сборка без него
-    net.ts           сетевая политика: разрешённые хосты, fetch с проверкой, чтение потока с лимитом, лимит
-                     скачивания GIF из поиска `MAX_REMOTE_GIF_BYTES`; `httpError` и разбор его статуса `httpStatus`
+    net.ts           сетевая политика: разрешённые хосты, fetch с проверкой, чтение потока с лимитом и его начала,
+                     лимиты скачивания GIF из поиска `MAX_REMOTE_GIF_BYTES` и JSON `MAX_JSON_BYTES`; `httpError` и
+                     разбор его статуса `httpStatus`
     gif.ts           проверка GIF по блочной структуре (`inspectGif`)
     tgs.ts           распаковка `.tgs` с лимитом и проверкой Lottie
     userDocs*.ts     адрес доки `USER_DOCS_URL`, страницы, на которые ведёт интерфейс (`USER_DOCS_PAGE`), и
@@ -968,6 +969,11 @@ IndexedDB `amo-stickers` на домене amo: паки (`tg:<имя>` для �
   тело сверх лимита не дочитывается, в тексте — то, что успело прийти. Ошибки политики, лимита и HTTP у всех
   окружений общие — из `core/net.ts`; политика и лимит — `LocalizedError`, чтобы отказ SW показывался на языке amo
   («Язык интерфейса»);
+- `Host.fetchJson` читает ответ не больше 2 МБ (`MAX_JSON_BYTES` в `net.ts`) — та же ошибка «Файл больше N МБ»: у
+  `fetch` — `readJson` поверх `readResponseLimited`, у менеджера — тот же обрыв по `Content-Length`, `onprogress` и
+  размеру текста в байтах UTF-8 на `onload`. Тело не-2xx ответа читается ради текста ошибки не больше
+  `ERROR_BODY_MAX_BYTES` (800 байт — 200 символов UTF-8): у `fetch` — `readPrefix` с отменой остатка, у менеджера —
+  обрыв в `onprogress`; на заголовках тело ошибки не обрывается, иначе текст остался бы без начала тела;
 - состав пака — `resolveTelegramSet`: битая ссылка и отсутствие токена — ошибка без запроса, ответ `getStickerSet`
   проходит гард набора; им показывают карточку пака до импорта, и он же уходит в `importTelegramSet`;
 - токен Bot API — свой из «Настроек» или встроенный в сборку (`resolveTelegramSet` и `importTelegramSet`: свой важнее,

@@ -3,8 +3,10 @@ import type { MessageKey } from '../core/i18n/i18n.types';
 import { t } from '../core/i18n/translate';
 import {
   assertAllowedUrl,
+  ERROR_BODY_MAX_BYTES,
   httpError,
   isAllowedUrl,
+  MAX_JSON_BYTES,
   notAllowedError,
   tooBigError,
 } from '../core/net';
@@ -28,11 +30,6 @@ const HEADERS_RECEIVED = 2;
 
 const OK_STATUS_MIN = 200;
 const OK_STATUS_MAX = 299;
-
-/**
- * У JSON-ответа лимита нет — как у `fetchJson` расширения.
- */
-const NO_LIMIT = Number.POSITIVE_INFINITY;
 
 /**
  * Тексты без адреса запроса: в пути запросов к Telegram лежит токен бота, а текст ошибки
@@ -80,6 +77,21 @@ const bodyText = ({ response, responseText }: GmResponse) => {
   return responseText || '';
 };
 
+/**
+ * Размер тела в байтах. Текст считается в UTF-8, а не в символах: лимит — байтовый, как у
+ * ответа fetch.
+ *
+ * @param response — ответ менеджера
+ * @returns размер тела в байтах
+ */
+const bodyByteLength = (response: GmResponse) => {
+  const { response: body } = response;
+
+  if (isArrayBuffer(body)) return body.byteLength;
+
+  return new TextEncoder().encode(bodyText(response)).byteLength;
+};
+
 const isOkStatus = (status: number) => {
   return status >= OK_STATUS_MIN && status <= OK_STATUS_MAX;
 };
@@ -97,7 +109,8 @@ const isErrorStatus = (status: number) => {
 /**
  * Запрос через менеджер в рамках сетевой политики. Адрес вне политики — исключение без
  * обращения к сети. Итоговый адрес после редиректа, статус и размер проверяются до того, как
- * ответ отдаётся вызывающей стороне; тело больше `maxBytes` обрывает загрузку.
+ * ответ отдаётся вызывающей стороне; тело больше `maxBytes` обрывает загрузку, а тело не-2xx
+ * ответа — как только пришло больше, чем нужно для текста ошибки.
  *
  * @param request — `GM_xmlhttpRequest` или его подмена
  * @param url — адрес запроса
@@ -151,6 +164,14 @@ const send = (
     let headersStatus = 0;
 
     /**
+     * @param response — ответ менеджера
+     * @returns статус ответа; 0 — ещё не известен
+     */
+    const statusOf = (response: GmResponse) => {
+      return response.status || headersStatus;
+    };
+
+    /**
      * Причина обрыва по лимиту. Не-2xx статус важнее размера: вызывающей стороне нужна
      * HTTP-ошибка, какие бы колбэки ни позвал менеджер, а тело сверх лимита не дочитывается —
      * в тексте то, что успело прийти.
@@ -159,11 +180,25 @@ const send = (
      * @returns ошибка для `stop`
      */
     const overLimitError = (response: GmResponse) => {
-      const status = response.status || headersStatus;
+      const status = statusOf(response);
 
       return isErrorStatus(status)
         ? httpError(status, bodyText(response))
         : tooBigError(maxBytes);
+    };
+
+    /**
+     * Сколько тела можно дочитать по ходу загрузки. Тело не-2xx ответа нужно только ради начала в
+     * тексте ошибки — оно обрывается раньше лимита. На заголовках так не обрываем: менеджер ещё
+     * не отдал ни байта, и текст ошибки остался бы без начала тела.
+     *
+     * @param response — ответ менеджера на момент прогресса
+     * @returns предел в байтах
+     */
+    const progressLimit = (response: GmResponse) => {
+      return isErrorStatus(statusOf(response))
+        ? Math.min(maxBytes, ERROR_BODY_MAX_BYTES)
+        : maxBytes;
     };
 
     const handle = request({
@@ -185,16 +220,18 @@ const send = (
         }
       },
       onprogress: (response) => {
-        if ((response.loaded || 0) > maxBytes) stop(overLimitError(response));
+        if ((response.loaded || 0) > progressLimit(response)) {
+          stop(overLimitError(response));
+        }
       },
       onload: (response) => {
-        const { status, response: body } = response;
+        const { status } = response;
 
         if (!isAllowedFinalUrl(response)) {
           stop(notAllowedError());
         } else if (!isOkStatus(status)) {
           fail(httpError(status, bodyText(response)));
-        } else if (isArrayBuffer(body) && body.byteLength > maxBytes) {
+        } else if (bodyByteLength(response) > maxBytes) {
           stop(tooBigError(maxBytes));
         } else if (!isSettled) {
           isSettled = true;
@@ -223,7 +260,8 @@ const send = (
 /**
  * Сеть userscript через `GM_xmlhttpRequest`: в обход CORS страницы и без cookie целевых
  * сайтов. Ошибки — те же тексты, что у расширения: «Адрес вне списка разрешённых» (в том
- * числе для итогового адреса после редиректа), «Файл больше N МБ», `HTTP <код> <начало тела>`.
+ * числе для итогового адреса после редиректа), «Файл больше N МБ» — и для JSON больше
+ * `MAX_JSON_BYTES`, `HTTP <код> <начало тела>`.
  *
  * @param request — `GM_xmlhttpRequest` менеджера; в тестах — мок
  * @returns сетевой контракт окружения
@@ -231,7 +269,7 @@ const send = (
 export const gmNetwork = (request: GmXmlhttpRequest): HostNetwork => {
   return {
     async fetchJson(url) {
-      const response = await send(request, url, 'text', NO_LIMIT);
+      const response = await send(request, url, 'text', MAX_JSON_BYTES);
       const json: unknown = JSON.parse(bodyText(response));
 
       return json;

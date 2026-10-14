@@ -1,5 +1,6 @@
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
+import { MAX_JSON_BYTES } from '../src/core/net';
 import type { FetchRequest, FetchResponse } from '../src/extension/messages.types';
 
 import { mockResponse } from './helpers/mockResponse';
@@ -126,6 +127,41 @@ describe('service worker', () => {
       key: 'error.net.tooBig',
       params: { size: 2 },
     });
+  });
+
+  it('прерывает JSON больше лимита', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      mockResponse(new Uint8Array(MAX_JSON_BYTES + 1), {
+        url: 'https://api.giphy.com/v1/gifs/trending',
+      })
+    );
+
+    const res = await send({
+      type: 'amo-stickers:fetch',
+      url: 'https://api.giphy.com/v1/gifs/trending',
+      as: 'json',
+    });
+
+    expect(res).toStrictEqual({
+      ok: false,
+      error: 'Файл больше 2 МБ',
+      key: 'error.net.tooBig',
+      params: { size: 2 },
+    });
+  });
+
+  it('отдаёт разобранный JSON', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      mockResponse('{"data":[]}', { url: 'https://api.giphy.com/v1/gifs/trending' })
+    );
+
+    const res = await send({
+      type: 'amo-stickers:fetch',
+      url: 'https://api.giphy.com/v1/gifs/trending',
+      as: 'json',
+    });
+
+    expect(res).toStrictEqual({ ok: true, json: { data: [] } });
   });
 
   it('сетевой сбой отдаёт только текст браузера, без ключа', async () => {
