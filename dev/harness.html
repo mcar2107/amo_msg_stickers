@@ -2804,15 +2804,16 @@
 
         /**
          * История: строки «с сервера» над лентой — текст, стикеры четырёх пропорций с маркером в
-         * имени и фото без маркера; лента остаётся у низа.
+         * имени и фото без маркера; лента остаётся у низа. Направление медиа-строк чередуется по
+         * своему счёту, а не по чётности индекса: она у них всегда одна, и все были бы входящими.
          */
         $('w-history').onclick = async () => {
           const button = $('w-history');
           button.disabled = true;
           const rows = [];
           for (let index = 0; index < HISTORY_ROWS; index++) {
-            const mine = index % 2 === 0;
             if (index % 4 === 1) {
+              const mine = (index >> 2) % 2 === 0;
               const [width, height] = HISTORY_SIDES[(index >> 2) % HISTORY_SIDES.length];
               const bytes = await drawSample({ width, height });
               const media = {
@@ -2824,6 +2825,7 @@
               };
               rows.push([{ mine, media }, bytes]);
             } else if (index % 8 === 3) {
+              const mine = (index >> 3) % 2 === 0;
               const bytes = await drawSample(PHOTO_SIDES, PHOTO_FILL);
               const media = {
                 kind: 'photo',
@@ -2836,7 +2838,7 @@
             } else {
               rows.push([
                 {
-                  mine,
+                  mine: index % 2 === 0,
                   text: `${t('Сообщение истории', 'History message')} ${index + 1}`,
                 },
                 null,
