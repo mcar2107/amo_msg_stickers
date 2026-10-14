@@ -7,7 +7,12 @@
  * вместе с полем.
  */
 
-import { MARK_HEIGHT_VAR, MARK_KIND_ATTR, MARK_WIDTH_VAR } from '../shared/stickerMark';
+import {
+  MARK_BOX_SELECTOR,
+  MARK_HEIGHT_VAR,
+  MARK_KIND_ATTR,
+  MARK_WIDTH_VAR,
+} from '../shared/stickerMark';
 
 import type {
   AmoMarkup,
@@ -26,7 +31,8 @@ const EDITABLE_SELECTOR = `[contenteditable][role="textbox"]:not([${STABLE_COMPO
  * Капсула поля — ближайший предок поля с маркером верха капсулы: маркер рендерится всегда, в
  * отличие от кнопки файла, которой нет при вложениях и при правке.
  */
-const CAPSULE_SELECTOR = ':has([data-capsule-top])';
+const CAPSULE_TOP = '[data-capsule-top]';
+const CAPSULE_SELECTOR = `:has(${CAPSULE_TOP})`;
 const EMOJI_SELECTOR = ':scope > button[aria-haspopup="dialog"]';
 const CANCEL_EDIT_SELECTOR = ':scope > [data-compose-edit-cancel]';
 const EDITING_ATTR = 'data-editing';
@@ -159,8 +165,9 @@ const STICKER_ROW = `[${MARK_KIND_ATTR}="sticker"]`;
 const GIF_ROW = `[${MARK_KIND_ATTR}="gif"]`;
 
 const BUBBLE = '[data-amo-bubble]';
-const PHOTO_BOX = '[data-media="photo"][data-media-box]';
+const PHOTO_BOX = MARK_BOX_SELECTOR;
 const STICKER_BOX = `${STICKER_ROW} ${PHOTO_BOX}`;
+const SHOWN_PHOTO = 'img[data-media-photo="shown"]';
 
 /**
  * Цитата ответа — с `data-quote-id`: просто `.amo-quote` ещё и у превью ссылки.
@@ -229,13 +236,18 @@ const QUOTE_SURFACE: QuoteSurface = {
 
 /**
  * Хвост — окно `div[data-amo-tail]` рядом с пузырём, а не строка `[data-amo-feed-row]`: у
- * последней строки пачки тот же атрибут. Заглушка — размытое превью страницы под картинкой: у
- * прозрачного стикера она видна сквозь него, и снимается совсем, а не после показа картинки.
+ * последней строки пачки тот же атрибут.
+ *
+ * Заглушка — размытое превью страницы под картинкой. Она снимается в кадре, где картинка показана
+ * (`data-media-photo="shown"`, страница ставит его раскодированной картинке): у прозрачного стикера
+ * заглушка была бы видна сквозь него, а снятая до показа — оставила бы пустое место, пока картинка
+ * скачивается, и кадр без картинки при входе в чат. `:has()` — у коробки медиа после её атрибутов:
+ * он проверяется только у родителя заглушки в своей строке.
  */
 const MESSAGE: MessageSelectors = {
   bubble: `${ROW} ${BUBBLE}`,
   tail: `${ROW} [data-amo-feed-row] div[data-amo-tail]`,
-  backdrop: `${ROW} ${PHOTO_BOX} > img[data-media-preview]`,
+  backdrop: `${ROW} ${PHOTO_BOX}:has(> ${SHOWN_PHOTO}) > img[data-media-preview]`,
   author: `${ROW} ${BUBBLE} > ${BUBBLE_FRAME}:first-child`,
   image: `${ROW} ${PHOTO_BOX} > img[data-media-photo]`,
   stickerButton: STICKER_BOX,
@@ -266,5 +278,6 @@ export const workerMarkup: AmoMarkup = {
   ...compose,
   findComposers,
   button: WORKER_BUTTON,
+  pageSelector: `${CAPSULE_TOP}, ${ROW}`,
   message: MESSAGE,
 };

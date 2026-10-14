@@ -136,6 +136,7 @@ export const legacyMarkup: AmoMarkup = {
   ...shownCompose(isShown),
   findComposers,
   button: COMPOSER_BUTTON,
+  pageSelector: `${EDITABLE_SELECTOR}, [id^="message+"]`,
   message: {
     bubble: BUBBLE_SELECTOR,
     tail: `${MESSAGE_SELECTOR}:has(${MEDIA_SELECTOR} ${OUR_IMG_SELECTOR}) [class*="message_tail-"]`,

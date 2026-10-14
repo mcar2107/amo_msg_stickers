@@ -118,17 +118,85 @@ export const watchSystemTheme = (onChange: () => void) => {
 const MESSAGE_STYLE_ID = 'amo-stickers-message';
 
 /**
- * Стиль своих сообщений — один глобальный `<style>` в документе amo с правилами всех разметок:
- * CSS сам применяется к сообщениям, которые появятся в ленте позже, без слежения за её DOM, а
- * срабатывают правила той разметки, что на странице. Повторный вызов ничего не делает.
+ * CSS своих сообщений по разметкам — в порядке `MARKUPS`.
+ *
+ * @param markups — разметки, чьи правила нужны
+ * @returns текст листа стиля
+ */
+const messageStyleOf = (markups: AmoMarkup[]) => {
+  return MARKUPS.reduce<string[]>((acc, markup) => {
+    if (markups.includes(markup)) acc.push(messageCss(markup.message));
+
+    return acc;
+  }, []).join('\n');
+};
+
+/**
+ * Разметки страницы, опознанной по узлам разметки. Стабильная и прежняя — сборки одной amo web,
+ * и правила обеих остаются вместе; Worker-версия — другое приложение, и правил других разметок на
+ * её странице нет.
+ *
+ * @returns разметки, чьи правила нужны странице; null — страница ещё не опознана
+ */
+const pageMarkupsOf = (): AmoMarkup[] | null => {
+  const found = MARKUPS.find(({ pageSelector }) => {
+    return document.querySelector(pageSelector);
+  });
+
+  if (!found) return null;
+
+  return found === workerMarkup ? [workerMarkup] : [stableMarkup, legacyMarkup];
+};
+
+/**
+ * Опознана ли страница — после этого лист стиля не меняется.
+ */
+let isPageKnown = false;
+
+/**
+ * Лист стиля несёт правила только разметок страницы: правила чужой разметки не совпадают ни с
+ * одним сообщением, но браузер проверяет их на каждом пересчёте стиля — правила прежней разметки
+ * с `:has()` у `div` в Worker-версии пересчитывали стиль у сотен узлов на открытии чата,
+ * прокрутке и наборе, и след их проверки оставался на узлах после замены листа.
+ *
+ * Пока страница не опознана, в листе — правила Worker-версии: они узнают только строки, помеченные
+ * агентом, и на странице amo web ничего не задевают. Узлы стабильной или прежней разметки
+ * опознают страницу в той же пачке мутаций, где появились, — до отрисовки сообщения.
+ *
+ * @param style — лист стиля своих сообщений
+ */
+const syncPageStyle = (style: HTMLElement) => {
+  const markups = pageMarkupsOf();
+
+  if (!markups) return;
+  isPageKnown = true;
+
+  if (markups.includes(workerMarkup)) return;
+  style.textContent = messageStyleOf(markups);
+};
+
+/**
+ * Стиль своих сообщений — один глобальный `<style>` в документе amo: CSS сам применяется к
+ * сообщениям, которые появятся в ленте позже, без слежения за её DOM. Повторный вызов ничего не
+ * делает.
  */
 export const injectMessageStyle = () => {
   if (document.getElementById(MESSAGE_STYLE_ID)) return;
   const style = document.createElement('style');
 
   style.id = MESSAGE_STYLE_ID;
-  style.textContent = MARKUPS.map(({ message }) => {
-    return messageCss(message);
-  }).join('\n');
+  style.textContent = messageStyleOf([workerMarkup]);
+  syncPageStyle(style);
   document.head.append(style);
+};
+
+/**
+ * Опознание страницы по новым узлам — синхронно в колбэке наблюдателя мутаций, до отрисовки
+ * пачки. Опознанная страница больше ничего не проверяет.
+ */
+export const syncMessageStyle = () => {
+  if (isPageKnown) return;
+  const style = document.getElementById(MESSAGE_STYLE_ID);
+
+  if (style) syncPageStyle(style);
 };

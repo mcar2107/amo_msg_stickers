@@ -7,6 +7,7 @@ import {
   findComposers,
   injectMessageStyle,
   isDarkTheme,
+  syncMessageStyle,
   watchSystemTheme,
 } from './amoDom';
 import type { ButtonMarkup, Composer } from './amoDom.types';
@@ -292,7 +293,16 @@ export const start = (host: Host) => {
     if (!event.relatedTarget) hoverPopup.leave();
   };
 
-  new MutationObserver(scheduleScan).observe(document.body, {
+  /**
+   * Опознание страницы — в самом колбэке, а не в кадре поиска полей: стиль её разметки должен
+   * встать до отрисовки первых сообщений.
+   */
+  const handleBodyMutation = () => {
+    syncMessageStyle();
+    scheduleScan();
+  };
+
+  new MutationObserver(handleBodyMutation).observe(document.body, {
     childList: true,
     subtree: true,
   });

@@ -1,4 +1,5 @@
 import {
+  MARK_BOX_SELECTOR,
   MARK_HEIGHT_VAR,
   MARK_KIND_ATTR,
   MARK_WIDTH_VAR,
@@ -13,6 +14,7 @@ import type {
   FeedObserverClass,
   FeedRoot,
   FeedRowNode,
+  MediaBoxNode,
   RowMark,
   RowProps,
 } from './markRows.types';
@@ -20,7 +22,7 @@ import type {
 /**
  * Пометка строк ленты Worker-версии amo web (design.md, решение 7): имени файла в DOM этой версии нет, а стилю нужен
  * вид своего сообщения и стороны картинки до её загрузки. Агент читает их из данных строки в пропсах страницы и
- * ставит на строку атрибут вида и переменные сторон — имя файла на строку не пишется.
+ * ставит на строку атрибут вида, а на её коробку медиа — переменные сторон; имя файла в DOM не пишется.
  */
 
 const ROW_KEY_ATTR = 'data-key';
@@ -41,11 +43,15 @@ const OBSERVE_OPTIONS: MutationObserverInit = { childList: true, subtree: true }
 
 const isFeedRow = (node: object): node is FeedRowNode => {
   return (
-    'style' in node &&
+    'querySelector' in node &&
     'getAttribute' in node &&
     'setAttribute' in node &&
     'removeAttribute' in node
   );
+};
+
+const isMediaBox = (node: object | null): node is MediaBoxNode => {
+  return node !== null && 'style' in node;
 };
 
 const isFeedNode = (node: object): node is FeedNode => {
@@ -129,12 +135,12 @@ const syncKind = (node: FeedRowNode, value: string | null) => {
 };
 
 /**
- * @param node — строка ленты
+ * @param box — коробка медиа строки
  * @param name — переменная стороны
  * @param value — значение без единиц; пустая строка — переменная снимается
  */
-const syncVar = (node: FeedRowNode, name: string, value: string) => {
-  const { style } = node;
+const syncVar = (box: MediaBoxNode, name: string, value: string) => {
+  const { style } = box;
 
   if (style.getPropertyValue(name) === value) return;
 
@@ -149,14 +155,21 @@ const syncVar = (node: FeedRowNode, name: string, value: string) => {
  * Ставит пометку строкам, которые можно показать стикером, и снимает её у остальных — в том числе у строки, ставшей
  * чужой: сообщение удалено, заменено или получило реакцию.
  *
+ * Коробку медиа лента может смонтировать позже строки или пересоздать: смена детей внутри строки снова приводит её
+ * сюда (`rowsOf`), и стороны встают на новую коробку той же пачкой, до её первой отрисовки.
+ *
  * @param nodes — строки ленты
  */
 export const markRows = (nodes: Iterable<FeedRowNode>) => {
   for (const node of nodes) {
     const mark = rowMarkOf(node);
+    const box = node.querySelector(MARK_BOX_SELECTOR);
 
-    syncVar(node, MARK_WIDTH_VAR, mark ? String(mark.w) : '');
-    syncVar(node, MARK_HEIGHT_VAR, mark ? String(mark.h) : '');
+    if (isMediaBox(box)) {
+      syncVar(box, MARK_WIDTH_VAR, mark ? String(mark.w) : '');
+      syncVar(box, MARK_HEIGHT_VAR, mark ? String(mark.h) : '');
+    }
+
     syncKind(node, mark ? mark.kind : null);
   }
 };

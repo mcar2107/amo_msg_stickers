@@ -1,7 +1,7 @@
 import type { StickerKind } from '../shared/stickerMark.types';
 
 /**
- * Строка ленты `[data-key]`, как её помечает агент: атрибут вида и переменные сторон в `style`.
+ * Строка ленты `[data-key]`, как её помечает агент: атрибут вида на ней, переменные сторон — у её коробки медиа.
  */
 export type FeedRowNode = {
   /**
@@ -20,7 +20,17 @@ export type FeedRowNode = {
   removeAttribute: (name: string) => void;
 
   /**
-   * Inline-стиль строки: в нём переменные сторон.
+   * Первый потомок по селектору; null — нет: коробка медиа строки.
+   */
+  querySelector: (selector: string) => object | null;
+};
+
+/**
+ * Коробка медиа строки: переменные сторон — в её inline-стиле.
+ */
+export type MediaBoxNode = {
+  /**
+   * Inline-стиль коробки.
    */
   readonly style: Pick<
     CSSStyleDeclaration,

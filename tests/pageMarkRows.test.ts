@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { markRows, rowsOf, watchFeedRows } from '../src/page/markRows';
 import type { FeedMutation } from '../src/page/markRows.types';
 import {
+  MARK_BOX_SELECTOR,
   MARK_HEIGHT_VAR,
   MARK_KIND_ATTR,
   MARK_WIDTH_VAR,
@@ -13,7 +14,6 @@ import { fiberChain } from './helpers/fakeFiber';
 
 const FIBER_KEY = '__reactFiber$t1';
 const PROPS_KEY = '__reactProps$t1';
-const ROW_SELECTOR = '[data-key]';
 
 /**
  * Шаг fiber от строки до компонента с `row` в живой Worker-версии — один; в стенде — три.
@@ -21,6 +21,13 @@ const ROW_SELECTOR = '[data-key]';
 const ROW_STEPS = 3;
 
 const STICKER_NAME = '😀.amostk.k-sticker.gif';
+
+const BOX_ATTRS = { 'data-media': 'photo', 'data-media-box': '' };
+
+/**
+ * Простой селектор из атрибутов, `[name]` и `[name="value"]`, — все селекторы, которые ищет пометка.
+ */
+const ATTR_PART = /\[([\w-]+)(?:="([^"]*)")?\]/g;
 
 /**
  * `style` строки: переменные и счёт записей.
@@ -48,7 +55,8 @@ class FakeStyle {
 }
 
 /**
- * Узел ленты: атрибуты, `style` и поиск по `[attr]` — ровно то, что читает пометка. Записи атрибутов считаются.
+ * Узел ленты: атрибуты, `style` и поиск по селектору из атрибутов — ровно то, что читает пометка. Записи атрибутов
+ * считаются.
  */
 class FakeFeedNode {
   readonly attributes = new Map<string, string>();
@@ -100,13 +108,32 @@ class FakeFeedNode {
   }
 
   matches(selector: string) {
-    return selector === ROW_SELECTOR && this.attributes.has('data-key');
+    const { text, isEvery } = [...selector.matchAll(ATTR_PART)].reduce(
+      (acc, [part, name = '', value]) => {
+        const actual = this.getAttribute(name);
+        const isMatch = value === undefined ? actual !== null : actual === value;
+
+        return { text: acc.text + part, isEvery: acc.isEvery && isMatch };
+      },
+      { text: '', isEvery: true }
+    );
+
+    return text === selector && isEvery;
+  }
+
+  remove(node: FakeFeedNode) {
+    this.children.splice(this.children.indexOf(node), 1);
+    node.parent = null;
   }
 
   closest(selector: string): FakeFeedNode | null {
     if (this.matches(selector)) return this;
 
     return this.parent ? this.parent.closest(selector) : null;
+  }
+
+  querySelector(selector: string) {
+    return this.querySelectorAll(selector)[0] || null;
   }
 
   querySelectorAll(selector: string): FakeFeedNode[] {
@@ -141,20 +168,44 @@ const rowData = (key: string, fields: RowFields = {}) => {
 };
 
 /**
- * Строка `[data-key]` с fiber: компонент с `row` — в `steps` шагах `return` от fiber узла.
+ * Строка `[data-key]` с fiber: компонент с `row` — в `steps` шагах `return` от fiber узла. Коробка медиа — не первый
+ * ребёнок строки и лежит глубже, как у страницы.
  *
  * @param key — ключ строки
  * @param fields — поля `row` поверх стикера
  * @param steps — шагов до компонента с `row`
+ * @param withBox — есть ли в строке коробка медиа
  * @returns узел строки
  */
-const rowNode = (key: string, fields: RowFields = {}, steps = ROW_STEPS) => {
+const rowNode = (
+  key: string,
+  fields: RowFields = {},
+  steps = ROW_STEPS,
+  withBox = true
+) => {
   const node = new FakeFeedNode({ 'data-key': key });
   const { leaf } = fiberChain(steps, { row: rowData(key, fields), chat: 'chat-1' });
+  const bubble = new FakeFeedNode({ 'data-amo-bubble': '' });
 
+  if (withBox) bubble.append(new FakeFeedNode({ 'data-media-preview': '' }), boxNode());
+  node.append(new FakeFeedNode(), bubble);
   Object.assign(node, { [FIBER_KEY]: leaf });
 
   return node;
+};
+
+const boxNode = () => {
+  return new FakeFeedNode(BOX_ATTRS);
+};
+
+/**
+ * Коробка медиа строки: стороны стикера пометка пишет на неё.
+ *
+ * @param node — строка
+ * @returns коробка; null — её в строке нет
+ */
+const boxOf = (node: FakeFeedNode) => {
+  return node.querySelector(MARK_BOX_SELECTOR);
 };
 
 /**
@@ -178,25 +229,59 @@ const commit = (node: FakeFeedNode, fields: RowFields) => {
   Object.assign(node, { [PROPS_KEY]: hostProps });
 };
 
+/**
+ * Пометка строки: вид — с самой строки, стороны — с её коробки медиа.
+ *
+ * @param node — строка
+ * @returns вид и стороны; без коробки стороны пустые
+ */
 const markOf = (node: FakeFeedNode) => {
+  const box = boxOf(node);
+
   return {
     kind: node.getAttribute(MARK_KIND_ATTR),
-    w: node.style.getPropertyValue(MARK_WIDTH_VAR),
-    h: node.style.getPropertyValue(MARK_HEIGHT_VAR),
+    w: box ? box.style.getPropertyValue(MARK_WIDTH_VAR) : '',
+    h: box ? box.style.getPropertyValue(MARK_HEIGHT_VAR) : '',
   };
+};
+
+/**
+ * Записи пометки в строке: атрибуты и переменные строки и всех её потомков.
+ *
+ * @param node — строка
+ * @returns число записей
+ */
+const writesIn = (node: FakeFeedNode): number => {
+  return node.children.reduce((sum, child) => {
+    return sum + writesIn(child);
+  }, node.allWrites);
 };
 
 const NO_MARK = { kind: null, w: '', h: '' };
 
 describe('markRows', () => {
-  it('стикер: вид и стороны, без имени файла', () => {
+  it('стикер: вид на строке, стороны на коробке медиа, без имени файла', () => {
     const node = rowNode('k1');
 
     markRows([node]);
 
     expect(markOf(node)).toEqual({ kind: 'sticker', w: '512', h: '256' });
     expect([...node.attributes.keys()]).toEqual(['data-key', MARK_KIND_ATTR]);
-    expect([...node.style.vars.keys()]).toEqual([MARK_WIDTH_VAR, MARK_HEIGHT_VAR]);
+    expect(node.style.vars.size).toBe(0);
+    expect([...(boxOf(node)?.style.vars.keys() || [])]).toEqual([
+      MARK_WIDTH_VAR,
+      MARK_HEIGHT_VAR,
+    ]);
+    expect(boxOf(node)?.attributes.size).toBe(2);
+  });
+
+  it('строка без коробки медиа: вид ставится, переменных нет нигде', () => {
+    const node = rowNode('k1', {}, ROW_STEPS, false);
+
+    markRows([node]);
+
+    expect(markOf(node)).toEqual({ kind: 'sticker', w: '', h: '' });
+    expect(node.style.vars.size).toBe(0);
   });
 
   it('GIF из поиска и незнакомый вид — gif', () => {
@@ -231,7 +316,7 @@ describe('markRows', () => {
     markRows([node]);
 
     expect(markOf(node)).toEqual(NO_MARK);
-    expect(node.allWrites).toBe(0);
+    expect(writesIn(node)).toBe(0);
   });
 
   it('row другой строки — без пометки', () => {
@@ -258,13 +343,13 @@ describe('markRows', () => {
     const node = rowNode('k1');
 
     markRows([node]);
-    const first = node.allWrites;
+    const first = writesIn(node);
 
     markRows([node]);
     markRows([node]);
 
     expect(first).toBeGreaterThan(0);
-    expect(node.allWrites).toBe(first);
+    expect(writesIn(node)).toBe(first);
   });
 
   it('снятие у строки, получившей реакцию, — по актуальной копии fiber', () => {
@@ -276,6 +361,7 @@ describe('markRows', () => {
 
     expect(markOf(node)).toEqual(NO_MARK);
     expect([...node.attributes.keys()]).toEqual(['data-key']);
+    expect(boxOf(node)?.style.vars.size).toBe(0);
   });
 
   it('устаревшая копия fiber со стикером не помечает строку, ставшую чужой', () => {
@@ -296,7 +382,7 @@ describe('markRows', () => {
     expect(markOf(node).kind).toBe('sticker');
   });
 
-  it('смена сторон переписывает только переменные', () => {
+  it('смена сторон переписывает только переменные коробки', () => {
     const node = rowNode('k1');
 
     markRows([node]);
@@ -306,6 +392,7 @@ describe('markRows', () => {
 
     expect(markOf(node)).toEqual({ kind: 'sticker', w: '128', h: '128' });
     expect(node.writes).toBe(0);
+    expect(node.style.writes).toBe(0);
   });
 });
 
@@ -371,6 +458,46 @@ describe('watchFeedRows', () => {
       root,
       { childList: true, subtree: true },
     ]);
+  });
+
+  it('коробка, появившаяся в строке позже неё, получает стороны той же пачкой', () => {
+    const root = new FakeFeedNode();
+    const row = rowNode('k1', {}, ROW_STEPS, false);
+
+    root.append(row);
+    watchFeedRows(root, FakeObserver);
+    expect(markOf(row)).toEqual({ kind: 'sticker', w: '', h: '' });
+
+    const bubble = row.children[1];
+    const box = boxNode();
+
+    if (!bubble) throw new Error('нет пузыря');
+    bubble.append(box);
+    FakeObserver.last?.callback([{ target: bubble, addedNodes: [box] }]);
+
+    expect(markOf(row)).toEqual({ kind: 'sticker', w: '512', h: '256' });
+  });
+
+  it('пересозданная коробка получает стороны, строка не переписывается', () => {
+    const root = new FakeFeedNode();
+    const row = rowNode('k1');
+
+    root.append(row);
+    watchFeedRows(root, FakeObserver);
+
+    const bubble = row.children[1];
+    const stale = boxOf(row);
+    const fresh = boxNode();
+
+    if (!bubble || !stale) throw new Error('нет коробки');
+    bubble.remove(stale);
+    row.writes = 0;
+    bubble.append(fresh);
+    FakeObserver.last?.callback([{ target: bubble, addedNodes: [fresh] }]);
+
+    expect(boxOf(row)).toBe(fresh);
+    expect(markOf(row)).toEqual({ kind: 'sticker', w: '512', h: '256' });
+    expect(row.writes).toBe(0);
   });
 
   it('пачка мутаций помечает появившиеся строки', () => {

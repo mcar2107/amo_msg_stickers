@@ -142,6 +142,7 @@ export const stableMarkup: AmoMarkup = {
   ...shownCompose(isShown),
   findComposers,
   button: COMPOSER_BUTTON,
+  pageSelector: `${INPUT_SELECTOR}, [${STABLE_MESSAGE_ATTR}]`,
   message: {
     bubble: BUBBLE,
     tail: `${ROW}:has(> [data-feed-bubble] > ${OUR_CONTENT}) > [data-feed-bubble-tail]`,
