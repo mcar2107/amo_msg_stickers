@@ -13,7 +13,7 @@ import { makeGif } from './helpers/makeGif';
 import { buildZip } from './helpers/zipBuild';
 
 /**
- * Библиотека, которую видит загрузка через `listPacks` и `listAllStickers`.
+ * Библиотека, которую видит загрузка через `listPacks` и `listStickerIds`.
  */
 const library = vi.hoisted(() => {
   return { packs: [] as Pack[], stickers: [] as StickerRec[] };
@@ -25,14 +25,10 @@ vi.mock('../src/core/db', () => {
     listPacks: vi.fn(async () => {
       return library.packs;
     }),
-    listAllStickers: vi.fn(async () => {
-      const groups = new Map<string, StickerRec[]>();
-
-      for (const sticker of library.stickers) {
-        groups.set(sticker.packId, [...(groups.get(sticker.packId) || []), sticker]);
-      }
-
-      return groups;
+    listStickerIds: vi.fn(async () => {
+      return library.stickers.map(({ id }) => {
+        return id;
+      });
     }),
   };
 });

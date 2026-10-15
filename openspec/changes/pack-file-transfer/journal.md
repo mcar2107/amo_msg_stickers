@@ -34,3 +34,11 @@ K4/K5: `parseManifest(unknown)` → {manifest} | {error: notOurs|tooNew|invalid|
 Решения: размер ≥ 2^32 → tooBig до `readZipDirectory` (долг G2 закрыт); битый каталог с сигнатурой zip в начале → «битый», иначе «не наш»; manifest не JSON / без `format` → notOurs, > 16 МБ → invalid; неверный тип необязательного поля → invalid, `sourceRef` у custom отбрасывается; `isNew` — только не-custom пак вне библиотеки с новыми стикерами; префикс `tg:` — локальная константа (импорт `TG_ID_PREFIX` тянул бы convert/gif-worker).
 Аудит: 1 круг, ok.
 Долг: повтор пака проверяется после отбрасывания пустых — дубль с пустым `stickers` принимается (manifest.types.ts:333); предел GIF 8 МБ (readLibraryFile.ts:211) без теста; сверка через `listAllStickers()` вместо ключей (`getAllKeys`, design 4.2) — G4 может дать хелпер, учесть на нагрузке G9.
+
+### G4 · Запись импорта
+
+K5: `writeImport(plan)` → `ImportWritten {packIds (в порядке файла), stickerCount}`, startedAt внутри. Записи строит чистая `buildImportRecords(plan, library, {startedAt, customPack})` без импорта db.ts (нет цикла db ↔ libraryFile); `customPackRecord()` вынесен из `ensureCustomPack` (та же форма записи).
+Транзакция: getAllKeys паков и стикеров + index('packId').getAll по пакам плана, записи и put — в onsuccess последнего чтения, без await до txDone. createdAt стикеров — от последнего стикера пака в базе, иначе от startedAt; у нового пака обложка всегда задана.
+Долг G3 закрыт: `listStickerIds()` (getAllKeys) в db.ts, на него переведён `loadFileCard`.
+Аудит: 1 круг, ok.
+Долг: `importRecords.ts:90` кладёт ключи `emoji`/`caption` со значением undefined; у `writeImport` нет автотеста (нет IDB в тестах) — onabort и реальная запись проверяются на стенде в G9 (6.1).

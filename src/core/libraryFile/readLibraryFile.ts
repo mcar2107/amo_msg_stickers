@@ -1,4 +1,4 @@
-import { CUSTOM_PACK_ID, listAllStickers, listPacks } from '../db';
+import { CUSTOM_PACK_ID, listPacks, listStickerIds } from '../db';
 import { t } from '../i18n/translate';
 import type { ZipEntry } from '../zip/zip.types';
 import { ZipError } from '../zip/zipError';
@@ -256,12 +256,7 @@ export const compareWithLibrary = (
  * @returns карточка «что добавится»
  */
 export const loadFileCard = async (libraryFile: LibraryFile): Promise<FileCard> => {
-  const [packs, stickersByPack] = await Promise.all([listPacks(), listAllStickers()]);
-  const stickerIds = new Set<string>();
-
-  for (const stickers of stickersByPack.values()) {
-    for (const { id } of stickers) stickerIds.add(id);
-  }
+  const [packs, stickerIds] = await Promise.all([listPacks(), listStickerIds()]);
 
   return compareWithLibrary(libraryFile.manifest, {
     packIds: new Set(
@@ -269,6 +264,6 @@ export const loadFileCard = async (libraryFile: LibraryFile): Promise<FileCard> 
         return id;
       })
     ),
-    stickerIds,
+    stickerIds: new Set(stickerIds),
   });
 };

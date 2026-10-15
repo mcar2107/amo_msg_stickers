@@ -1,4 +1,7 @@
 import { t } from './i18n/translate';
+import { buildImportRecords } from './libraryFile/importRecords';
+import type { ImportLibrary, ImportWritten } from './libraryFile/importRecords.types';
+import type { ImportPlan } from './libraryFile/prepareImport.types';
 import type {
   Pack,
   RecentKind,
@@ -171,11 +174,13 @@ export const setPackCover = async (packId: string, coverId: string) => {
   await txDone(tx);
 };
 
-export const ensureCustomPack = async (): Promise<Pack> => {
-  const existing = await getPack(CUSTOM_PACK_ID);
-
-  if (existing) return existing;
-  const pack: Pack = {
+/**
+ * Одна запись своего пака и для пикера, и для импорта файла: «Мои стикеры» не зависят от того, кто их создал.
+ *
+ * @returns запись своего пака
+ */
+const customPackRecord = (): Pack => {
+  return {
     id: CUSTOM_PACK_ID,
     /**
      * Название на языке создания; в интерфейсе свой пак называется по id, на текущем языке (`packTitle`).
@@ -187,6 +192,13 @@ export const ensureCustomPack = async (): Promise<Pack> => {
      */
     createdAt: 0,
   };
+};
+
+export const ensureCustomPack = async (): Promise<Pack> => {
+  const existing = await getPack(CUSTOM_PACK_ID);
+
+  if (existing) return existing;
+  const pack = customPackRecord();
 
   await putPack(pack);
 
@@ -238,6 +250,31 @@ export const listAllStickers = async (): Promise<StickersByPack> => {
   );
 };
 
+/**
+ * Ключи хранилища — строки: записи в него кладут только put-функции этого модуля, и `id` у них строкой.
+ *
+ * @param keys — ключи из `getAllKeys`
+ * @returns строковые ключи
+ */
+const stringKeys = (keys: IDBValidKey[]): string[] => {
+  return keys.reduce<string[]>((acc, key) => {
+    if (typeof key === 'string') acc.push(key);
+
+    return acc;
+  }, []);
+};
+
+/**
+ * Id всех стикеров без чтения записей: сверке с файлом блобы не нужны.
+ *
+ * @returns id стикеров библиотеки в любом порядке
+ */
+export const listStickerIds = async (): Promise<string[]> => {
+  return stringKeys(
+    await promisify<IDBValidKey[]>((await store(STORE.stickers)).getAllKeys())
+  );
+};
+
 export const countStickers = async (): Promise<number> => {
   return promisify<number>((await store(STORE.stickers)).count());
 };
@@ -250,6 +287,81 @@ export const deletePack = async (packId: string) => {
   tx.objectStore(STORE.packs).delete(packId);
   for (const { id } of stickers) tx.objectStore(STORE.stickers).delete(id);
   await txDone(tx);
+};
+
+/**
+ * Записывает импорт из файла одной транзакцией: сверка с библиотекой и запись идут в колбэках её запросов, без
+ * ожидания чего-либо вне базы, — иначе транзакция закоммитилась бы между чтением и записью. Поэтому библиотека сверяется
+ * в момент записи, а сбой (квота, закрытие вкладки) оставляет её как до импорта. Отменить запись нельзя: выданные
+ * запросы коммитятся.
+ *
+ * @param plan — проверенный план импорта
+ * @returns что записано на самом деле: паки, в которые добавлены стикеры, и число стикеров; отклоняется ошибкой
+ * транзакции при сбое или прерывании
+ */
+export const writeImport = async (plan: ImportPlan): Promise<ImportWritten> => {
+  const db = await openDb();
+  const startedAt = Date.now();
+  const customPack = customPackRecord();
+  const tx = db.transaction([STORE.packs, STORE.stickers], 'readwrite');
+  const packs = tx.objectStore(STORE.packs);
+  const stickers = tx.objectStore(STORE.stickers);
+  const library: ImportLibrary = {
+    packIds: new Set(),
+    stickerIds: new Set(),
+    lastStickerAt: new Map(),
+  };
+  let written: ImportWritten = { packIds: [], stickerCount: 0 };
+  let pendingReads = 2 + plan.packs.length;
+
+  /**
+   * Записи строятся по последнему прочитанному: до него состояние библиотеки неполное.
+   */
+  const handleRead = () => {
+    pendingReads -= 1;
+    if (pendingReads) return;
+    const records = buildImportRecords(plan, library, { startedAt, customPack });
+
+    for (const pack of records.packs) packs.put(pack);
+    for (const sticker of records.stickers) stickers.put(sticker);
+    ({ written } = records);
+  };
+
+  const packKeys = packs.getAllKeys();
+
+  packKeys.onsuccess = () => {
+    for (const id of stringKeys(packKeys.result)) library.packIds.add(id);
+    handleRead();
+  };
+
+  const stickerKeys = stickers.getAllKeys();
+
+  stickerKeys.onsuccess = () => {
+    for (const id of stringKeys(stickerKeys.result)) library.stickerIds.add(id);
+    handleRead();
+  };
+
+  for (const { id: packId } of plan.packs) {
+    const packStickers = stickers.index(PACK_ID_INDEX).getAll(packId);
+
+    packStickers.onsuccess = () => {
+      /**
+       * Каст — как у `promisify`: в хранилище стикеров пишут только put-функции этого модуля.
+       */
+      for (const { createdAt } of packStickers.result as StickerRec[]) {
+        const last = library.lastStickerAt.get(packId);
+
+        if (last === undefined || createdAt > last)
+          library.lastStickerAt.set(packId, createdAt);
+      }
+
+      handleRead();
+    };
+  }
+
+  await txDone(tx);
+
+  return written;
 };
 
 export const getSticker = async (id: string): Promise<StickerRec | undefined> => {
