@@ -797,6 +797,7 @@
       <div class="group">
         <span class="group-title">Библиотека</span>
         <button id="library">20×120 паков</button>
+        <button id="library-heavy">20×120 паков, ~500 МБ</button>
       </div>
     </div>
     <div id="legacy-root" class="relative h-screen">
@@ -1398,40 +1399,96 @@
           req.onerror = () => reject(req.error);
         });
 
-      const stickerBlob = (pack, index) => {
-        const canvas = new OffscreenCanvas(96, 96);
-        const ctx = canvas.getContext('2d');
-        ctx.fillStyle = `hsl(${(pack * 360) / PACKS} 70% 60%)`;
-        ctx.beginPath();
-        ctx.arc(48, 48, 44, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = '#000';
-        ctx.font = 'bold 26px sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText(`${pack + 1}.${index + 1}`, 48, 57);
-        return canvas.convertToBlob({ type: 'image/png' });
-      };
-
-      document.getElementById('library').onclick = async () => {
-        const button = document.getElementById('library');
-        button.disabled = true;
-        const records = [];
-        for (let pack = 0; pack < PACKS; pack++) {
-          for (let index = 0; index < STICKERS; index++) {
-            records.push({
-              id: `bench-${pack}-${index}`,
-              packId: `tg:bench_${pack + 1}`,
-              blob: await stickerBlob(pack, index),
-              width: 96,
-              height: 96,
-              emoji: '😀',
-              createdAt: index,
-            });
+      /**
+       * GIF без сжатия: коды LZW по 8 бит с clear через 120 пикселей, поэтому вес — сторона² байт и стикер любого
+       * веса собирается без кодировщика. Пиксели тяжёлого — шум от номера стикера: GIF не повторяются.
+       */
+      const stickerBlob = (pack, index, side, isNoisy) => {
+        const COLORS = 128;
+        const CLEAR = 128;
+        const EOI = 129;
+        const RUN = 120;
+        const pixels = side * side;
+        const codes = new Uint8Array(pixels + Math.ceil(pixels / RUN) + 1);
+        let seed = (pack * 100003 + index * 7919 + 1) >>> 0;
+        let at = 0;
+        for (let i = 0; i < pixels; i++) {
+          if (i % RUN === 0) codes[at++] = CLEAR;
+          if (isNoisy) {
+            seed ^= seed << 13;
+            seed ^= seed >>> 17;
+            seed ^= seed << 5;
+            codes[at++] = (seed >>> 0) % COLORS;
+          } else {
+            const x = (i % side) - side / 2;
+            const y = Math.floor(i / side) - side / 2;
+            codes[at++] = Math.floor(Math.hypot(x, y) + index) % COLORS;
           }
         }
+        codes[at++] = EOI;
+        const head = [
+          0x47,
+          0x49,
+          0x46,
+          0x38,
+          0x39,
+          0x61,
+          side & 255,
+          side >> 8,
+          side & 255,
+          side >> 8,
+          0xf6,
+          0,
+          0,
+        ];
+        const palette = [];
+        for (let c = 0; c < COLORS; c++) {
+          const hue = ((pack * 360) / PACKS + c * 2) % 360;
+          const k = (n) => (n + hue / 30) % 12;
+          const f = (n) => 0.6 - 0.42 * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));
+          palette.push(
+            Math.round(f(0) * 255),
+            Math.round(f(8) * 255),
+            Math.round(f(4) * 255)
+          );
+        }
+        const image = [
+          0x2c,
+          0,
+          0,
+          0,
+          0,
+          side & 255,
+          side >> 8,
+          side & 255,
+          side >> 8,
+          0,
+          7,
+        ];
+        const blocks = [];
+        for (let i = 0; i < at; i += 255) {
+          const chunk = codes.subarray(i, Math.min(i + 255, at));
+          blocks.push(new Uint8Array([chunk.length]), chunk);
+        }
+        return new Blob(
+          [
+            new Uint8Array([...head, ...palette, ...image]),
+            ...blocks,
+            new Uint8Array([0, 0x3b]),
+          ],
+          { type: 'image/gif' }
+        );
+      };
+
+      /**
+       * Паки пишутся по одному: ~500 МБ одной транзакцией стенда держали бы все блобы до коммита. Id стикеров — вида
+       * `tg:…`, как у импорта из Telegram: иначе гард манифеста отклонит выгрузку.
+       */
+      const seedLibrary = async (button, side, isNoisy) => {
+        button.disabled = true;
         const db = await openLibrary();
-        const tx = db.transaction(['packs', 'stickers'], 'readwrite');
         for (let pack = 0; pack < PACKS; pack++) {
+          const tx = db.transaction(['packs', 'stickers'], 'readwrite');
           tx.objectStore('packs').put({
             id: `tg:bench_${pack + 1}`,
             title: `Тестовый пак ${pack + 1} с длинным названием для проверки обрезки`,
@@ -1439,10 +1496,29 @@
             sourceRef: `bench_${pack + 1}`,
             createdAt: Date.now() + pack,
           });
+          for (let index = 0; index < STICKERS; index++) {
+            tx.objectStore('stickers').put({
+              id: `tg:bench-${pack}-${index}`,
+              packId: `tg:bench_${pack + 1}`,
+              blob: stickerBlob(pack, index, side, isNoisy),
+              width: side,
+              height: side,
+              emoji: '😀',
+              createdAt: index,
+            });
+          }
+          await new Promise((resolve, reject) => {
+            tx.oncomplete = resolve;
+            tx.onabort = () => reject(tx.error);
+          });
         }
-        for (const record of records) tx.objectStore('stickers').put(record);
-        tx.oncomplete = () => location.reload();
+        location.reload();
       };
+
+      document.getElementById('library').onclick = (event) =>
+        seedLibrary(event.currentTarget, 96, false);
+      document.getElementById('library-heavy').onclick = (event) =>
+        seedLibrary(event.currentTarget, 448, true);
 
       // --- перетаскивание панели: положение помнится между перезагрузками ---
       {
