@@ -19,3 +19,11 @@
 Аудит: 2 круга (1-й critical — нет записи по окружениям и Tampermonkey, исправлено в design.md), итог ok.
 Долг: `add.file.import/cancel/chooseFile/replaceFile` дублируют ключи других сегментов — проверить использование в G8; `add.file.writing` и `status.fileImportWriting` — проверить использование в G7/G8; «4 ГБ» в словаре vs «4 ГиБ» в спеке — сверить в доке (G10); design.md:246 строка длиннее 120; сквозная выгрузка из меню пака в открытом чате — G9.
 Вопрос пользователю: Tampermonkey — проверка пользователем или G9 обязательна до мержа, либо принимается довод «isolated world того же вида, что content script».
+
+### G2 · Zip
+
+K3: `writeZip(entries, {modified})`, `readZipDirectory(blob, {maxEntries})`, `findZipRoot(dir, fileName)` → '' | '<папка>/' | null, `readZipEntry(blob, entry, {maxBytes, type})`; `ZipError.kind` 'broken' | 'tooLarge', без `t()`.
+Решения: имя записи декодируется как UTF-8 и без флага бита 11 (zip -r и ditto в macOS пишут UTF-8 без флага), при ошибке — latin1; запись больше `maxBytes` → 'broken'; `findZipRoot` смотрит на папки верхнего уровня кроме `__MACOSX`; имя длиннее 65 535 байт и архив ≥ 4 ГиБ при записи → 'tooLarge' до чтения данных. Фикстуры `zip -r`/`ditto` — base64 в tests/helpers/zipFixtures.ts.
+Проверено: свой архив проходит `unzip -t`, python zipfile, `ditto -x -k`; пересжатый `zip -r`/`ditto -c -k --keepParent` читается побайтно.
+Аудит: 2 круга (1-й critical — тест перекрытия записей без зубов: отклоняла сверка CRC; исправлено пересчётом CRC), итог ok.
+Долг: чтение файла ≥ 4 ГиБ даёт 'broken' — G3 обязана проверить `file.size` до `readZipDirectory` («слишком большой файл»); `/usr/bin/unzip` 6.0 macOS не распаковывает не-ASCII имя с флагом 11 — имена формата держать ASCII.
