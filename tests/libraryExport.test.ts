@@ -476,8 +476,21 @@ describe('packFileName', () => {
   it('без разделителей путей, `:` и символов направления текста', () => {
     const name = packFileName({ id: 'tg:Evil', title: '\u202E../a:b\u2066' });
 
-    expect(name).toBe('.._a_b.amostickers');
+    expect(name).toBe('_a_b.amostickers');
     expect(name).not.toMatch(/[/\\:\u202E\u2066]/u);
+  });
+
+  it.each(['..Котики', ' . .Котики'])(
+    'снимает точки и пробелы в начале «%s»: имя с точки — скрытый файл в macOS и Linux',
+    (title) => {
+      expect(packFileName({ id: 'tg:X', title })).toBe('Котики.amostickers');
+    }
+  );
+
+  it('точки в начале не занимают предел длины', () => {
+    expect(packFileName({ id: 'tg:X', title: `${'.'.repeat(150)}Котики` })).toBe(
+      'Котики.amostickers'
+    );
   });
 
   it('заменяет символы, недопустимые в Windows, и снимает управляющие', () => {
@@ -490,7 +503,7 @@ describe('packFileName', () => {
     expect(packFileName({ id: 'tg:X', title: 'Котики. . ' })).toBe('Котики.amostickers');
   });
 
-  it.each(['CON', 'con', 'Lpt1', 'NUL.txt', '  .', '', '\u202E'])(
+  it.each(['CON', 'con', 'Lpt1', 'NUL.txt', '  .', '...', '', '\u202E'])(
     'запасное имя для «%s»',
     (title) => {
       expect(packFileName({ id: 'tg:X', title })).toBe('amo-stickers.amostickers');

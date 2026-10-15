@@ -32,6 +32,11 @@ const NAME_JUNK = /[\p{Cc}\p{Bidi_Control}]/gu;
 const NAME_FORBIDDEN = /[\\/:*?"<>|]/g;
 
 /**
+ * Точки и пробелы в начале: имя с точки в macOS и Linux — скрытый файл, и выгрузка пропала бы из вида.
+ */
+const NAME_LEADING = /^[. ]+/;
+
+/**
  * Точки и пробелы в конце: Windows их снимает сам, и имя разошлось бы с показанным.
  */
 const NAME_TRAILING = /[. ]+$/;
@@ -46,7 +51,13 @@ const RESERVED_NAME = /^(?:con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\..*)?$/i;
  * @returns имя без расширения, безопасное для файловых систем
  */
 const safeName = (raw: string) => {
-  const replaced = raw.replaceAll(NAME_JUNK, '').replaceAll(NAME_FORBIDDEN, '_');
+  /**
+   * Начало снимается до урезания, чтобы точки в начале не съели предел длины.
+   */
+  const replaced = raw
+    .replaceAll(NAME_JUNK, '')
+    .replaceAll(NAME_FORBIDDEN, '_')
+    .replace(NAME_LEADING, '');
   const name = clampGraphemes(replaced, MAX_NAME_GRAPHEMES).replace(NAME_TRAILING, '');
 
   return !name || RESERVED_NAME.test(name) ? FALLBACK_NAME : name;
