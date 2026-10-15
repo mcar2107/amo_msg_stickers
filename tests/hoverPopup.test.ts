@@ -511,6 +511,34 @@ describe('createPopupHolds', () => {
     expect(released).toBe(2);
   });
 
+  it('выгрузка удерживает открытый наведением попап, пока идёт, и переживает закрытие панели', () => {
+    vi.useFakeTimers();
+    let release = () => {};
+
+    const holds = createPopupHolds(() => {
+      release();
+    });
+
+    const { popup, closedCount } = setup(holds.isHeld);
+
+    release = popup.release;
+    popup.enter(A);
+    vi.advanceTimersByTime(250);
+    holds.set('export', true);
+    popup.leave();
+    vi.advanceTimersByTime(1000);
+    expect(popup.isOpen).toBe(true);
+
+    holds.releasePanel();
+    expect(holds.isHeld()).toBe(true);
+
+    holds.set('export', false);
+    vi.advanceTimersByTime(500);
+    expect(closedCount()).toBe(1);
+    expect(popup.isOpen).toBe(false);
+    vi.useRealTimers();
+  });
+
   it('удержание не даёт уходу курсора закрыть попап, а dismiss закрывает', () => {
     vi.useFakeTimers();
     const holds = createPopupHolds();

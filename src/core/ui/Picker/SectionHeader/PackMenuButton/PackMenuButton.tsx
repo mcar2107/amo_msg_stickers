@@ -6,6 +6,7 @@ import { Menu } from '../../Menu/Menu';
 import type { MenuOpening } from '../../Menu/Menu.types';
 import { CopyPackLinkItem } from '../CopyPackLinkItem/CopyPackLinkItem';
 import { DeletePackItem } from '../DeletePackItem/DeletePackItem';
+import { ExportPackItem } from '../ExportPackItem/ExportPackItem';
 
 import type { PackMenuButtonProps } from './PackMenuButton.types';
 
@@ -17,10 +18,11 @@ const MORE_CLASS = [
 
 /**
  * Кнопка «…» заголовка пака и его меню. Меню открывается под кнопкой, повторное нажатие его
- * закрывает.
+ * закрывает. Пункты — в порядке «Копировать ссылку», «Выгрузить пак», «Удалить пак»; пункта, которого у пака нет,
+ * в меню нет.
  */
 export const PackMenuButton: FC<PackMenuButtonProps> = (props) => {
-  const { title, link, onDelete } = props;
+  const { packId, title, link, hasStickers, onDelete } = props;
   const [opening, setOpening] = useState<MenuOpening | null>(null);
   const label = t('pack.menu', { title });
 
@@ -43,7 +45,7 @@ export const PackMenuButton: FC<PackMenuButtonProps> = (props) => {
   };
 
   const handleDeleteConfirm = () => {
-    onDelete();
+    onDelete?.();
   };
 
   return (
@@ -74,7 +76,9 @@ export const PackMenuButton: FC<PackMenuButtonProps> = (props) => {
         >
           {link && <CopyPackLinkItem link={link} />}
 
-          <DeletePackItem onConfirm={handleDeleteConfirm} />
+          {hasStickers && <ExportPackItem packId={packId} title={title} />}
+
+          {onDelete && <DeletePackItem onConfirm={handleDeleteConfirm} />}
         </Menu>
       )}
     </>

@@ -16,6 +16,7 @@ import type {
   PickerStatus,
   RefreshPacksOptions,
 } from './PickerProvider.types';
+import { useLibraryExport } from './useLibraryExport';
 import { usePackImport } from './usePackImport';
 
 /**
@@ -158,6 +159,17 @@ export const usePickerState = (options: PickerStateOptions): PickerStateValue =>
     setHold('import', isImporting);
   }, [isImporting, setHold]);
 
+  const libraryExport = useLibraryExport({ showStatus, showError });
+  const { isExporting } = libraryExport;
+
+  /**
+   * Выгрузка удерживает попап до скачивания: открытый наведением попап, из которого ушёл курсор, иначе закрылся бы
+   * посреди сборки файла, и ход выгрузки пропал бы из виду.
+   */
+  useEffect(() => {
+    setHold('export', isExporting);
+  }, [isExporting, setHold]);
+
   /**
    * Открытый экран удерживает попап: на «Добавить стикеры» и «Настройках» заполняют форму, и
    * случайный уход курсора за край попапа не должен прятать её. Закрыть такой попап можно
@@ -184,6 +196,7 @@ export const usePickerState = (options: PickerStateOptions): PickerStateValue =>
       urlOf,
       dropUrl,
       packImport,
+      libraryExport,
       openedBy,
       setHold,
     },

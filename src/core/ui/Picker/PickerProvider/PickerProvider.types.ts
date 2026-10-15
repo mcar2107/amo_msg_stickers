@@ -113,6 +113,11 @@ export type PickerContextValue = {
   packImport: PackImportState;
 
   /**
+   * Выгрузка пака или библиотеки в файл: одна за раз, её ход переживает закрытие меню и экрана.
+   */
+  libraryExport: LibraryExportState;
+
+  /**
    * Чем открыт пикер последний раз: наведением фокус из поля сообщения не уводится.
    */
   openedBy: OpenedBy;
@@ -171,6 +176,40 @@ export type PackImportState = {
    * отменён». Без идущего импорта ничего не делает.
    */
   cancelImport: () => void;
+};
+
+export type LibraryExportState = {
+  /**
+   * Идёт выгрузка: «Выгрузить пак» и «Выгрузить библиотеку» недоступны до её конца.
+   */
+  isExporting: boolean;
+
+  /**
+   * Выгружает пак в файл с именем по его названию. Пока идёт выгрузка, вызов ничего не делает. Промис не
+   * отклоняется: ход, итог и ошибка — в статусе.
+   *
+   * @param packId — id пака
+   * @param title — название пака на языке интерфейса для статусов
+   */
+  exportPack: (packId: string, title: string) => Promise<void>;
+
+  /**
+   * Выгружает всю библиотеку одним файлом. Пока идёт выгрузка, вызов ничего не делает. Промис не отклоняется: ход,
+   * итог и ошибка — в статусе.
+   */
+  exportAll: () => Promise<void>;
+};
+
+export type LibraryExportOptions = {
+  /**
+   * Показывает ход и итог выгрузки в статусе.
+   */
+  showStatus: (text: string) => void;
+
+  /**
+   * Показывает ошибку выгрузки в статусе.
+   */
+  showError: (text: string) => void;
 };
 
 export type PackImportOptions = {

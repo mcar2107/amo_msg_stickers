@@ -50,3 +50,15 @@ K6: `packFileName(pack)`, `libraryFileName(date)`, `FILE_EXTENSION`; `exportLibr
 Аудит: 1 круг, ok.
 Долг (кандидаты в группу доработки F): `checkManifest` (exportLibrary.ts:248) без зубов — нужен тест на отказ гарда (`tg:Cats` с `sourceRef: 'Other'` → invalid, без архива); пустой пак при выгрузке получает текст чтения `error.libraryFile.empty` (exportLibrary.ts:56); U+202E/U+2066 в tests/libraryExport.test.ts:461,464,477 стоят как есть — заменить escape-последовательностями (Trojan Source).
 Вопрос пользователю: название пака с ведущими точками (`../a:b` → `.._a_b.amostickers`) даёт скрытый файл в macOS/Linux, если браузер не снимет точки сам; спека требует снимать только точки/пробелы в конце — снимать ли и ведущие?
+
+### Ответ пользователя: Tampermonkey
+
+Скачивание и выгрузку в userscript под Tampermonkey пользователь проверяет сам. Агентам (G9, 6.3) эту часть не проверять; вопрос закрыт.
+
+### G6 · Выгрузка в пикере
+
+K7: `'export'` в `HoldReason`, вне `PANEL_REASONS`. K8: `picker.libraryExport = { isExporting, exportPack(packId, title), exportAll() }` (exportAll — для G8). K10: `HeaderAction = 'clear' | 'menu' | 'exportMenu'`, у custom — 'exportMenu' только со стикерами; `PackMenuButton.onDelete` необязателен. Логика — чистая `runLibraryExport` («выгружен» только после запуска скачивания), хук `useLibraryExport` — занятость и вызов.
+Отступление, принято: `Menu/MenuItem/*` — `isDisabled` (`aria-disabled`, выбор игнорируется; `disabled` ломал бы обход стрелками); новый tests/runLibraryExport.test.ts.
+Стенд (legacy, headless Chrome, CDP downloads): порядок «Копировать ссылку/Выгрузить пак/Удалить пак»; пак без sourceRef — без «Копировать ссылку»; «Мои стикеры» — только «Выгрузить пак», пустые — без «…»; скачан `Котики.amostickers`, статус «Пак «Котики» выгружен»; во время выгрузки 600×200 КБ (120 МБ) пункт у другого пака `aria-disabled`, клик не скачивает; открытый наведением попап держится до конца выгрузки и закрывается сам; EN-подписи; порядок паков после выгрузок и перезагрузки тот же. Усиление: `unzip -l/-t` + manifest.json Котики (5 GIF, sourceRef, coverId), Мои стикеры (3 GIF, caption), Большой (600 GIF) совпадают с засеянным.
+Аудит: 1 круг, ok.
+Долг: защита «одна выгрузка за раз» (`useLibraryExport.ts:27`, `exportingRef`) без автотеста — проверено только стендом, повторить в G9; у недоступного пункта меню остаётся фон `focus-visible:`; визуал недоступного пункта в светлой/тёмной теме глазами не сверен (классы на токенах) — G9.

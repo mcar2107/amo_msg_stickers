@@ -15,7 +15,16 @@ const TITLE_CLASS =
  * Название сжимается многоточием, а действие не сжимается: длинное название его не сдвигает.
  */
 export const SectionHeader: FC<SectionHeaderProps> = (props) => {
-  const { sectionId, title, link, top, height, onPackDelete, onRecentClear } = props;
+  const {
+    sectionId,
+    title,
+    link,
+    hasStickers,
+    top,
+    height,
+    onPackDelete,
+    onRecentClear,
+  } = props;
 
   const handleClearConfirm = () => {
     onRecentClear();
@@ -26,17 +35,44 @@ export const SectionHeader: FC<SectionHeaderProps> = (props) => {
   };
 
   const renderAction = () => {
-    switch (headerAction(sectionId)) {
+    const action = headerAction(sectionId, hasStickers);
+
+    switch (action) {
       case 'clear': {
         return <ClearRecentButton onConfirm={handleClearConfirm} />;
       }
 
       case 'menu': {
-        return <PackMenuButton title={title} link={link} onDelete={handlePackDelete} />;
+        return (
+          <PackMenuButton
+            packId={sectionId}
+            title={title}
+            link={link}
+            hasStickers={hasStickers}
+            onDelete={handlePackDelete}
+          />
+        );
+      }
+
+      case 'exportMenu': {
+        return (
+          <PackMenuButton
+            packId={sectionId}
+            title={title}
+            link={null}
+            hasStickers={hasStickers}
+          />
+        );
+      }
+
+      case null: {
+        return null;
       }
 
       default: {
-        return null;
+        const unknownAction: never = action;
+
+        throw new Error(`Unknown header action: ${String(unknownAction)}`);
       }
     }
   };

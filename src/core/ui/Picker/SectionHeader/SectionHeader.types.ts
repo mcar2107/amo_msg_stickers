@@ -16,6 +16,11 @@ export type SectionHeaderProps = {
   link: string | null;
 
   /**
+   * В разделе есть стикеры: от этого зависят пункт «Выгрузить пак» и меню «Моих стикеров».
+   */
+  hasStickers: boolean;
+
+  /**
    * Верх ряда заголовка в ленте, в пикселях.
    */
   top: number;
