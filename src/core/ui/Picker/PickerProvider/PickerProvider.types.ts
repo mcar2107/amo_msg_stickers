@@ -4,6 +4,7 @@ import type { MutableRef } from 'preact/hooks';
 import type { Pack, SendItem } from '../../../db.types';
 import type { Host, Settings } from '../../../host.types';
 import type { HoldReason, OpenedBy, PopupHolds } from '../../../hoverPopup.types';
+import type { ExportProgress } from '../../../libraryFile/exportLibrary.types';
 import type { FileImportProgress } from '../../../libraryFile/prepareImport.types';
 import type { FileCard } from '../../../libraryFile/readLibraryFile.types';
 import type {
@@ -320,6 +321,12 @@ export type LibraryExportState = {
    * Идёт выгрузка: «Выгрузить пак» и «Выгрузить библиотеку» недоступны до её конца.
    */
   isExporting: boolean;
+
+  /**
+   * Ход выгрузки библиотеки по стикерам — рядом с «Выгрузить библиотеку»; `null` — библиотека не выгружается, в том
+   * числе пока идёт выгрузка пака.
+   */
+  libraryProgress: ExportProgress | null;
 
   /**
    * Выгружает пак в файл с именем по его названию. Пока идёт выгрузка, вызов ничего не делает. Промис не

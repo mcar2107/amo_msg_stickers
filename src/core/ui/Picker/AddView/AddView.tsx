@@ -12,6 +12,7 @@ import { useTelegramImport } from '../useTelegramImport/useTelegramImport';
 
 import { CreateSticker } from './CreateSticker/CreateSticker';
 import { CreateStickerFooter } from './CreateSticker/CreateStickerFooter/CreateStickerFooter';
+import { FileTransfer } from './FileTransfer/FileTransfer';
 import { SegmentForm } from './SegmentForm/SegmentForm';
 import { SegmentTab } from './SegmentTab/SegmentTab';
 import { TelegramImport } from './TelegramImport/TelegramImport';
@@ -87,6 +88,13 @@ export const AddView: FC = () => {
     if (!fileImport.isImportDisabled) void fileImport.importFile();
   };
 
+  /**
+   * Отменить можно только проверку стикеров: на этапе записи кнопка недоступна, и запись доходит до конца.
+   */
+  const handleFileCancel = () => {
+    fileImport.cancelImport();
+  };
+
   const handleFilePick = (file: File | undefined) => {
     pickFile(file);
   };
@@ -100,8 +108,10 @@ export const AddView: FC = () => {
       case 'telegram': {
         return (
           <TelegramImportFooter
+            segment="telegram"
             isImporting={isImporting}
             isDisabled={isImportDisabled}
+            isCancelDisabled={false}
             onCancel={handleImportCancel}
           />
         );
@@ -118,7 +128,15 @@ export const AddView: FC = () => {
       }
 
       case 'file': {
-        return null;
+        return (
+          <TelegramImportFooter
+            segment="file"
+            isImporting={fileImport.isImporting}
+            isDisabled={fileImport.isImportDisabled}
+            isCancelDisabled={fileImport.stage === 'writing'}
+            onCancel={handleFileCancel}
+          />
+        );
       }
 
       default: {
@@ -181,7 +199,7 @@ export const AddView: FC = () => {
         isActive={addSegment === 'file'}
         onSubmit={handleFileSubmit}
       >
-        {null}
+        <FileTransfer />
       </SegmentForm>
     </Screen>
   );

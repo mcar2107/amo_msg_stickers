@@ -28,6 +28,12 @@ type ButtonBaseProps = {
   isDisabled?: boolean;
 
   /**
+   * Недоступная кнопка остаётся в фокусе: кнопка, на которой стоит фокус, становится недоступной по её же нажатию или
+   * ходу действия, и фокус не должен падать в `body`. Без `isDisabled` ничего не меняет.
+   */
+  shouldKeepFocus?: boolean;
+
+  /**
    * Подпись кнопки.
    */
   children: ComponentChildren;

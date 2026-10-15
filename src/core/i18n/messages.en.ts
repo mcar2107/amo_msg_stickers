@@ -39,7 +39,6 @@ export const EN: Messages = {
   'add.custom.noFile': 'Choose a file first',
   'add.custom.building': 'Building the sticker…',
   'add.custom.size': '{width}×{height}, {size} KB',
-  'add.file.title': 'Library transfer',
   'add.file.importTitle': 'Load from file',
   'add.file.dropHint': 'Drop an .amostickers or .zip file here',
   'add.file.chooseFile': 'Choose file',
@@ -54,8 +53,6 @@ export const EN: Messages = {
   'add.file.checking': 'Checking stickers…',
   'add.file.progress': '{done}/{total}',
   'add.file.writing': 'Saving…',
-  'add.file.import': 'Import',
-  'add.file.cancel': 'Cancel',
   'add.file.exportTitle': 'Export to file',
   'add.file.export': 'Export library',
   'add.file.exportHint':

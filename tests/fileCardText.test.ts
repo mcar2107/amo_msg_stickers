@@ -1,0 +1,121 @@
+import { afterEach, describe, expect, it } from 'vitest';
+
+import { setLocale } from '../src/core/i18n/translate';
+import type {
+  ManifestPack,
+  ManifestSticker,
+} from '../src/core/libraryFile/manifest.types';
+import type {
+  FileCard,
+  FileCardPack,
+} from '../src/core/libraryFile/readLibraryFile.types';
+import {
+  fileCardSummary,
+  filePackCount,
+  filePackTitle,
+} from '../src/core/ui/Picker/AddView/FileTransfer/ImportCard/fileCardText/fileCardText';
+
+const sticker = (id: string): ManifestSticker => {
+  return { id, file: `stickers/${id}.gif` };
+};
+
+const stickers = (count: number, prefix: string) => {
+  return Array.from({ length: count }, (_, index) => {
+    return sticker(`${prefix}${index}`);
+  });
+};
+
+const pack = (id: string, title: string, list: ManifestSticker[]): ManifestPack => {
+  return { id, source: id === 'custom' ? 'custom' : 'telegram', title, stickers: list };
+};
+
+const cardPack = (
+  manifestPack: ManifestPack,
+  newCount: number,
+  flags: Pick<FileCardPack, 'isInLibrary' | 'isNew'>
+): FileCardPack => {
+  return {
+    pack: manifestPack,
+    ...flags,
+    newStickers: manifestPack.stickers.slice(0, newCount),
+  };
+};
+
+describe('filePackCount', () => {
+  afterEach(() => {
+    setLocale('ru');
+  });
+
+  it('новый пак — все его стикеры', () => {
+    const cats = pack('tg:Cats', 'Котики', stickers(45, 'c'));
+
+    expect(filePackCount(cardPack(cats, 45, { isInLibrary: false, isNew: true }))).toBe(
+      'Новый пак, стикеров: 45'
+    );
+  });
+
+  it('«Мои стикеры» не новый пак — сколько добавится', () => {
+    const custom = pack('custom', 'Мои стикеры', stickers(3, 'm'));
+
+    expect(filePackCount(cardPack(custom, 3, { isInLibrary: false, isNew: false }))).toBe(
+      'Добавится стикеров: 3 из\u00A03'
+    );
+  });
+
+  it('пак уже в библиотеке — сколько добавится', () => {
+    const cats = pack('tg:Cats', 'Котики', stickers(45, 'c'));
+
+    expect(filePackCount(cardPack(cats, 5, { isInLibrary: true, isNew: false }))).toBe(
+      'Добавится стикеров: 5 из\u00A045'
+    );
+  });
+
+  it('добавлять нечего — уже в библиотеке', () => {
+    const cats = pack('tg:Cats', 'Котики', stickers(45, 'c'));
+
+    expect(filePackCount(cardPack(cats, 0, { isInLibrary: true, isNew: false }))).toBe(
+      'Уже в\u00A0библиотеке'
+    );
+  });
+
+  it('по-английски', () => {
+    setLocale('en');
+    const cats = pack('tg:Cats', 'Котики', stickers(45, 'c'));
+
+    expect(filePackCount(cardPack(cats, 5, { isInLibrary: true, isNew: false }))).toBe(
+      'Stickers to\u00A0add: 5 of\u00A045'
+    );
+  });
+});
+
+describe('filePackTitle', () => {
+  afterEach(() => {
+    setLocale('ru');
+  });
+
+  it('свой пак — на языке интерфейса, а не из файла', () => {
+    setLocale('en');
+
+    expect(filePackTitle(pack('custom', 'Мои стикеры', []))).toBe('My stickers');
+  });
+
+  it('пак Telegram — название из файла', () => {
+    expect(filePackTitle(pack('tg:Cats', 'Котики', []))).toBe('Котики');
+  });
+});
+
+describe('fileCardSummary', () => {
+  const card = (newPackCount: number, newStickerCount: number): FileCard => {
+    return { packs: [], stickerCount: 48, newStickerCount, newPackCount };
+  };
+
+  it('итог: новых паков и стикеров', () => {
+    expect(fileCardSummary(card(1, 48))).toBe('Новых паков: 1, стикеров: 48');
+  });
+
+  it('всё уже в библиотеке', () => {
+    expect(fileCardSummary(card(0, 0))).toBe(
+      'Всё из\u00A0этого файла уже в\u00A0библиотеке'
+    );
+  });
+});

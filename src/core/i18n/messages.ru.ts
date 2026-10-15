@@ -37,7 +37,6 @@ export const RU = {
   'add.custom.noFile': 'Сначала выберите файл',
   'add.custom.building': 'Собираю стикер…',
   'add.custom.size': '{width}×{height}, {size} КБ',
-  'add.file.title': 'Перенос библиотеки',
   'add.file.importTitle': 'Загрузка из файла',
   'add.file.dropHint': 'Перетащите сюда файл .amostickers или .zip',
   'add.file.chooseFile': 'Выбрать файл',
@@ -52,8 +51,6 @@ export const RU = {
   'add.file.checking': 'Проверка стикеров…',
   'add.file.progress': '{done}/{total}',
   'add.file.writing': 'Запись…',
-  'add.file.import': 'Импорт',
-  'add.file.cancel': 'Отменить',
   'add.file.exportTitle': 'Выгрузка в файл',
   'add.file.export': 'Выгрузить библиотеку',
   'add.file.exportHint':
