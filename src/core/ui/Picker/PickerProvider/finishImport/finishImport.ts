@@ -24,17 +24,19 @@ export const finishImport = (options: FinishImportOptions): void => {
 };
 
 /**
- * Ошибка у поля ссылки — только когда поле на виду: на экране «Добавить стикеры» с сегментом
- * «Telegram». Ушедший с сегмента или экрана за время импорта поля не видит, и ошибка у него
+ * Ошибка у формы импорта — у поля ссылки или зоны загрузки файла — только когда форма на виду: на экране «Добавить
+ * стикеры» с сегментом этого импорта. Ушедший с сегмента или экрана за время импорта формы не видит, и ошибка у неё
  * прошла бы незамеченной — она уходит в статус.
  *
  * @param screen — экран поверх режима в момент ошибки; `null` — экрана нет
  * @param segment — выбранный сегмент экрана «Добавить стикеры»
+ * @param importSegment — сегмент, на котором живёт форма импорта: `telegram` или `file`
  * @returns куда показать ошибку
  */
 export const importErrorTarget = (
   screen: PickerScreen | null,
-  segment: AddSegment
+  segment: AddSegment,
+  importSegment: AddSegment
 ): ImportErrorTarget => {
-  return screen === 'add' && segment === 'telegram' ? 'field' : 'status';
+  return screen === 'add' && segment === importSegment ? 'field' : 'status';
 };

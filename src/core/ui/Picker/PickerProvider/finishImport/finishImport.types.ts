@@ -27,6 +27,7 @@ export type FinishImportOptions = {
 };
 
 /**
- * Куда показать ошибку импорта: `field` — у поля ссылки на пак, `status` — в строке статуса.
+ * Куда показать ошибку импорта: `field` — у формы импорта (поле ссылки на пак, зона загрузки файла), `status` — в
+ * строке статуса.
  */
 export type ImportErrorTarget = 'field' | 'status';

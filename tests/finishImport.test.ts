@@ -69,19 +69,27 @@ describe('finishImport', () => {
 });
 
 describe('importErrorTarget', () => {
-  it('экран «Добавить стикеры» на сегменте «Telegram» — ошибка у поля', () => {
-    expect(importErrorTarget('add', 'telegram')).toBe('field');
+  it('экран «Добавить стикеры» на сегменте «Telegram» — ошибка импорта Telegram у поля', () => {
+    expect(importErrorTarget('add', 'telegram', 'telegram')).toBe('field');
   });
 
-  it('экран «Добавить стикеры» на другом сегменте — статус', () => {
-    expect(importErrorTarget('add', 'custom')).toBe('status');
+  it('экран «Добавить стикеры» на сегменте «Файл» — ошибка импорта файла у зоны', () => {
+    expect(importErrorTarget('add', 'file', 'file')).toBe('field');
+  });
+
+  it('экран «Добавить стикеры» на чужом сегменте — статус', () => {
+    expect(importErrorTarget('add', 'custom', 'telegram')).toBe('status');
+    expect(importErrorTarget('add', 'file', 'telegram')).toBe('status');
+    expect(importErrorTarget('add', 'telegram', 'file')).toBe('status');
   });
 
   it('другой экран — статус', () => {
-    expect(importErrorTarget('settings', 'telegram')).toBe('status');
+    expect(importErrorTarget('settings', 'telegram', 'telegram')).toBe('status');
+    expect(importErrorTarget('settings', 'file', 'file')).toBe('status');
   });
 
   it('экрана нет — статус', () => {
-    expect(importErrorTarget(null, 'telegram')).toBe('status');
+    expect(importErrorTarget(null, 'telegram', 'telegram')).toBe('status');
+    expect(importErrorTarget(null, 'file', 'file')).toBe('status');
   });
 });

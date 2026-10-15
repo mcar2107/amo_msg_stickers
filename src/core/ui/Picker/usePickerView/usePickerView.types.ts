@@ -6,9 +6,10 @@ import type { PickerMode } from '../../../pickerMode.types';
 export type PickerScreen = 'add' | 'settings';
 
 /**
- * Сегмент экрана «Добавить стикеры»: импорт пака из Telegram или свой стикер из файла.
+ * Сегмент экрана «Добавить стикеры»: импорт пака из Telegram, свой стикер из картинки или видео, перенос библиотеки
+ * файлом.
  */
-export type AddSegment = 'telegram' | 'custom';
+export type AddSegment = 'telegram' | 'custom' | 'file';
 
 /**
  * Способ перехода ленты к разделу. `'smooth'` — лента на виду и едет плавно (клик по вкладке);

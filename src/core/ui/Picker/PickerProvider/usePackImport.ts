@@ -87,6 +87,7 @@ export const usePackImport = (options: PackImportOptions): PackImportState => {
     screen,
     addSegment,
     packs,
+    importLock,
     refreshPacks,
     showStatus,
     showError,
@@ -180,7 +181,7 @@ export const usePackImport = (options: PackImportOptions): PackImportState => {
   const missingMessage = preview?.status === 'notFound' ? preview.message : null;
 
   const importPack = useCallback(async () => {
-    if (isImporting || missingMessage) return;
+    if (isImporting || missingMessage || importLock.current) return;
 
     /**
      * Пока открыт сегмент «Telegram», ход импорта показывает счётчик под полосой, и строка
@@ -192,7 +193,9 @@ export const usePackImport = (options: PackImportOptions): PackImportState => {
         return current || { title, total };
       });
 
-      if (importErrorTarget(screenRef.current, segmentRef.current) === 'field') {
+      if (
+        importErrorTarget(screenRef.current, segmentRef.current, 'telegram') === 'field'
+      ) {
         clearStatus();
       } else {
         showStatus(t('status.importProgress', { title, done, total }));
@@ -252,9 +255,10 @@ export const usePackImport = (options: PackImportOptions): PackImportState => {
       },
       refreshPacks,
       errorTarget: () => {
-        return importErrorTarget(screenRef.current, segmentRef.current);
+        return importErrorTarget(screenRef.current, segmentRef.current, 'telegram');
       },
       onStart: () => {
+        importLock.current = 'telegram';
         setIsImporting(true);
         setProgress({ done: 0, total: 0 });
         setFieldError(null);
@@ -270,6 +274,7 @@ export const usePackImport = (options: PackImportOptions): PackImportState => {
       },
       onFinish: () => {
         controllerRef.current = null;
+        importLock.current = null;
         setIsImporting(false);
         setProgress(null);
         setSnapshot(null);
@@ -278,6 +283,7 @@ export const usePackImport = (options: PackImportOptions): PackImportState => {
   }, [
     isImporting,
     missingMessage,
+    importLock,
     link,
     env,
     telegramToken,

@@ -11,11 +11,13 @@ import { usePickerViewState } from '../usePickerView/usePickerViewState';
 
 import { errorMessage } from './errorMessage';
 import type {
+  ImportSource,
   PickerStateOptions,
   PickerStateValue,
   PickerStatus,
   RefreshPacksOptions,
 } from './PickerProvider.types';
+import { useFileImport } from './useFileImport';
 import { useLibraryExport } from './useLibraryExport';
 import { usePackImport } from './usePackImport';
 
@@ -75,6 +77,8 @@ export const usePickerState = (options: PickerStateOptions): PickerStateValue =>
 
     packOrderRef.current = packSnapshot(ordered);
     setPacks(ordered);
+
+    return ordered;
   }, []);
 
   const showStatus = useCallback((text: string) => {
@@ -140,6 +144,7 @@ export const usePickerState = (options: PickerStateOptions): PickerStateValue =>
 
   const view = usePickerViewState(isOpen, clearStatus);
   const { screen, addSegment, scrollToSection } = view;
+  const importLock = useRef<ImportSource | null>(null);
 
   const packImport = usePackImport({
     env,
@@ -147,17 +152,34 @@ export const usePickerState = (options: PickerStateOptions): PickerStateValue =>
     screen,
     addSegment,
     packs,
+    importLock,
     refreshPacks,
     showStatus,
     showError,
     clearStatus,
     scrollToSection,
   });
-  const { isImporting } = packImport;
+  const { isImporting: isPackImporting } = packImport;
 
+  const fileImport = useFileImport({
+    screen,
+    addSegment,
+    importLock,
+    isPackImporting,
+    refreshPacks,
+    showStatus,
+    showError,
+    clearStatus,
+    scrollToSection,
+  });
+  const { isImporting: isFileImporting } = fileImport;
+
+  /**
+   * Одна причина на оба импорта: из Telegram и из файла одновременно они не идут.
+   */
   useEffect(() => {
-    setHold('import', isImporting);
-  }, [isImporting, setHold]);
+    setHold('import', isPackImporting || isFileImporting);
+  }, [isPackImporting, isFileImporting, setHold]);
 
   const libraryExport = useLibraryExport({ showStatus, showError });
   const { isExporting } = libraryExport;
@@ -196,6 +218,7 @@ export const usePickerState = (options: PickerStateOptions): PickerStateValue =>
       urlOf,
       dropUrl,
       packImport,
+      fileImport,
       libraryExport,
       openedBy,
       setHold,
