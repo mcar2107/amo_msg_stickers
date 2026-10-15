@@ -27,3 +27,10 @@ K3: `writeZip(entries, {modified})`, `readZipDirectory(blob, {maxEntries})`, `fi
 Проверено: свой архив проходит `unzip -t`, python zipfile, `ditto -x -k`; пересжатый `zip -r`/`ditto -c -k --keepParent` читается побайтно.
 Аудит: 2 круга (1-й critical — тест перекрытия записей без зубов: отклоняла сверка CRC; исправлено пересчётом CRC), итог ok.
 Долг: чтение файла ≥ 4 ГиБ даёт 'broken' — G3 обязана проверить `file.size` до `readZipDirectory` («слишком большой файл»); `/usr/bin/unzip` 6.0 macOS не распаковывает не-ASCII имя с флагом 11 — имена формата держать ASCII.
+
+### G3 · Манифест и чтение файла
+
+K4/K5: `parseManifest(unknown)` → {manifest} | {error: notOurs|tooNew|invalid|tooBig|empty}, `clampGraphemes` в limits.ts; `readLibraryFile(Blob)` → LibraryFile; `compareWithLibrary`/`loadFileCard` → FileCard; `prepareImport(file, card, {signal, onProgress})` → ImportPlan; `toFileError` экспортирован для G5/G7.
+Решения: размер ≥ 2^32 → tooBig до `readZipDirectory` (долг G2 закрыт); битый каталог с сигнатурой zip в начале → «битый», иначе «не наш»; manifest не JSON / без `format` → notOurs, > 16 МБ → invalid; неверный тип необязательного поля → invalid, `sourceRef` у custom отбрасывается; `isNew` — только не-custom пак вне библиотеки с новыми стикерами; префикс `tg:` — локальная константа (импорт `TG_ID_PREFIX` тянул бы convert/gif-worker).
+Аудит: 1 круг, ok.
+Долг: повтор пака проверяется после отбрасывания пустых — дубль с пустым `stickers` принимается (manifest.types.ts:333); предел GIF 8 МБ (readLibraryFile.ts:211) без теста; сверка через `listAllStickers()` вместо ключей (`getAllKeys`, design 4.2) — G4 может дать хелпер, учесть на нагрузке G9.
