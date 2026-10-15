@@ -54,6 +54,7 @@ export const Button: FC<ButtonProps> = (props) => {
     form,
     isDisabled,
     shouldKeepFocus,
+    describedBy,
     onClick,
     children,
   } = props;
@@ -79,6 +80,7 @@ export const Button: FC<ButtonProps> = (props) => {
       form={form}
       disabled={isDisabled && !isFocusDisabled}
       aria-disabled={isFocusDisabled || undefined}
+      aria-describedby={describedBy}
       className={buttonVariants({ variant })}
       onClick={handleButtonClick}
     >

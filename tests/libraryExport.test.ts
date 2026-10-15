@@ -438,8 +438,24 @@ describe('exportLibrary — один пак', () => {
     library.stickers = [];
 
     await expect(exportLibrary({ packId: 'tg:Cats', now: NOW })).rejects.toThrow(
-      t('error.libraryFile.empty')
+      t('error.libraryFile.packExportEmpty')
     );
+  });
+
+  it('запись, которую не прочитает загрузка, — ошибка выгрузки, архив не собирается', async () => {
+    seedLibrary();
+    library.packs = library.packs.map((pack) => {
+      return pack.id === 'tg:Cats' ? { ...pack, sourceRef: 'Other' } : pack;
+    });
+    const onProgress = vi.fn();
+
+    await expect(exportLibrary({ now: NOW, onProgress })).rejects.toThrow(
+      t('error.libraryFile.exportInvalid')
+    );
+    await expect(
+      exportLibrary({ packId: 'tg:Cats', now: NOW, onProgress })
+    ).rejects.toThrow(t('error.libraryFile.exportInvalid'));
+    expect(onProgress).not.toHaveBeenCalled();
   });
 
   it('больше 10 000 стикеров — ошибка пака', async () => {
@@ -458,10 +474,10 @@ describe('exportLibrary — один пак', () => {
 
 describe('packFileName', () => {
   it('без разделителей путей, `:` и символов направления текста', () => {
-    const name = packFileName({ id: 'tg:Evil', title: '‮../a:b⁦' });
+    const name = packFileName({ id: 'tg:Evil', title: '\u202E../a:b\u2066' });
 
     expect(name).toBe('.._a_b.amostickers');
-    expect(name).not.toMatch(/[/\\:‮⁦]/u);
+    expect(name).not.toMatch(/[/\\:\u202E\u2066]/u);
   });
 
   it('заменяет символы, недопустимые в Windows, и снимает управляющие', () => {
@@ -474,7 +490,7 @@ describe('packFileName', () => {
     expect(packFileName({ id: 'tg:X', title: 'Котики. . ' })).toBe('Котики.amostickers');
   });
 
-  it.each(['CON', 'con', 'Lpt1', 'NUL.txt', '  .', '', '‮'])(
+  it.each(['CON', 'con', 'Lpt1', 'NUL.txt', '  .', '', '\u202E'])(
     'запасное имя для «%s»',
     (title) => {
       expect(packFileName({ id: 'tg:X', title })).toBe('amo-stickers.amostickers');

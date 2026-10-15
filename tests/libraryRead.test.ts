@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { Pack, StickerRec } from '../src/core/db.types';
 import { inspectGif } from '../src/core/gif';
 import { t } from '../src/core/i18n/translate';
-import { MAX_FILE_STICKERS } from '../src/core/libraryFile/limits';
+import { MAX_FILE_STICKERS, MAX_STICKER_BYTES } from '../src/core/libraryFile/limits';
 import { prepareImport } from '../src/core/libraryFile/prepareImport';
 import type { FileImportProgress } from '../src/core/libraryFile/prepareImport.types';
 import { loadFileCard, readLibraryFile } from '../src/core/libraryFile/readLibraryFile';
@@ -379,6 +379,32 @@ describe('readLibraryFile', () => {
     });
 
     await expect(readLibraryFile(await ownZip(withoutGif))).rejects.toThrow(BROKEN);
+  });
+
+  it('запись стикера больше предела GIF — битый файл, на пределе — читается', async () => {
+    /**
+     * @param size — несжатый размер записи `stickers/1.gif`
+     * @returns архив, где эта запись сжата deflate: на диске она мала, предел — по несжатому размеру
+     */
+    const zipWithGifOf = async (size: number) => {
+      const { entries } = entriesOf([tgPack('Gachi', 2)]);
+      const { bytes } = await buildZip(
+        entries.map(({ name, data }) => {
+          if (name !== 'stickers/1.gif') return { name, data };
+
+          return { name, data: new Uint8Array(size), method: 8 };
+        })
+      );
+
+      return new Blob([bytes]);
+    };
+
+    await expect(
+      readLibraryFile(await zipWithGifOf(MAX_STICKER_BYTES + 1))
+    ).rejects.toThrow(BROKEN);
+    await expect(
+      readLibraryFile(await zipWithGifOf(MAX_STICKER_BYTES))
+    ).resolves.toMatchObject({ entries: expect.any(Map) });
   });
 });
 

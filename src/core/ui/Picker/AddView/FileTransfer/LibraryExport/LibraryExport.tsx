@@ -8,6 +8,7 @@ import { usePicker } from '../../../PickerProvider/usePicker';
 import { useStickerCount } from './useStickerCount/useStickerCount';
 
 const NOTE_CLASS = 'm-0 text-xs leading-[1.4] text-cadetGray-30 dark:text-gray-70';
+const NOTE_ID = 'picker-add-file-export-note';
 
 /**
  * Текст рядом с кнопкой: ход выгрузки библиотеки важнее причины недоступности — пока она идёт, стикеры есть.
@@ -50,12 +51,15 @@ export const LibraryExport: FC = () => {
           variant="secondary"
           isDisabled={isExporting || stickerCount === 0}
           shouldKeepFocus
+          {...(note ? { describedBy: NOTE_ID } : {})}
           onClick={handleExportClick}
         >
           {t('add.file.export')}
         </Button>
 
-        <p className={`${NOTE_CLASS} min-w-0 tabular-nums`}>{note}</p>
+        <p id={NOTE_ID} className={`${NOTE_CLASS} min-w-0 tabular-nums`}>
+          {note}
+        </p>
       </div>
     </div>
   );

@@ -26,10 +26,10 @@ export const METHOD_STORED = 0;
 export const METHOD_DEFLATE = 8;
 
 /**
- * Бит 0 — запись зашифрована, бит 3 — размеры и CRC после данных, бит 11 — имя в UTF-8.
+ * Бит 0 — запись зашифрована, бит 11 — имя в UTF-8. Бит 3 (размеры и CRC после данных) не нужен: чтение берёт их
+ * из каталога, а упаковка пишет их в заголовок.
  */
 export const FLAG_ENCRYPTED = 0x1;
-export const FLAG_DATA_DESCRIPTOR = 0x8;
 export const FLAG_UTF8 = 0x8_00;
 
 /**

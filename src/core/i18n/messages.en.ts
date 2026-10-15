@@ -182,6 +182,9 @@ export const EN: Messages = {
     'The library doesn’t fit in one file (up to {max} stickers and under 4 GB) — export packs one at a time',
   'error.libraryFile.packTooBig':
     'The pack doesn’t fit in one file: up to {max} stickers and under 4 GB',
+  'error.libraryFile.packExportEmpty': 'The pack has no stickers',
+  'error.libraryFile.exportInvalid':
+    'A library record is damaged, and the file couldn’t be read back',
   'error.libraryFile.gifTooBig':
     'Pack “{title}” has a sticker larger than {size} MB, which can’t be read back',
   'error.libraryFile.writeFailed': 'Couldn’t save to the library: {message}',

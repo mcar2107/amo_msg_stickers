@@ -357,16 +357,24 @@ export const parseManifest = (value: unknown): ManifestParse => {
   if (version > FORMAT_VERSION) return { error: 'tooNew' };
   if (!Array.isArray(rawPacks)) return { error: 'invalid' };
   if (countStickers(rawPacks) > MAX_FILE_STICKERS) return { error: 'tooBig' };
-  const packs: ManifestPack[] = [];
+  const parsedPacks: ManifestPack[] = [];
 
   for (const raw of rawPacks) {
     const pack = parsePack(raw);
 
     if (!pack) return { error: 'invalid' };
-    if (pack.stickers.length) packs.push(pack);
+    parsedPacks.push(pack);
   }
 
-  if (!isUnique(packs)) return { error: 'invalid' };
+  /**
+   * Повторы — до отбрасывания пустых паков: пустой повтор пака тоже значит, что описание правили руками или оно
+   * повреждено.
+   */
+  if (!isUnique(parsedPacks)) return { error: 'invalid' };
+  const packs = parsedPacks.filter(({ stickers }) => {
+    return stickers.length > 0;
+  });
+
   if (!packs.length) return { error: 'empty' };
 
   return { manifest: { format: FORMAT_NAME, version, packs } };

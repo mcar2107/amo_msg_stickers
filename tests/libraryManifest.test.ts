@@ -261,6 +261,15 @@ describe('parseManifest', () => {
     );
   });
 
+  it('повтор пака, один из них пустой — ошибка', () => {
+    expect(
+      errorOf(manifest([tgPack(), tgPack({ stickers: [], coverId: undefined })]))
+    ).toBe('invalid');
+    expect(
+      errorOf(manifest([tgPack({ stickers: [], coverId: undefined }), tgPack()]))
+    ).toBe('invalid');
+  });
+
   it('повтор стикера в другом паке — ошибка', () => {
     const other = tgPack({
       id: 'tg:Other',

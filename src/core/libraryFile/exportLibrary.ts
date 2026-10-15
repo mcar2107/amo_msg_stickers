@@ -53,7 +53,7 @@ const tooBigError = (isLibrary: boolean) => {
 const emptyError = (isLibrary: boolean) => {
   if (isLibrary) return new Error(t('add.file.exportEmpty'));
 
-  return new Error(t('error.libraryFile.empty'));
+  return new Error(t('error.libraryFile.packExportEmpty'));
 };
 
 /**
@@ -213,7 +213,7 @@ const checkManifest = (text: string, isLibrary: boolean) => {
     case 'tooNew':
 
     case 'invalid': {
-      throw new Error(t('error.libraryFile.invalid'));
+      throw new Error(t('error.libraryFile.exportInvalid'));
     }
 
     default: {

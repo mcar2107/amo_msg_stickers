@@ -179,6 +179,9 @@ export const RU = {
     'Библиотека не помещается в один файл (до {max} стикеров и меньше 4 ГБ) — выгрузите паки по одному',
   'error.libraryFile.packTooBig':
     'Пак не помещается в один файл: до {max} стикеров и меньше 4 ГБ',
+  'error.libraryFile.packExportEmpty': 'В паке нет стикеров',
+  'error.libraryFile.exportInvalid':
+    'Запись библиотеки повреждена — такой файл не прочитать',
   'error.libraryFile.gifTooBig':
     'В паке «{title}» стикер больше {size} МБ — такой файл не прочитать',
   'error.libraryFile.writeFailed': 'Не удалось записать в библиотеку: {message}',

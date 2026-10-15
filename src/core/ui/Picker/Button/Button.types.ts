@@ -34,6 +34,11 @@ type ButtonBaseProps = {
   shouldKeepFocus?: boolean;
 
   /**
+   * Id узла с пояснением к кнопке (`aria-describedby`): почему она недоступна или ход её действия.
+   */
+  describedBy?: string;
+
+  /**
    * Подпись кнопки.
    */
   children: ComponentChildren;
