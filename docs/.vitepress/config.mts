@@ -99,6 +99,7 @@ export default defineConfig({
             items: [
               { text: 'Ключи GIF', link: '/setup/gif-keys' },
               { text: 'Импорт из Telegram', link: '/setup/telegram' },
+              { text: 'Перенос библиотеки', link: '/setup/transfer' },
             ],
           },
           {
@@ -158,6 +159,7 @@ export default defineConfig({
             items: [
               { text: 'GIF keys', link: '/en/setup/gif-keys' },
               { text: 'Import from Telegram', link: '/en/setup/telegram' },
+              { text: 'Moving your library', link: '/en/setup/transfer' },
             ],
           },
           {
