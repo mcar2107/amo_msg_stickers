@@ -67,14 +67,14 @@ const toDosDateTime = (date: Date) => {
  * архив не меньше 4 ГиБ; проверка — до чтения данных.
  *
  * @param entries — записи в порядке архива
- * @param options — время изменения записей
+ * @param options — время изменения записей и ход упаковки
  * @returns архив `application/zip`
  */
 export const writeZip = async (
   entries: ZipWriteEntry[],
   options: ZipWriteOptions = {}
 ): Promise<Blob> => {
-  const { modified = new Date() } = options;
+  const { modified = new Date(), onEntry } = options;
   const { time, day } = toDosDateTime(modified);
 
   if (entries.length >= ZIP64_U16) {
@@ -151,6 +151,7 @@ export const writeZip = async (
     parts.push(local, data);
     offset += local.byteLength + data.size;
     centralOffset += CENTRAL_HEADER_SIZE + name.byteLength;
+    onEntry?.(index + 1);
     await yieldToPage();
   }
 

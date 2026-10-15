@@ -32,6 +32,11 @@ export type ZipWriteOptions = {
    * момент упаковки.
    */
   modified?: Date;
+
+  /**
+   * Колбэк на упаковку записи: число записей, уже упакованных в архив, — после CRC каждой записи.
+   */
+  onEntry?: (written: number) => void;
 };
 
 /**

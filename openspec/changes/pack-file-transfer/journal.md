@@ -42,3 +42,11 @@ K5: `writeImport(plan)` → `ImportWritten {packIds (в порядке файл�
 Долг G3 закрыт: `listStickerIds()` (getAllKeys) в db.ts, на него переведён `loadFileCard`.
 Аудит: 1 круг, ok.
 Долг: `importRecords.ts:90` кладёт ключи `emoji`/`caption` со значением undefined; у `writeImport` нет автотеста (нет IDB в тестах) — onabort и реальная запись проверяются на стенде в G9 (6.1).
+
+### G5 · Выгрузка
+
+K6: `packFileName(pack)`, `libraryFileName(date)`, `FILE_EXTENSION`; `exportLibrary({packId?, now?, onProgress?})` → `{blob, fileName, stickerCount}` — G6 получает имя готовым. manifest.json — первая запись, GIF — `stickers/<n>.gif` (ASCII), title — из записи пака (не `packTitle`), манифест проверяется гардом после сериализации; предел 4 ГиБ — `ZipError tooLarge` из `writeZip` → `exportTooBig`/`packTooBig`; зарезервированные имена Windows — и с расширением.
+Отступление, принято координатором: `onEntry(written)` в `ZipWriteOptions`, `writeZip` зовёт его после CRC записи — ход по стикерам (design 5); альтернатива — подкласс Blob с перехватом `stream()`, хак. Тесты G2 не тронуты.
+Аудит: 1 круг, ok.
+Долг (кандидаты в группу доработки F): `checkManifest` (exportLibrary.ts:248) без зубов — нужен тест на отказ гарда (`tg:Cats` с `sourceRef: 'Other'` → invalid, без архива); пустой пак при выгрузке получает текст чтения `error.libraryFile.empty` (exportLibrary.ts:56); U+202E/U+2066 в tests/libraryExport.test.ts:461,464,477 стоят как есть — заменить escape-последовательностями (Trojan Source).
+Вопрос пользователю: название пака с ведущими точками (`../a:b` → `.._a_b.amostickers`) даёт скрытый файл в macOS/Linux, если браузер не снимет точки сам; спека требует снимать только точки/пробелы в конце — снимать ли и ведущие?
