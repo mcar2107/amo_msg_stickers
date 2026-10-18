@@ -1,10 +1,11 @@
 import { CUSTOM_PACK_ID, itemKey } from '../../../../db';
-import type {
-  FavoriteRec,
-  Pack,
-  RecentRec,
-  StickerRec,
-  StickersByPack,
+import {
+  type FavoriteRec,
+  isStickerFavorite,
+  type Pack,
+  type RecentRec,
+  type StickerRec,
+  type StickersByPack,
 } from '../../../../db.types';
 import { t } from '../../../../i18n/translate';
 import { stickerCellName } from '../../cellName/cellName';
@@ -78,7 +79,7 @@ const favoriteStickers = (
   byId: Map<string, StickerRec>
 ): FeedSticker[] => {
   return favorites.reduce<FeedSticker[]>((acc, record) => {
-    if (!('sticker' in record)) return acc;
+    if (!isStickerFavorite(record)) return acc;
 
     const { key, sticker: snapshot } = record;
     const library = byId.get(snapshot.id);

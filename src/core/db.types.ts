@@ -204,3 +204,18 @@ export type FavoriteRec = {
       item: RemoteSendItem;
     }
 );
+
+/**
+ * Запись избранного стикера библиотеки — со снимком стикера.
+ */
+export type StickerFavoriteRec = Extract<FavoriteRec, Record<'sticker', StickerRec>>;
+
+/**
+ * Стикерную запись избранного от записи GIF отличает снимок стикера.
+ *
+ * @param rec — запись избранного
+ * @returns запись — избранный стикер библиотеки
+ */
+export const isStickerFavorite = (rec: FavoriteRec): rec is StickerFavoriteRec => {
+  return 'sticker' in rec;
+};

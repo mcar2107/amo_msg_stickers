@@ -1,12 +1,13 @@
 import { LocalizedError, t } from './i18n/translate';
-import type {
-  FavoriteRec,
-  Pack,
-  RecentKind,
-  RecentRec,
-  SendItem,
-  StickerRec,
-  StickersByPack,
+import {
+  type FavoriteRec,
+  isStickerFavorite,
+  type Pack,
+  type RecentKind,
+  type RecentRec,
+  type SendItem,
+  type StickerRec,
+  type StickersByPack,
 } from './db.types';
 
 export const CUSTOM_PACK_ID = 'custom';
@@ -633,7 +634,7 @@ export const getFavoriteSticker = async (
     (await store(STORE.favorites)).get(itemKey({ kind: 'local', stickerId }))
   );
 
-  return rec && 'sticker' in rec ? rec.sticker : undefined;
+  return rec && isStickerFavorite(rec) ? rec.sticker : undefined;
 };
 
 /**
