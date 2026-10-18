@@ -13,7 +13,7 @@ of your library: export it from time to time, and after clearing you can loa
 Open “Settings” — the icon at the bottom right of the panel — and click “Export library” in the “Library” group.
 The “Export library” link on the “File” tab of the “Add stickers” screen leads there too.
 
-<!-- скрин: img/setup/settings-library.png — “Settings” scrolled down: the “Library” group with the description, the “Export library” button and the “Load from file” link under it -->
+<img src="../../img/setup/settings-library.png" alt="The amo stickers “Settings” screen scrolled down: the “Library” group with the description, the “Export library” button and the “Load from file” link" width="364">
 
 The browser downloads an `amo-stickers-<date>.amostickers` file — as a regular download, to your downloads folder.
 It has all packs and custom stickers. The export progress is shown next to the button, and at the end — “Library
@@ -25,7 +25,7 @@ exported, stickers: N”. While the library has no stickers, the button is u
 under the export button in “Settings”. Click “Choose file” or drop the file onto the zone. A `.zip` will do too —
 if the file was renamed or unpacked and packed again with an archiver.
 
-<!-- скрин: img/setup/file-import.png — the “File” tab with a file chosen: in place of the zone — the card with the file name, “Replace file” in the corner, the packs and the “New packs: N, stickers: M” total, the “Import” button in the footer -->
+<img src="../../img/setup/file-import.png" alt="The “Add stickers” screen, the “File” tab: in place of the zone — the card of the amo-stickers-2026-10-18.amostickers file with the “Replace file” button, four new packs and the “New packs: 4, stickers: 150” total, the “Import” button in the footer" width="364">
 
 The card takes the place of the zone and shows the packs in the file: how many stickers a new pack has and how many will
 be added to a pack you already have. A long list of packs scrolls inside the card, and “Replace file” in its corner

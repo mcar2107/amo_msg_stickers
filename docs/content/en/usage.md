@@ -49,7 +49,6 @@ The preview opened from the menu closes with Escape or a click, and the ar
 
 <div class="media-row">
 <img src="../img/usage/menu.png" alt="Sticker context menu: Preview and Delete sticker" width="300">
-<!-- скрин: img/usage/pack-menu.png — retake: the “…” menu in a pack header with “Copy link”, “Export pack” and “Delete pack” -->
 <img src="../img/usage/pack-menu.png" alt="The … menu in a pack header: Copy link, Export pack and Delete pack" width="300">
 </div>
 
