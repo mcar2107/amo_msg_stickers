@@ -7,8 +7,9 @@ it closes only with another click on the button, a click outside or Escape.
 
 <img src="../img/usage/panel.png" alt="The amo stickers panel in the Stickers mode: tabs for Recent, My stickers and packs, the + button, and Stickers, GIFs and Settings at the bottom" width="364">
 
-Tabs: “Recent” (up to 40 stickers), “My stickers” and packs from Telegram — the one you last sent from comes first.
-Packs are reordered the next time the panel opens, not under your cursor.
+Tabs: “Favorites”, “Recent” (up to 14 last stickers, without favorites), “My stickers” and packs from Telegram. Packs
+go from the one you last sent from, and a just imported pack comes first. Sending from “Favorites” and “Recent” doesn’t
+change the pack order. Packs are reordered the next time the panel opens, not under your cursor.
 
 ## Sending
 
@@ -31,7 +32,8 @@ fits into 512 px, animation is cut to 4 seconds, and if the file is heavie
 ## GIFs
 
 KLIPY search works without a key, a [GIPHY key](./setup/gif-keys) adds the “GIPHY” and “GIPHY stickers” sources. Without
-a query, the feed shows recent GIFs and trending ones. A GIF heavier than 2 MB is recompressed before sending.
+a query, the feed shows favorite GIFs, recent GIFs and trending ones. A GIF heavier than 2 MB is recompressed before
+sending.
 
 ## Preview {#preview}
 
@@ -45,16 +47,30 @@ Release — it closes, and nothing is sent. If it doesn’t open, keep the
 in the menu.
 The preview opened from the menu closes with Escape or a click, and the arrow keys switch stickers and GIFs in it.
 
+## Favorites {#favorites}
+
+Add a sticker or GIF you want at hand to favorites with “Add to favorites” in its [menu](#menu). “Remove from favorites”
+in the same menu takes it out.
+
+In the Stickers mode, the “Favorites” section comes first, before “Recent”. In the GIFs mode, favorite GIFs are above
+recent ones while the search field is empty. The last added one is at the start of the section.
+
+Sending doesn’t push favorites out, and clearing recent items or deleting a pack doesn’t touch them: a sticker from
+a deleted pack stays in favorites and can still be sent. Favorites aren’t repeated in “Recent” — it shows up to 14 last
+stickers other than favorites.
+
 ## Menu and deleting {#menu}
 
+<!-- скрин: img/usage/menu-favorite.png — меню стикера пака: «Предпросмотр», «Добавить в избранное», «Удалить стикер»; заменит menu.png -->
 <div class="media-row">
 <img src="../img/usage/menu.png" alt="Sticker context menu: Preview and Delete sticker" width="300">
 <img src="../img/usage/pack-menu.png" alt="The … menu in a pack header: Copy link and Delete pack" width="300">
 </div>
 
-Open the menu of a sticker or GIF with a right click, the menu key or Shift+F10; recent items have “Remove from recent”
-in it. A pack header has “…”: “Copy link” gives a link to [import](./setup/telegram) the pack on another device.
-The recent header has “Clear”.
+Open the menu of a sticker or GIF with a right click, the menu key or Shift+F10. It has “Preview” and “Add to favorites”
+or “Remove from favorites”; in packs and “My stickers” also “Delete sticker”, in recent items — “Remove from recent”.
+A pack header has “…”: “Copy link” gives a link to [import](./setup/telegram) the pack on another device. The recent
+header has “Clear”.
 
 Confirm deleting and clearing with a second press within a couple of seconds — the first one changes the label
 to “Really delete?”.
