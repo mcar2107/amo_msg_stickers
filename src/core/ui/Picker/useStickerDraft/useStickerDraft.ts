@@ -31,6 +31,9 @@ const CAPTION_DEBOUNCE_MS = 500;
  * Object URL превью отзывается, как только черновик заменён, сброшен ошибкой или форма
  * размонтирована, — блоб прежнего GIF в памяти не остаётся.
  *
+ * Сохранение ведёт к «Моим стикерам» и закрывает экран вместе с «Сохранить», на которой стоял
+ * фокус, — поэтому фокус встаёт на вкладку раздела, а не падает в `body`.
+ *
  * @returns черновик, состояние сборки, выбор файла, смена подписи и сохранение
  */
 export const useStickerDraft = (): StickerDraftState => {
@@ -150,7 +153,7 @@ export const useStickerDraft = (): StickerDraftState => {
         createdAt: Date.now(),
       });
       await refreshPacks();
-      scrollToSection(CUSTOM_PACK_ID, 'instant');
+      scrollToSection(CUSTOM_PACK_ID, 'instant', { shouldFocusTab: true });
     } catch (error) {
       showError(errorMessage(error));
     } finally {

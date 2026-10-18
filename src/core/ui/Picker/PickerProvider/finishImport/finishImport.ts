@@ -13,12 +13,15 @@ import type { FinishImportOptions, ImportErrorTarget } from './finishImport.type
  * тормозил бы появление раздела. Статус — после перехода: `scrollToSection` сбрасывает статус
  * прошлого действия.
  *
+ * Переход закрывает экран вместе с кнопкой футера, на которой стоял фокус, — поэтому фокус встаёт на вкладку раздела,
+ * а не падает в `body`.
+ *
  * @param options — экран, пак и колбэки провайдера
  */
 export const finishImport = (options: FinishImportOptions): void => {
   const { screen, pack, scrollToSection, showStatus } = options;
 
-  if (screen === 'add') scrollToSection(pack.id, 'instant');
+  if (screen === 'add') scrollToSection(pack.id, 'instant', { shouldFocusTab: true });
 
   showStatus(t('status.packAdded', { title: packTitle(pack) }));
 };

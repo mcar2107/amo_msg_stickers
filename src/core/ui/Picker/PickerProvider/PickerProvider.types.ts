@@ -417,7 +417,11 @@ export type PackImportOptions = {
   /**
    * Открывает раздел импортированного пака в ленте стикеров.
    */
-  scrollToSection: (sectionId: string, motion: SectionMotion) => void;
+  scrollToSection: (
+    sectionId: string,
+    motion: SectionMotion,
+    options?: SectionScrollOptions
+  ) => void;
 };
 
 export type PickerProviderProps = {

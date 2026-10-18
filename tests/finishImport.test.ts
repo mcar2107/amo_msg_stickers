@@ -5,7 +5,10 @@ import {
   finishImport,
   importErrorTarget,
 } from '../src/core/ui/Picker/PickerProvider/finishImport/finishImport';
-import type { SectionMotion } from '../src/core/ui/Picker/usePickerView/usePickerView.types';
+import type {
+  SectionMotion,
+  SectionScrollOptions,
+} from '../src/core/ui/Picker/usePickerView/usePickerView.types';
 
 const PACK = { id: 'tg:cats', title: 'Коты' };
 
@@ -16,9 +19,13 @@ const PACK = { id: 'tg:cats', title: 'Коты' };
  */
 const callbacks = () => {
   const calls: string[] = [];
-  const scrollToSection = vi.fn((sectionId: string, motion: SectionMotion) => {
-    calls.push(`scroll ${sectionId} ${motion}`);
-  });
+  const scrollToSection = vi.fn(
+    (sectionId: string, motion: SectionMotion, options: SectionScrollOptions = {}) => {
+      calls.push(
+        `scroll ${sectionId} ${motion}${options.shouldFocusTab ? ' focus-tab' : ''}`
+      );
+    }
+  );
   const showStatus = vi.fn((text: string) => {
     calls.push(`status ${text}`);
   });
@@ -31,12 +38,15 @@ afterEach(() => {
 });
 
 describe('finishImport', () => {
-  it('экран «Добавить» открыт — мгновенный переход к паку, затем статус', () => {
+  it('экран «Добавить» открыт — мгновенный переход к паку с фокусом на его вкладку, затем статус', () => {
     const { calls, scrollToSection, showStatus } = callbacks();
 
     finishImport({ screen: 'add', pack: PACK, scrollToSection, showStatus });
 
-    expect(calls).toEqual(['scroll tg:cats instant', 'status Пак «Коты» добавлен']);
+    expect(calls).toEqual([
+      'scroll tg:cats instant focus-tab',
+      'status Пак «Коты» добавлен',
+    ]);
   });
 
   it('экран «Добавить» закрыт — только статус, лента не двигается', () => {
