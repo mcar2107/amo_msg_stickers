@@ -39,7 +39,7 @@ const HOVER_CLASS =
 
 /**
  * Ячейка GIF в ленте, абсолютно поставленная на место из раскладки. Контекстное меню есть у
- * любой GIF: у найденной в нём один «Предпросмотр», у недавней (есть `onRemove`) — ещё «Убрать
+ * любой GIF: «Предпросмотр» и пункт избранного, у недавней (есть `onRemove`) — ещё «Убрать
  * из недавних». Предпросмотр открывает и удержание кнопки мыши.
  *
  * Предпросмотр показывает версию для отправки (`gif.url`), а до её загрузки — превью ленты.
@@ -48,7 +48,7 @@ const HOVER_CLASS =
  * отправляют GIF — меню открывают только правый клик, клавиша меню и `Shift+F10`.
  */
 export const MasonryCell: FC<MasonryCellProps> = (props) => {
-  const { id, gif, box, onRemove } = props;
+  const { id, gif, box, onRemove, onFavoriteToggle } = props;
   const { previewUrl } = gif;
   const item: SendItem = { kind: 'remote', gif };
   const name = gifCellName(gif);
@@ -112,6 +112,10 @@ export const MasonryCell: FC<MasonryCellProps> = (props) => {
     onRemove?.(gif);
   };
 
+  const handleFavoriteToggle = () => {
+    onFavoriteToggle();
+  };
+
   /**
    * У найденной GIF удаления нет, у недавней — «Убрать из недавних»: `kind` и колбэк идут в меню
    * только вместе.
@@ -156,9 +160,11 @@ export const MasonryCell: FC<MasonryCellProps> = (props) => {
         <CellMenu
           key={opening.seq}
           label={name.menu}
+          favoriteItem={item}
           opening={opening}
           onClose={handleMenuClose}
           onPreview={handleMenuPreview}
+          onFavoriteToggle={handleFavoriteToggle}
           {...removal}
         />
       )}

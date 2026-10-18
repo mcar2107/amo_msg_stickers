@@ -1,3 +1,4 @@
+import type { FavoriteToggle } from '../../PickerProvider/useFavorites/useFavorites.types';
 import type { StickerRow } from '../../stickerLayout/stickerLayout.types';
 import type { FeedSticker } from '../../StickersMode/feedSections/feedSections.types';
 
@@ -17,4 +18,9 @@ export type FeedRowProps = {
    * ряда.
    */
   onCellDelete: (cell: FeedSticker) => void;
+
+  /**
+   * Колбэк на выбор пункта избранного в меню ячейки ряда.
+   */
+  onFavoriteToggle: (toggle: FavoriteToggle) => void;
 };

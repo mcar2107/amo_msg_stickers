@@ -1,6 +1,8 @@
 import type { FunctionComponent as FC } from 'preact';
 
 import { useCoverBitmaps } from '../PackCover/useCoverBitmaps/useCoverBitmaps';
+import type { FavoriteToggle } from '../PickerProvider/useFavorites/useFavorites.types';
+import { useFavoritesContext } from '../PickerProvider/useFavorites/useFavoritesContext';
 import { cellRemovalTargets, sectionRemovalTargets } from '../removalFocus/removalFocus';
 import { SectionTabs } from '../SectionTabs/SectionTabs';
 import { StickerFeed } from '../StickerFeed/StickerFeed';
@@ -31,6 +33,7 @@ export const StickersMode: FC<StickersModeProps> = (props) => {
     sections,
     isCurrent
   );
+  const { toggleFavorite } = useFavoritesContext();
   const bitmaps = useCoverBitmaps(isOpen);
   const expectRemoval = useStickerRemovalFocus(sections, scrollRef, isOpen);
   const feed = sections || [];
@@ -51,6 +54,12 @@ export const StickersMode: FC<StickersModeProps> = (props) => {
     } else {
       void removeSticker(item.stickerId);
     }
+  };
+
+  const handleFavoriteToggle = (toggle: FavoriteToggle) => {
+    const { item, sticker } = toggle;
+
+    void toggleFavorite(item, sticker);
   };
 
   const handlePackDelete = (packId: string) => {
@@ -75,6 +84,7 @@ export const StickersMode: FC<StickersModeProps> = (props) => {
         scrollRef={scrollRef}
         onScroll={handleFeedScroll}
         onCellDelete={handleCellDelete}
+        onFavoriteToggle={handleFavoriteToggle}
         onPackDelete={handlePackDelete}
         onRecentClear={handleRecentClear}
       />

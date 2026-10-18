@@ -1,3 +1,4 @@
+import type { SendItem } from '../../../../db.types';
 import type { MenuOpening } from '../Menu.types';
 
 /**
@@ -7,8 +8,8 @@ export type CellRemoveKind = 'sticker' | 'recent';
 
 /**
  * Удаление в меню: `kind` и `onRemove` задаются только вместе, поэтому тип связывает их, а не
- * держит независимо необязательными. Нет удаления — нет и пункта: у найденной GIF в меню один
- * «Предпросмотр».
+ * держит независимо необязательными. Нет удаления — нет и пункта: у найденной GIF и ячейки
+ * «Избранного» в меню «Предпросмотр» и пункт избранного.
  */
 export type CellMenuRemove =
   | {
@@ -41,6 +42,11 @@ export type CellMenuProps = CellMenuRemove & {
   label: string;
 
   /**
+   * Элемент ячейки: по нему пункт избранного выбирает подпись «Добавить» или «Убрать».
+   */
+  favoriteItem: SendItem;
+
+  /**
    * Где открыто меню и куда вернуть фокус.
    */
   opening: MenuOpening;
@@ -55,4 +61,10 @@ export type CellMenuProps = CellMenuRemove & {
    * `opening.source` тот, кто открыл меню.
    */
   onPreview: () => void;
+
+  /**
+   * Колбэк на выбор пункта избранного — после закрытия меню: элемент ячейки добавляется в
+   * избранное или убирается из него.
+   */
+  onFavoriteToggle: () => void;
 };

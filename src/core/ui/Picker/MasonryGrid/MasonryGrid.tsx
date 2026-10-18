@@ -35,7 +35,15 @@ const SKELETON_CLASS = 'absolute rounded-lg bg-cadetGray-30/[.12] dark:bg-white-
  * стрелками переходит к соседним плиткам по раскладке.
  */
 export const MasonryGrid: FC<MasonryGridProps> = (props) => {
-  const { sections, resetKey, children, onScroll, onRecentRemove, onRecentClear } = props;
+  const {
+    sections,
+    resetKey,
+    children,
+    onScroll,
+    onRecentRemove,
+    onFavoriteToggle,
+    onRecentClear,
+  } = props;
   const { scrollRef, width, viewport, scrollTop, trackScroll } = useGridWindow(resetKey);
   const column = columnWidth(width);
 
@@ -81,6 +89,14 @@ export const MasonryGrid: FC<MasonryGridProps> = (props) => {
         const key = gifKey(item);
         const isRecent = sectionId === recentId;
 
+        const handleFavoriteToggle = () => {
+          onFavoriteToggle({
+            sectionId,
+            cellKey: key,
+            item: { kind: 'remote', gif: item },
+          });
+        };
+
         return (
           <MasonryCell
             key={`${sectionId}:${key}`}
@@ -88,6 +104,7 @@ export const MasonryGrid: FC<MasonryGridProps> = (props) => {
             gif={item}
             box={tileBox(tile, column)}
             onRemove={isRecent ? handleRecentRemove : undefined}
+            onFavoriteToggle={handleFavoriteToggle}
           />
         );
       }

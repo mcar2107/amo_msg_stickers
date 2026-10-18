@@ -29,7 +29,7 @@ const HINT_CLASS =
  * ячеек в окне ленты.
  */
 export const FeedRow: FC<FeedRowProps> = (props) => {
-  const { row, hint, onCellDelete } = props;
+  const { row, hint, onCellDelete, onFavoriteToggle } = props;
   const { urlOf } = usePicker();
   const { sectionId, top, height, items, hasCreateTile } = row;
   const isRecent = sectionId === RECENT_SECTION_ID;
@@ -59,6 +59,10 @@ export const FeedRow: FC<FeedRowProps> = (props) => {
           onCellDelete(cell);
         };
 
+        const handleFavoriteToggle = () => {
+          onFavoriteToggle({ sectionId, cellKey: key, item, sticker });
+        };
+
         return (
           <StickerCell
             key={key}
@@ -70,6 +74,7 @@ export const FeedRow: FC<FeedRowProps> = (props) => {
             name={name}
             removeKind={removeKind}
             onRemove={handleCellRemove}
+            onFavoriteToggle={handleFavoriteToggle}
           />
         );
       })}

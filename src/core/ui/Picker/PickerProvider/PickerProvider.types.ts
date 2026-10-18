@@ -11,6 +11,7 @@ import type {
 } from '../usePickerView/usePickerView.types';
 
 import type { PackCard } from './packCardView/packCardView.types';
+import type { FavoritesContextValue } from './useFavorites/useFavorites.types';
 
 export type PickerStatus = {
   /**
@@ -308,6 +309,11 @@ export type PickerStateValue = {
    * Значение `PickerViewContext`.
    */
   view: PickerViewValue;
+
+  /**
+   * Значение `FavoritesContext`.
+   */
+  favorites: FavoritesContextValue;
 };
 
 /**

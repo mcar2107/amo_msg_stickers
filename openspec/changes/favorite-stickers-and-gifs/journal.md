@@ -23,3 +23,12 @@
 Решения: `openDb` экспортирован ради теста на поддельном indexedDB (vi.stubGlobal + vi.resetModules); запись избранного — чистая `favoriteRecord`, стикер без снимка — ошибка-инвариант; `countFavoriteStickers` — диапазон ключей `l:`…`l;`.
 Стенд 1.2 (две вкладки master/новая, `indexedDB.open(…, 3)`) прогнал исполнитель 1: ошибка на 1–3 открытии, библиотека после закрытия вкладки master без перезагрузки, «Перезагрузите вкладку» — ok.
 Долг: `putFavorite`/`deleteFavorite` ждут запрос, а не `txDone(tx)` — сорванный коммит покажет «Добавлено»; `openDb` экспорт без пометки «для теста»; диапазон `countFavoriteStickers` и пути через базу юнитом не покрыты — стенд G2/7.1.
+
+### G2 · Контекст избранного и меню
+
+Одна пачка (77 вызовов). Аудит: ok с первого круга. Закрыт долг G1: `putFavorite`/`deleteFavorite` — одна транзакция и `await txDone(tx)` (шаблон `touchPack`), `putFavorite` возвращает запись.
+K7: `FavoriteToggle` в `PickerProvider/useFavorites/useFavorites.types.ts` = `{ sectionId, cellKey } & ({ item: LocalSendItem; sticker: StickerRec } | { item: RemoteSendItem })`; ряды и сетки строят его, ячейка и CellMenu получают `() => void`.
+`startMode(storage, countStickers, countFavoriteStickers)`: избранное считается, только если в библиотеке нет стикеров; сбой счётчика — 0.
+Стенд (исполнитель, порт 8791): пункт меню в паке, недавних, трендах, недавних GIF и ветке без ключей, статус, сбой записи и сорванный коммит — ok.
+Вопрос к пользователю (аудит): вторая правка той же ячейки, пока первая запись не вернулась, повторяет первую (`favoritesRef` не обновлён) — принять окно или блокировать пункт.
+Долг: строка jsdoc >120 в useOpenLoad.ts:10, у `reportFailure` нет описания; `txDone` при abort без `tx.error` отклоняется `null` → статус «null»; выбор add/remove и путь сбоя в `toggleFavorite` юнитом не покрыты.

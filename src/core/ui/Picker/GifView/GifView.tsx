@@ -8,6 +8,8 @@ import { USER_DOCS_PAGE, userDocsUrl } from '../../../userDocs';
 import { EmptyState } from '../EmptyState/EmptyState';
 import { ExternalLink } from '../ExternalLink/ExternalLink';
 import { MasonryGrid } from '../MasonryGrid/MasonryGrid';
+import type { FavoriteToggle } from '../PickerProvider/useFavorites/useFavorites.types';
+import { useFavoritesContext } from '../PickerProvider/useFavorites/useFavoritesContext';
 import { usePicker } from '../PickerProvider/usePicker';
 import { TextInput } from '../TextInput/TextInput';
 import { useGifFeed } from '../useGifFeed/useGifFeed';
@@ -39,6 +41,7 @@ const SETTINGS_LINK_CLASS = [
 export const GifView: FC<GifViewProps> = (props) => {
   const { isOpen } = props;
   const { settings } = usePicker();
+  const { toggleFavorite } = useFavoritesContext();
   const { openScreen } = usePickerView();
   const { feeds, feed, selectFeed } = useFeedChoice(settings);
   const [query, setQuery] = useState('');
@@ -78,6 +81,10 @@ export const GifView: FC<GifViewProps> = (props) => {
     void remove(gif);
   };
 
+  const handleFavoriteToggle = (toggle: FavoriteToggle) => {
+    void toggleFavorite(toggle.item);
+  };
+
   const handleRecentClear = () => {
     expectRecentClear();
     void clear();
@@ -93,6 +100,7 @@ export const GifView: FC<GifViewProps> = (props) => {
           resetKey={resetId}
           onScroll={handleGridScroll}
           onRecentRemove={handleRecentRemove}
+          onFavoriteToggle={handleFavoriteToggle}
           onRecentClear={handleRecentClear}
         >
           <EmptyState>
@@ -137,6 +145,7 @@ export const GifView: FC<GifViewProps> = (props) => {
         resetKey={resetId}
         onScroll={handleGridScroll}
         onRecentRemove={handleRecentRemove}
+        onFavoriteToggle={handleFavoriteToggle}
         onRecentClear={handleRecentClear}
       >
         {isNothingFound && <EmptyState>{t('gifs.nothingFound')}</EmptyState>}

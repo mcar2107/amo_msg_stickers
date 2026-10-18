@@ -1,4 +1,5 @@
 import type { RemoteGif } from '../../../db.types';
+import type { FavoriteToggle } from '../PickerProvider/useFavorites/useFavorites.types';
 
 /**
  * Раздел ленты GIF.
@@ -51,6 +52,11 @@ export type MasonryGridProps = {
    * Колбэк на выбор «Убрать из недавних» в меню ячейки раздела недавних.
    */
   onRecentRemove: (gif: RemoteGif) => void;
+
+  /**
+   * Колбэк на выбор пункта избранного в меню ячейки любого раздела.
+   */
+  onFavoriteToggle: (toggle: FavoriteToggle) => void;
 
   /**
    * Колбэк на подтверждённую очистку недавних GIF из заголовка их раздела.

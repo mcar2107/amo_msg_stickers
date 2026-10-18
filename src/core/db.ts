@@ -577,22 +577,38 @@ export const listFavorites = async (): Promise<FavoriteRec[]> => {
 /**
  * Запись по ключу: повторное добавление, выбранное по устаревшему состоянию из другой вкладки, не дублирует элемент.
  *
+ * Промис ждёт коммита транзакции, а не успеха запроса: сорванный коммит иначе показал бы «Добавлено в избранное».
+ *
  * @param item — элемент
  * @param sticker — снимок записи стикера; обязателен у стикера библиотеки
+ * @returns записанная запись — та же, что увидит следующее чтение; отклоняется при сбое или прерывании транзакции
  */
-export const putFavorite = async (item: SendItem, sticker?: StickerRec) => {
+export const putFavorite = async (
+  item: SendItem,
+  sticker?: StickerRec
+): Promise<FavoriteRec> => {
   const rec = favoriteRecord(item, sticker, Date.now());
+  const db = await openDb();
+  const tx = db.transaction(STORE.favorites, 'readwrite');
 
-  await promisify((await store(STORE.favorites, 'readwrite')).put(rec));
+  tx.objectStore(STORE.favorites).put(rec);
+  await txDone(tx);
+
+  return rec;
 };
 
 /**
  * Удаление по ключу: элемента, уже убранного в другой вкладке, нет — промис выполняется без ошибки.
  *
  * @param item — элемент
+ * @returns завершение записи; отклоняется при сбое или прерывании транзакции
  */
 export const deleteFavorite = async (item: SendItem) => {
-  await promisify((await store(STORE.favorites, 'readwrite')).delete(itemKey(item)));
+  const db = await openDb();
+  const tx = db.transaction(STORE.favorites, 'readwrite');
+
+  tx.objectStore(STORE.favorites).delete(itemKey(item));
+  await txDone(tx);
 };
 
 /**
