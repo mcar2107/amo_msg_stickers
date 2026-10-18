@@ -171,6 +171,8 @@ describe('readZipDirectory и readZipEntry', () => {
     const directory = await readZipDirectory(archive, LIMITS);
 
     expect(findZipRoot(directory, 'manifest.json')).toBe('Котики/');
+    expect(directory.entries.has('__MACOSX/')).toBe(false);
+    expect(directory.entries.has('__MACOSX/Котики/._manifest.json')).toBe(false);
     await expect(readNamed(archive, directory, 'Котики/stickers/0.gif')).resolves.toEqual(
       GIF_SMALL
     );
@@ -476,6 +478,7 @@ describe('битый архив', () => {
 
     expect(entries.has(`amo-stickers/${MANIFEST_FILE}`)).toBe(true);
     expect(entries.has(`amo-stickers/${MAX_FILE_STICKERS - 1}.gif`)).toBe(true);
+    expect(entries.size).toBe(files.length + 1);
   });
 
   it('записи `__MACOSX/` не идут в предел, остальные — идут', async () => {
@@ -499,5 +502,23 @@ describe('битый архив', () => {
     await expect(
       readZipDirectory(blobOf(bytes), { maxEntries: 1 })
     ).rejects.toMatchObject({ name: 'ZipError', kind: 'tooLarge' });
+  });
+
+  it('записей в конце каталога заведомо больше предела — tooLarge без чтения каталога', async () => {
+    const { bytes } = await twoEntries();
+    const eocd = bytes.byteLength - 22;
+    const centralOffset = new DataView(bytes.buffer).getUint32(eocd + 16, true);
+    const inflated = patch(patch(bytes, eocd + 8, 60_000, 2), eocd + 10, 60_000, 2);
+    const archive = blobOf(inflated);
+    const slice = vi.spyOn(archive, 'slice');
+
+    await expect(
+      readZipDirectory(archive, { maxEntries: MAX_ZIP_ENTRIES })
+    ).rejects.toMatchObject({ name: 'ZipError', kind: 'tooLarge' });
+    expect(
+      slice.mock.calls.some(([start]) => {
+        return start === centralOffset;
+      })
+    ).toBe(false);
   });
 });

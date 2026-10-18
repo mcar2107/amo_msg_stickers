@@ -27,9 +27,15 @@ import {
 
 /**
  * Служебная папка, которую архиватор macOS кладёт рядом с содержимым (ресурсные вилки и
- * атрибуты): при поиске единственной папки верхнего уровня и в пределе записей она не считается.
+ * атрибуты): её записей нет в каталоге, и в пределе записей она не считается.
  */
 const MAC_SERVICE_DIR = '__MACOSX';
+
+/**
+ * Запас на записи папок `__MACOSX/` в ранней проверке числа записей: папки служебной повторяют
+ * папки содержимого, а их у файла выгрузки, сжатого заново, единицы — корень и `stickers/`.
+ */
+const MAC_FOLDER_RESERVE = 64;
 
 /**
  * @param name — имя записи
@@ -174,7 +180,13 @@ const regionEnds = (offsets: number[], centralOffset: number) => {
  * архивом (смещение каталога не сходится с положением его конца), повтор имени. Ошибка
  * `tooLarge` — записей больше `maxEntries`, не считая служебных `__MACOSX/`: архиватор macOS кладёт
  * их по одной на каждый файл с атрибутами, и пересжатый в Finder файл иначе упёрся бы в предел вдвое
- * раньше. Записи с опасными именами пропускаются.
+ * раньше. Записи с опасными именами и служебные `__MACOSX/` в каталог не попадают: сослаться на
+ * них нельзя.
+ *
+ * Сколько записей служебные, видно только по именам, поэтому точная проверка — после разбора
+ * каталога. До его чтения отсекается архив, где записей больше, чем дали бы `maxEntries` записей
+ * содержимого с парой `._` на каждую и запасом на папки `__MACOSX/` (`MAC_FOLDER_RESERVE`): без
+ * этого каталог в десятки тысяч записей читался бы в память целиком ради отказа.
  *
  * @param blob — архив
  * @param limits — пределы каталога
@@ -215,10 +227,14 @@ export const readZipDirectory = async (
     throw broken('Центральный каталог не сходится с концом каталога');
   }
 
+  if (totalEntries > 2 * limits.maxEntries + MAC_FOLDER_RESERVE) {
+    throw new ZipError('tooLarge', `Записей ${totalEntries} больше ${limits.maxEntries}`);
+  }
+
   const central = await readBytes(blob, centralOffset, centralSize);
   const view = new DataView(central.buffer);
   const parsed: Omit<ZipEntry, 'regionEnd'>[] = [];
-  const unsafeOffsets: number[] = [];
+  const skippedOffsets: number[] = [];
   let counted = 0;
   let cursor = 0;
 
@@ -260,10 +276,12 @@ export const readZipDirectory = async (
       )
     );
 
-    if (!isMacService(name)) counted += 1;
+    const isMac = isMacService(name);
 
-    if (isUnsafeName(name)) {
-      unsafeOffsets.push(localOffset);
+    if (!isMac) counted += 1;
+
+    if (isMac || isUnsafeName(name)) {
+      skippedOffsets.push(localOffset);
     } else {
       parsed.push({
         name,
@@ -290,7 +308,7 @@ export const readZipDirectory = async (
       ...parsed.map(({ localOffset }) => {
         return localOffset;
       }),
-      ...unsafeOffsets,
+      ...skippedOffsets,
     ],
     centralOffset
   );
@@ -309,9 +327,9 @@ export const readZipDirectory = async (
 
 /**
  * Каталог, от которого разрешаются пути описания: корень архива, если `fileName` лежит в нём,
- * иначе единственная папка верхнего уровня (без служебной `__MACOSX/`), если `fileName` лежит в
- * ней. Так читается и архив, распакованный и запакованный архиватором заново: он кладёт
- * содержимое в папку с именем архива.
+ * иначе единственная папка верхнего уровня, если `fileName` лежит в ней: служебной `__MACOSX/`
+ * в каталоге нет, и рядом с папкой содержимого она не мешает. Так читается и архив,
+ * распакованный и запакованный архиватором заново: он кладёт содержимое в папку с именем архива.
  *
  * @param directory — каталог архива
  * @param fileName — имя файла описания
@@ -327,9 +345,7 @@ export const findZipRoot = (directory: ZipDirectory, fileName: string) => {
   for (const name of entries.keys()) {
     const slash = name.indexOf('/');
 
-    if (slash > 0 && name.slice(0, slash) !== MAC_SERVICE_DIR) {
-      folders.add(name.slice(0, slash + 1));
-    }
+    if (slash > 0) folders.add(name.slice(0, slash + 1));
   }
 
   const [folder] = folders;
@@ -397,10 +413,11 @@ const inflate = async (
  * размер не равен несжатому, распакованный размер больше `maxBytes` или не равен каталогу,
  * повреждённый deflate, расхождение CRC.
  *
+ * Каждый срез архива читается один раз: CRC считается по прочитанным байтам, и они же отдаются
+ * вызывающему.
+ *
  * @param blob — архив
  * @param entry — запись из `readZipDirectory` этого архива
- * Каждый срез архива читается один раз: CRC считается по прочитанным байтам, и они же отдаются вызывающему.
- *
  * @param options — предел размера и MIME-тип результата
  * @returns данные записи `Blob`-ом (у метода 0 — срез архива без копии) и байтами
  */

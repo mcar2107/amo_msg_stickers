@@ -201,3 +201,13 @@ Critical итогового аудита закрыт: `isUnique` проверя
 - Решение исполнителя: в eslint.config.mjs правило no-noninteractive-tabindex пропускает role region (tabpanel + region), обоснование записано в CLAUDE.md «Осознанные послабления».
 - Спека, tasks.md и CLAUDE.md сведены с кодом.
 Отступление: теста квоты на fake-indexeddb нет — квоту он не умеет; путь ошибки запроса покрыт через ConstraintError.
+
+### F10
+
+Правки повторного аудита PR #126, 5 находок P2:
+- ранний tooLarge до чтения каталога (2×maxEntries + 64);
+- __MACOSX/ не попадает в entries, но идёт в regionEnds;
+- useScrollTabStop держит tabIndex, пока область в фокусе;
+- jsdoc readZipEntry и ACCEPT стоят на своих местах;
+- строки CLAUDE.md перенесены по 120.
+Тесты падали на прежнем zipRead и проходят на новом; гейт и openspec validate — ok.

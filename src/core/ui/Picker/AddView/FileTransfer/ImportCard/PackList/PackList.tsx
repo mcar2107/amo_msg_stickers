@@ -3,7 +3,7 @@ import type { FunctionComponent as FC } from 'preact';
 import { t } from '../../../../../../i18n/translate';
 import { filePackCount, filePackTitle } from '../fileCardText/fileCardText';
 
-import { useIsScrollable } from './useIsScrollable/useIsScrollable';
+import { useScrollTabStop } from './useScrollTabStop/useScrollTabStop';
 import type { PackListProps } from './PackList.types';
 
 /**
@@ -33,18 +33,18 @@ const COUNT_CLASS =
  * Фокус с клавиатуры у области свой — `role="region"` с именем списка и `tabIndex`, пока есть что прокручивать:
  * прокручиваемую область без фокусируемых потомков браузер сам ставит в порядок Tab только с Chrome 130, а сборка
  * поддерживает и Chrome 120, где до скрытых строк с клавиатуры иначе не добраться. Короткий список в порядок Tab не
- * встаёт: прокручивать в нём нечего.
+ * встаёт: прокручивать в нём нечего, — но область в фокусе `tabIndex` не теряет, пока фокус на ней.
  */
 export const PackList: FC<PackListProps> = (props) => {
   const { packs } = props;
-  const [scrollRef, isScrollable] = useIsScrollable();
+  const [scrollRef, isTabStop] = useScrollTabStop();
 
   return (
     <div
       ref={scrollRef}
       role="region"
       aria-label={t('add.file.packs')}
-      tabIndex={isScrollable ? 0 : undefined}
+      tabIndex={isTabStop ? 0 : undefined}
       className={SCROLL_CLASS}
     >
       <ul className={LIST_CLASS}>
