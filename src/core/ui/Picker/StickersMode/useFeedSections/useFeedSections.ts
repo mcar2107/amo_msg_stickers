@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'preact/hooks';
 
 import {
   clearRecent,
@@ -10,24 +10,30 @@ import {
 } from '../../../../db';
 import type { SendItem } from '../../../../db.types';
 import { errorMessage } from '../../PickerProvider/errorMessage';
+import { useFavoritesContext } from '../../PickerProvider/useFavorites/useFavoritesContext';
 import { usePicker } from '../../PickerProvider/usePicker';
 import { feedSections } from '../feedSections/feedSections';
 
 import type { FeedRead, FeedSections } from './useFeedSections.types';
 
 /**
- * Разделы ленты стикеров: вся библиотека одним чтением и недавние стикеры.
+ * Разделы ленты стикеров: вся библиотека одним чтением, недавние стикеры и избранное из контекста.
  *
  * Лента перечитывается на каждое открытие пикера — отправка закрывает его, и без этого
  * отправленный стикер не поднялся бы в недавних — и на каждое обновление `packs`: `refreshPacks`
  * зовут импорт, создание и удаление стикеров и паков. Пока идёт перечитывание, видна прежняя
  * лента — без мигания пустого состояния, но с признаком, что она прочитана для прежних `packs`.
  *
+ * Разделы считаются от прочитанного и записей избранного синхронно: правка избранного пересчитывает
+ * ленту без нового чтения базы. Пока избранное не прочитано, разделов нет — иначе на первом открытии
+ * «Избранное» вклинилось бы первым в уже показанную ленту.
+ *
  * @param isOpen — открыт ли пикер
  * @returns разделы ленты, удаление стикера и пака, уборка недавних
  */
 export const useFeedSections = (isOpen: boolean): FeedSections => {
   const { packs, refreshPacks, dropUrl, showError } = usePicker();
+  const { favorites } = useFavoritesContext();
   const [read, setRead] = useState<FeedRead | null>(null);
 
   /**
@@ -46,8 +52,14 @@ export const useFeedSections = (isOpen: boolean): FeedSections => {
 
     if (request !== requestRef.current) return;
 
-    setRead({ sections: feedSections(packs, byPack, recent), packs });
+    setRead({ byPack, recent, packs });
   }, [packs]);
+
+  const sections = useMemo(() => {
+    if (!read || !favorites) return null;
+
+    return feedSections(read.packs, read.byPack, read.recent, favorites);
+  }, [read, favorites]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -91,7 +103,7 @@ export const useFeedSections = (isOpen: boolean): FeedSections => {
    */
   const removePack = useCallback(
     async (packId: string) => {
-      const section = read?.sections.find(({ id }) => {
+      const section = sections?.find(({ id }) => {
         return id === packId;
       });
 
@@ -103,7 +115,7 @@ export const useFeedSections = (isOpen: boolean): FeedSections => {
         showError(errorMessage(error));
       }
     },
-    [read, dropUrl, refreshPacks, showError]
+    [sections, dropUrl, refreshPacks, showError]
   );
 
   /**
@@ -119,7 +131,7 @@ export const useFeedSections = (isOpen: boolean): FeedSections => {
   }, [reload, showError]);
 
   return {
-    sections: read?.sections || null,
+    sections,
     isCurrent: read?.packs === packs,
     removeSticker,
     removeRecent,

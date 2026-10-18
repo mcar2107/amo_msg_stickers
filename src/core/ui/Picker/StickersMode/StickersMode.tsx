@@ -3,11 +3,15 @@ import type { FunctionComponent as FC } from 'preact';
 import { useCoverBitmaps } from '../PackCover/useCoverBitmaps/useCoverBitmaps';
 import type { FavoriteToggle } from '../PickerProvider/useFavorites/useFavorites.types';
 import { useFavoritesContext } from '../PickerProvider/useFavorites/useFavoritesContext';
-import { cellRemovalTargets, sectionRemovalTargets } from '../removalFocus/removalFocus';
+import {
+  cellRemovalTargets,
+  favoriteToggleTargets,
+  sectionRemovalTargets,
+} from '../removalFocus/removalFocus';
 import { SectionTabs } from '../SectionTabs/SectionTabs';
 import { StickerFeed } from '../StickerFeed/StickerFeed';
 import { useFeedEntry } from '../useFeedEntry/useFeedEntry';
-import { RECENT_SECTION_ID } from '../usePickerView/sectionIds';
+import { FAVORITE_SECTION_ID, RECENT_SECTION_ID } from '../usePickerView/sectionIds';
 
 import type { FeedSticker } from './feedSections/feedSections.types';
 import { useFeedSections } from './useFeedSections/useFeedSections';
@@ -16,8 +20,9 @@ import { useStickerRemovalFocus } from './useStickerRemovalFocus/useStickerRemov
 import type { StickersModeProps } from './StickersMode.types';
 
 /**
- * Режим «Стикеры»: полоса вкладок разделов над лентой всех разделов — недавних, «Моих стикеров» и
- * паков. Вкладки и лента делят окно ленты: выбранная вкладка — раздел в верху видимой области.
+ * Режим «Стикеры»: полоса вкладок разделов над лентой всех разделов — избранного, недавних, «Моих
+ * стикеров» и паков. Вкладки и лента делят окно ленты: выбранная вкладка — раздел в верху
+ * видимой области.
  */
 export const StickersMode: FC<StickersModeProps> = (props) => {
   const { isOpen } = props;
@@ -56,10 +61,21 @@ export const StickersMode: FC<StickersModeProps> = (props) => {
     }
   };
 
-  const handleFavoriteToggle = (toggle: FavoriteToggle) => {
-    const { item, sticker } = toggle;
+  /**
+   * Ячейка уходит из своего раздела, когда пункт выбран в «Избранном» (убрать) или в «Недавних»
+   * (добавить: избранное там не показывается); ячейка пака остаётся. Неудачная правка ленту не
+   * меняет, и цели снимаются: иначе фокус ушёл бы по ним на следующей, чужой перерисовке ленты.
+   */
+  const handleFavoriteToggle = async (toggle: FavoriteToggle) => {
+    const { sectionId, cellKey, item, sticker } = toggle;
+    const isLeaving =
+      sectionId === FAVORITE_SECTION_ID || sectionId === RECENT_SECTION_ID;
 
-    void toggleFavorite(item, sticker);
+    expectRemoval(favoriteToggleTargets(feed, sectionId, cellKey, isLeaving));
+
+    const isApplied = await toggleFavorite(item, sticker);
+
+    if (!isApplied) expectRemoval([]);
   };
 
   const handlePackDelete = (packId: string) => {
