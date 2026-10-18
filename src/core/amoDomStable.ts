@@ -104,6 +104,8 @@ const isShown = (button: ShownNode) => {
 /**
  * Классы повторяют обёртку кнопки эмодзи. Базовый `fill` заменяется, а не дополняется: из двух
  * `fill-*` на элементе победит тот, что стоит позже в CSS amo, а не тот, что нужен.
+ *
+ * В режиме редактирования иконка эмодзи светлеет только в тёмной теме — светлый `fill` тот же.
  */
 export const COMPOSER_BUTTON: ButtonMarkup = {
   wrapClass: 'relative z-100 mb-0 mr-3 flex h-full w-4.5 cursor-default items-end',
@@ -112,6 +114,7 @@ export const COMPOSER_BUTTON: ButtonMarkup = {
     'pointer-events-auto size-4.5 cursor-pointer fill-cadetGray-30 p-0 transition-all duration-base ease-linear dark:fill-gray-70',
   idleClasses: ['fill-cadetGray-30', 'dark:fill-gray-70'],
   openClasses: ['fill-blue-50', 'dark:fill-beige-70'],
+  editClasses: ['fill-cadetGray-30', 'dark:fill-gray-40'],
   anchor: 'composer',
 };
 

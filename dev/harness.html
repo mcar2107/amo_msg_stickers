@@ -766,6 +766,12 @@
           ><input type="checkbox" id="slow-clear" /> медленное снятие ответа</label
         >
       </div>
+      <div class="group" id="edit-tools">
+        <span class="group-title">Поле</span>
+        <label class="toggle"
+          ><input type="checkbox" id="editing" /> редактирование</label
+        >
+      </div>
       <div class="group" id="worker-tools" hidden>
         <span class="group-title">Worker-версия</span>
         <label class="toggle">
@@ -1359,6 +1365,23 @@
       document.getElementById('theme').onclick = () =>
         document.documentElement.classList.toggle('dark');
 
+      /**
+       * Редактирование, как у amo: отмена правки видна, иконка эмодзи в тёмной теме светлеет, а в
+       * поле — текст правки. Узлы поля меняются, и ядро узнаёт о правке на своём поиске полей.
+       */
+      const cancelEdit = legacyRoot.querySelector('[aria-label="cancel edit"]');
+      const emojiIcon = composeRow.querySelector(':scope > .z-100 svg');
+      document.getElementById('editing').onchange = (e) => {
+        const isOn = e.target.checked;
+        cancelEdit.classList.toggle('opacity-100', isOn);
+        cancelEdit.classList.toggle('opacity-0', !isOn);
+        if (isStableMarkup) cancelEdit.toggleAttribute('data-visible', isOn);
+        emojiIcon.classList.toggle('dark:fill-gray-70', !isOn);
+        emojiIcon.classList.toggle('dark:fill-gray-40', isOn);
+        editable.textContent = isOn ? 'Редактируемое сообщение' : '';
+        syncSend();
+      };
+
       // --- язык amo: пикер читает его при старте из того же ключа, что и amo, поэтому смена — с перезагрузкой ---
       const LOCALE_KEY = 'i18nextLng';
       const localeSelect = document.getElementById('locale');
@@ -1670,6 +1693,7 @@
         $('worker-tools').hidden = false;
         for (const node of [
           $('theme'),
+          $('edit-tools'),
           $('queue').closest('label'),
           $('reply-missing').closest('label'),
           $('slow-clear').closest('label'),
