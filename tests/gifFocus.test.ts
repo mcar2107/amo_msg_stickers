@@ -108,16 +108,16 @@ describe('gifCellTargets', () => {
     expect(gifFocusCell(targets, after)).toEqual({ sectionId: 'favorite', key: 'r1' });
   });
 
-  it('опустевшее избранное отдаёт фокус первой недавней GIF, а не выдаче', () => {
+  it('опустевшее избранное отдаёт фокус первой недавней GIF, а не убранной и не выдаче', () => {
     const before = [
       section('favorite', ['f1']),
       section('recent', ['r1']),
       section('feed', ['t1']),
     ];
     const targets = gifCellTargets(before, 'favorite', 'f1');
-    const after = [section('recent', ['f1', 'r1']), section('feed', ['t1'])];
+    const after = [section('recent', ['r1', 'f1']), section('feed', ['t1'])];
 
-    expect(gifFocusCell(targets, after)).toEqual({ sectionId: 'recent', key: 'f1' });
+    expect(gifFocusCell(targets, after)).toEqual({ sectionId: 'recent', key: 'r1' });
   });
 
   it('без избранного и недавних после правки цели нет — фокус в поле поиска', () => {
