@@ -153,4 +153,5 @@ export const EN: Messages = {
   'error.db.blocked':
     'Reload your other amo tabs: they run an older version of amo stickers',
   'error.db.outdated': 'Reload the tab: amo stickers has been updated',
+  'error.db.aborted': 'Couldn’t write to browser storage',
 };

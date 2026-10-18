@@ -213,11 +213,22 @@ const promisify = <T>(req: IDBRequest): Promise<T> => {
 };
 
 /**
+ * Причина отказа транзакции. Прерванная транзакция может не нести ошибки (`tx.error` — `null`), и строка статуса
+ * показала бы «null»: тогда причина — ошибка словаря на языке интерфейса.
+ *
+ * @param error — ошибка транзакции
+ * @returns ошибка для отклонения промиса
+ */
+export const transactionError = (error: DOMException | null): Error => {
+  return error || new LocalizedError('error.db.aborted');
+};
+
+/**
  * Ждёт `abort` наравне с `error`: транзакция, прерванная без ошибки запроса (сбой коммита по квоте), иначе оставила
  * бы промис неразрешённым навсегда.
  *
  * @param tx — транзакция IndexedDB
- * @returns завершение транзакции; отклоняется ошибкой транзакции при сбое или прерывании
+ * @returns завершение транзакции; отклоняется `transactionError` при сбое или прерывании
  */
 const txDone = (tx: IDBTransaction): Promise<void> => {
   return new Promise((resolve, reject) => {
@@ -226,11 +237,11 @@ const txDone = (tx: IDBTransaction): Promise<void> => {
     };
 
     tx.onerror = () => {
-      return reject(tx.error);
+      return reject(transactionError(tx.error));
     };
 
     tx.onabort = () => {
-      return reject(tx.error);
+      return reject(transactionError(tx.error));
     };
   });
 };

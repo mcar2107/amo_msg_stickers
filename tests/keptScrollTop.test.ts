@@ -243,50 +243,91 @@ describe('createKeptScroll', () => {
   const prev = stickerFeed(before);
   const next = stickerFeed([stickers('favorite', ['a12']), ...before]);
   const scrollTop = screenTop(prev, cellId('tg:a', 'a10'), 0);
+  /**
+   * Избранное до правки и после: метка ждёт раскладку из нового избранного.
+   */
+  const ASKED = 'favorites-before';
+  const ANSWERED = 'favorites-after';
 
-  it('новая раскладка после метки получает прокрутку, метка расходуется', () => {
-    const kept = createKeptScroll();
+  it('раскладка правки получает прокрутку, метка расходуется', () => {
+    const kept = createKeptScroll<string>();
     const element = { scrollTop };
 
-    kept.settle(prev, element);
-    kept.keep();
+    kept.settle(prev, element, ASKED);
+    kept.keep(ASKED);
 
-    expect(kept.settle(prev, element)).toBeNull();
-    expect(kept.settle(next, element)).toBe(
+    expect(kept.settle(prev, element, ASKED)).toBeNull();
+    expect(kept.settle(next, element, ANSWERED)).toBe(
       keptScrollTop({ prev, next: cellTops(next), scrollTop })
     );
-    expect(kept.settle(stickerFeed(before), element)).toBeNull();
+    expect(kept.settle(stickerFeed(before), element, 'favorites-later')).toBeNull();
   });
 
-  it('прокрутка берётся в момент метки, а не при новой раскладке', () => {
-    const kept = createKeptScroll();
+  it('прокрутка берётся в момент метки, а не при раскладке правки', () => {
+    const kept = createKeptScroll<string>();
     const element = { scrollTop };
 
-    kept.settle(prev, element);
-    kept.keep();
+    kept.settle(prev, element, ASKED);
+    kept.keep(ASKED);
     element.scrollTop = 0;
 
-    expect(kept.settle(next, element)).toBe(
+    expect(kept.settle(next, element, ANSWERED)).toBe(
       keptScrollTop({ prev, next: cellTops(next), scrollTop })
+    );
+  });
+
+  it('чужая перестройка до ответа базы метку не тратит, правка встаёт от неё', () => {
+    const kept = createKeptScroll<string>();
+    const element = { scrollTop };
+    const imported = [stickers('custom', keys('c', 12)), ...before];
+    const foreign = stickerFeed(imported);
+    const edited = stickerFeed([stickers('favorite', ['a12']), ...imported]);
+
+    kept.settle(prev, element, ASKED);
+    kept.keep(ASKED);
+
+    expect(kept.settle(foreign, element, ASKED)).toBeNull();
+
+    const top = kept.settle(edited, element, ANSWERED);
+
+    expect(top).toBe(keptScrollTop({ prev: foreign, next: cellTops(edited), scrollTop }));
+    expect(top).not.toBe(keptScrollTop({ prev, next: cellTops(edited), scrollTop }));
+  });
+
+  it('прокрутка после чужой перестройки — показанная при ней', () => {
+    const kept = createKeptScroll<string>();
+    const element = { scrollTop };
+    const foreign = stickerFeed([...before, stickers('tg:b', keys('b', 10))]);
+    const edited = stickerFeed([stickers('favorite', ['a12']), ...before]);
+    const clamped = scrollTop - 30;
+
+    kept.settle(prev, element, ASKED);
+    kept.keep(ASKED);
+    element.scrollTop = clamped;
+    kept.settle(foreign, element, ASKED);
+    element.scrollTop = 0;
+
+    expect(kept.settle(edited, element, ANSWERED)).toBe(
+      keptScrollTop({ prev: foreign, next: cellTops(edited), scrollTop: clamped })
     );
   });
 
   it('снятая метка ленту не двигает', () => {
-    const kept = createKeptScroll();
+    const kept = createKeptScroll<string>();
     const element = { scrollTop };
 
-    kept.settle(prev, element);
-    kept.keep();
+    kept.settle(prev, element, ASKED);
+    kept.keep(ASKED);
     kept.drop();
 
-    expect(kept.settle(next, element)).toBeNull();
+    expect(kept.settle(next, element, ANSWERED)).toBeNull();
   });
 
   it('без показанной раскладки метки нет', () => {
-    const kept = createKeptScroll();
+    const kept = createKeptScroll<string>();
 
-    kept.keep();
+    kept.keep(ASKED);
 
-    expect(kept.settle(next, { scrollTop })).toBeNull();
+    expect(kept.settle(next, { scrollTop }, ANSWERED)).toBeNull();
   });
 });

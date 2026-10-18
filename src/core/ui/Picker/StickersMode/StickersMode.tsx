@@ -42,16 +42,21 @@ export const StickersMode: FC<StickersModeProps> = (props) => {
     sections,
     isCurrent
   );
-  const { toggleFavorite } = useFavoritesContext();
+  const { favorites, toggleFavorite } = useFavoritesContext();
   const bitmaps = useCoverBitmaps(isOpen);
-  const expectRemoval = useStickerRemovalFocus(sections, scrollRef, isOpen);
+  const { expectRemoval, expectEdit, cancelExpected } = useStickerRemovalFocus(
+    sections,
+    scrollRef,
+    isOpen,
+    favorites
+  );
   const feed = sections || [];
-  const kept = useKeptScrollMark(isOpen);
+  const keptScroll = useKeptScrollMark(isOpen, favorites);
   const cells = useMemo(() => {
     return layout ? stickerCells(layout.rows) : null;
   }, [layout]);
 
-  useKeptScroll({ kept, scrollRef, cells, syncScroll });
+  useKeptScroll({ kept: keptScroll, scrollRef, cells, syncScroll });
 
   useFeedEntry(scrollRef);
 
@@ -73,24 +78,25 @@ export const StickersMode: FC<StickersModeProps> = (props) => {
 
   /**
    * Ячейка уходит из своего раздела, когда пункт выбран в «Избранном» (убрать) или в «Недавних»
-   * (добавить: избранное там не показывается); ячейка пака остаётся. Неудачная правка ленту не
-   * меняет, и цели и метка места снимаются: иначе фокус ушёл бы по ним на следующей, чужой
-   * перерисовке ленты, а лента сдвинулась бы по устаревшей прокрутке.
+   * (добавить: избранное там не показывается); ячейка пака остаётся. Цели и метка места ждут
+   * ленту из нового избранного: импорт пака или сохранение стикера, перестроившие ленту до ответа
+   * базы, их не тратят. Неудачная правка ленту не меняет, и цели и метка снимаются: иначе фокус
+   * ушёл бы по ним на следующей правке избранного, а лента сдвинулась бы по устаревшей прокрутке.
    */
   const handleFavoriteToggle = async (toggle: FavoriteToggle) => {
     const { sectionId, cellKey, item, sticker } = toggle;
     const isLeaving =
       sectionId === FAVORITE_SECTION_ID || sectionId === RECENT_SECTION_ID;
 
-    expectRemoval(favoriteToggleTargets(feed, sectionId, cellKey, isLeaving));
-    kept.keep();
+    expectEdit(favoriteToggleTargets(feed, sectionId, cellKey, isLeaving));
+    keptScroll.keep();
 
     const isApplied = await toggleFavorite(item, sticker);
 
     if (isApplied) return;
 
-    expectRemoval([]);
-    kept.drop();
+    cancelExpected();
+    keptScroll.drop();
   };
 
   const handlePackDelete = (packId: string) => {

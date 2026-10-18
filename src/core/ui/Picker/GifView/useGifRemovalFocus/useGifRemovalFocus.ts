@@ -21,15 +21,21 @@ import type { GifRemovalFocus } from './useGifRemovalFocus.types';
  * разделов избранного и недавних, а если и её нет или ячейки нет в окне ленты — поле поиска, без
  * ключей — кнопка «Открыть настройки».
  *
+ * Цели ждут ленту из новых данных правки — избранного и недавних GIF, — а не любую новую ленту:
+ * выдачу перестраивает и подгрузка трендов, и цели, доставшиеся ей, ушли бы до ответа базы.
+ *
  * @param sections — показанные разделы ленты сверху вниз
  * @param isOpen — открыт ли пикер
  * @param searchRef — поле поиска; без ключей его нет
+ * @param revision — избранное и недавние GIF, из которых собраны разделы; новый объект — они
+ *   сменились
  * @returns ссылка для «Открыть настройки» и запоминание целей перед правкой
  */
 export const useGifRemovalFocus = (
   sections: GifSection[],
   isOpen: boolean,
-  searchRef: RefObject<HTMLInputElement>
+  searchRef: RefObject<HTMLInputElement>,
+  revision: unknown
 ): GifRemovalFocus => {
   const settingsRef = useRef<HTMLButtonElement>(null);
 
@@ -55,22 +61,23 @@ export const useGifRemovalFocus = (
     [searchRef]
   );
 
-  const expectRemoval = useRemovalFocus(feed, isOpen, focusElement);
+  const { expectEdit, cancelExpected } = useRemovalFocus(
+    feed,
+    isOpen,
+    focusElement,
+    revision
+  );
 
   const expectCellChange = useCallback(
     (sectionId: string, key: string) => {
-      expectRemoval(gifCellTargets(feed, sectionId, key));
+      expectEdit(gifCellTargets(feed, sectionId, key));
     },
-    [expectRemoval, feed]
+    [expectEdit, feed]
   );
 
   const expectRecentClear = useCallback(() => {
-    expectRemoval(gifClearTargets());
-  }, [expectRemoval]);
-
-  const cancelExpected = useCallback(() => {
-    expectRemoval([]);
-  }, [expectRemoval]);
+    expectEdit(gifClearTargets());
+  }, [expectEdit]);
 
   return { settingsRef, expectCellChange, expectRecentClear, cancelExpected };
 };

@@ -7,9 +7,9 @@ it closes only with another click on the button, a click outside or Escape.
 
 <img src="../img/usage/panel.png" alt="The amo stickers panel in the Stickers mode: tabs for Recent, My stickers and packs, the + button, and Stickers, GIFs and Settings at the bottom" width="364">
 
-Tabs: “Favorites”, “Recent” (up to 14 last stickers, without favorites), “My stickers” and packs from Telegram. Packs
-go from the one you last sent from, and a just imported pack comes first. Sending from “Favorites” and “Recent” doesn’t
-change the pack order. Packs are reordered the next time the panel opens, not under your cursor.
+Tabs: “Favorites” if it has stickers, “Recent” (up to 14 last stickers, without favorites), “My stickers” and packs from
+Telegram. Packs go from the one you last sent from, and a just imported pack comes first. Sending from “Favorites”
+and “Recent” doesn’t change the pack order. Packs are reordered the next time the panel opens, not under your cursor.
 
 ## Sending
 

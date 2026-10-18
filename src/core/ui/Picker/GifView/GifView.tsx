@@ -57,7 +57,7 @@ export const GifView: FC<GifViewProps> = (props) => {
     useGifFeed(feed, query, isOpen);
   const { recent, remove, clear } = useRecentGifs(isOpen);
   const searchRef = useSearchFocus(isOpen);
-  const keptScroll = useKeptScrollMark(isOpen);
+  const keptScroll = useKeptScrollMark(isOpen, favorites);
   const hasFeed = Boolean(feed);
 
   const sections = useMemo(() => {
@@ -71,8 +71,16 @@ export const GifView: FC<GifViewProps> = (props) => {
     });
   }, [favorites, recent, gifs, term, hasFeed, loading]);
 
+  /**
+   * Данные, которые меняют правки из меню: цели фокуса ждут ленту из новых избранного или
+   * недавних, а не подгрузку выдачи.
+   */
+  const revision = useMemo(() => {
+    return [favorites, recent];
+  }, [favorites, recent]);
+
   const { settingsRef, expectCellChange, expectRecentClear, cancelExpected } =
-    useGifRemovalFocus(sections, isOpen, searchRef);
+    useGifRemovalFocus(sections, isOpen, searchRef, revision);
 
   const handleSettingsClick = () => {
     openScreen('settings');
@@ -96,9 +104,9 @@ export const GifView: FC<GifViewProps> = (props) => {
   };
 
   /**
-   * Неудачная правка ленту не меняет, и цели и метка места снимаются: иначе фокус ушёл бы по ним
-   * на следующей, чужой перерисовке ленты — подгрузке страницы выдачи, — а лента сдвинулась бы по
-   * устаревшей прокрутке.
+   * Цели и метка места ждут ленту из нового избранного: подгрузка страницы выдачи до ответа базы
+   * их не тратит. Неудачная правка ленту не меняет, и цели и метка снимаются: иначе фокус ушёл бы
+   * по ним на следующей правке, а лента сдвинулась бы по устаревшей прокрутке.
    */
   const handleFavoriteToggle = async (toggle: FavoriteToggle) => {
     const { sectionId, cellKey, item } = toggle;

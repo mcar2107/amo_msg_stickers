@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useRef } from 'preact/hooks';
+import { useCallback, useEffect, useMemo, useRef } from 'preact/hooks';
 
 import type { FocusTarget } from '../removalFocus/removalFocus.types';
 
-import type { ExpectRemoval, FocusElement, PendingFocus } from './useRemovalFocus.types';
+import { isPendingDue } from './isPendingDue';
+import type { FocusElement, PendingFocus, RemovalFocus } from './useRemovalFocus.types';
 
 /**
  * Можно ли забрать фокус: он потерян — ушёл в `body` вместе с удалённым источником, — или
@@ -36,21 +37,38 @@ const canMoveFocus = (element: HTMLElement): boolean => {
  * @param feed — лента; `null` — ещё не прочитана. Новый объект — лента перечитана
  * @param isOpen — открыт ли пикер
  * @param focusElement — элемент для фокуса по целям и перечитанной ленте; ссылка стабильна
- * @returns запоминание целей фокуса перед удалением
+ * @param revision — данные, которые меняет правка, из которых собрана лента этого рендера
+ * @returns запоминание целей фокуса перед удалением и правкой и их снятие
  */
 export const useRemovalFocus = <T>(
   feed: T | null,
   isOpen: boolean,
-  focusElement: FocusElement<T>
-): ExpectRemoval => {
+  focusElement: FocusElement<T>,
+  revision: unknown
+): RemovalFocus => {
   const pendingRef = useRef<PendingFocus<T> | null>(null);
 
   const expectRemoval = useCallback(
     (targets: FocusTarget[]) => {
-      pendingRef.current = feed ? { targets, feed } : null;
+      pendingRef.current = feed
+        ? { targets, feed, revision, shouldWaitRevision: false }
+        : null;
     },
-    [feed]
+    [feed, revision]
   );
+
+  const expectEdit = useCallback(
+    (targets: FocusTarget[]) => {
+      pendingRef.current = feed
+        ? { targets, feed, revision, shouldWaitRevision: true }
+        : null;
+    },
+    [feed, revision]
+  );
+
+  const cancelExpected = useCallback(() => {
+    pendingRef.current = null;
+  }, []);
 
   useEffect(() => {
     if (!isOpen) pendingRef.current = null;
@@ -59,14 +77,16 @@ export const useRemovalFocus = <T>(
   useEffect(() => {
     const pending = pendingRef.current;
 
-    if (!pending || !feed || feed === pending.feed) return;
+    if (!pending || !feed || !isPendingDue(pending, feed, revision)) return;
 
     pendingRef.current = null;
 
     const element = focusElement(pending.targets, feed);
 
     if (element && canMoveFocus(element)) element.focus({ preventScroll: true });
-  }, [feed, focusElement]);
+  }, [feed, revision, focusElement]);
 
-  return expectRemoval;
+  return useMemo(() => {
+    return { expectRemoval, expectEdit, cancelExpected };
+  }, [expectRemoval, expectEdit, cancelExpected]);
 };

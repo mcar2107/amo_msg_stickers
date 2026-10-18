@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'preact/hooks';
+import { useEffect, useMemo, useState } from 'preact/hooks';
 
 import { createKeptScroll } from '../createKeptScroll/createKeptScroll';
 import type { KeptScroll } from '../createKeptScroll/createKeptScroll.types';
@@ -7,15 +7,30 @@ import type { KeptScroll } from '../createKeptScroll/createKeptScroll.types';
  * Удержание места ленты режима на время правки избранного. Закрытие попапа снимает метку: правка,
  * не дошедшая до ленты к закрытию, не сдвигает её при следующем открытии.
  *
+ * Удержание привязано к избранному рендера: метка из обработчика берёт избранное на момент выбора
+ * пункта, лента сообщает раскладку вместе с избранным, из которого она собрана, — и раскладка
+ * чужой перестройки (подгрузка выдачи, импорт пака) метку не тратит.
+ *
  * @param isOpen — попап открыт
- * @returns удержание места ленты, одно на всё время жизни режима
+ * @param revision — избранное, из которого собраны разделы ленты этого рендера
+ * @returns удержание места ленты; новое при каждой смене избранного
  */
-export const useKeptScrollMark = (isOpen: boolean): KeptScroll => {
-  const [kept] = useState(createKeptScroll);
+export const useKeptScrollMark = (isOpen: boolean, revision: unknown): KeptScroll => {
+  const [control] = useState(createKeptScroll<unknown>);
 
   useEffect(() => {
-    if (!isOpen) kept.drop();
-  }, [isOpen, kept]);
+    if (!isOpen) control.drop();
+  }, [isOpen, control]);
 
-  return kept;
+  return useMemo(() => {
+    return {
+      keep: () => {
+        control.keep(revision);
+      },
+      drop: control.drop,
+      settle: (cells, element) => {
+        return control.settle(cells, element, revision);
+      },
+    };
+  }, [control, revision]);
 };

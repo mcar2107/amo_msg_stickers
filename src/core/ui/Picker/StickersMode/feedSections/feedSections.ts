@@ -1,4 +1,4 @@
-import { CUSTOM_PACK_ID } from '../../../../db';
+import { CUSTOM_PACK_ID, itemKey } from '../../../../db';
 import type {
   FavoriteRec,
   Pack,
@@ -17,7 +17,7 @@ import type { FeedSection, FeedSticker } from './feedSections.types';
  * Сколько недавних стикеров показывает раздел «Недавние». Записанных недавних больше (`RECENT_LIMIT`
  * в `db.ts`): избранные в разделе не показываются, и их место занимают следующие по свежести.
  */
-export const RECENT_STICKERS_SHOWN = 14;
+const RECENT_STICKERS_SHOWN = 14;
 
 /**
  * Префикс ключа Object URL снимка избранного: у снимка свой URL, а не URL стикера библиотеки по id.
@@ -115,7 +115,9 @@ const recentStickers = (
 
     const sticker = item.kind === 'local' ? byId.get(item.stickerId) : undefined;
 
-    if (sticker && !favoriteKeys.has(key)) items.push(feedSticker(key, sticker));
+    if (sticker && !favoriteKeys.has(itemKey(item))) {
+      items.push(feedSticker(key, sticker));
+    }
   }
 
   return items;

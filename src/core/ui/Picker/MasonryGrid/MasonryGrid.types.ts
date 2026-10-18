@@ -36,7 +36,7 @@ export type GifSection = {
 /**
  * Вид раздела ленты GIF: избранное, недавние или выдача источника.
  */
-export type GifSectionKind = 'favorite' | 'recent' | 'feed';
+type GifSectionKind = 'favorite' | 'recent' | 'feed';
 
 export type MasonryGridProps = {
   /**

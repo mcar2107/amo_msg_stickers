@@ -8,8 +8,10 @@ import {
   recentKindOf,
   recentOfKind,
   recentOverflow,
+  transactionError,
 } from '../src/core/db';
 import type { FavoriteRec, RecentRec, StickerRec } from '../src/core/db.types';
+import { LocalizedError, t } from '../src/core/i18n/translate';
 
 /**
  * Запись недавнего стикера из пака.
@@ -243,5 +245,20 @@ describe('favoritesNewestFirst', () => {
       })
     ).toEqual(['l:s1', 'r:giphy:g2', 'r:giphy:g1']);
     expect(records[0]?.key).toBe('r:giphy:g1');
+  });
+});
+
+describe('transactionError', () => {
+  it('прерывание без ошибки транзакции — ошибка словаря, а не `null`', () => {
+    const error = transactionError(null);
+
+    expect(error).toBeInstanceOf(LocalizedError);
+    expect(error.message).toBe(t('error.db.aborted'));
+  });
+
+  it('ошибка транзакции отдаётся как есть', () => {
+    const cause = new DOMException('Quota exceeded', 'QuotaExceededError');
+
+    expect(transactionError(cause)).toBe(cause);
   });
 });
