@@ -63,8 +63,12 @@ export const MasonryGrid: FC<MasonryGridProps> = (props) => {
 
   const navigate = useMasonryNavigator(layout?.tiles || null, scrollRef);
   const tiles = layout ? visibleTiles(layout.tiles, scrollTop, viewport, viewport) : [];
-  const recentId = sections.find(({ isRecent }) => {
-    return isRecent;
+  /**
+   * Убрать и очистить можно только недавние: избранную GIF убирает пункт избранного, а выдача не
+   * хранится.
+   */
+  const recentId = sections.find(({ kind }) => {
+    return kind === 'recent';
   })?.id;
 
   const handleGridScroll = (event: TargetedEvent<HTMLDivElement>) => {

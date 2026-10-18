@@ -1,75 +1,76 @@
 import type { RefObject } from 'preact';
 import { useCallback, useMemo, useRef } from 'preact/hooks';
 
-import type { RemoteGif } from '../../../../db.types';
 import { elementById } from '../../elementById/elementById';
-import { gifCellId, gifKey } from '../../MasonryGrid/gifCellId';
-import { cellRemovalTargets, resolveFocusTarget } from '../../removalFocus/removalFocus';
+import { gifCellId } from '../../MasonryGrid/gifCellId';
+import type { GifSection } from '../../MasonryGrid/MasonryGrid.types';
 import type { FocusSection, FocusTarget } from '../../removalFocus/removalFocus.types';
 import { useRemovalFocus } from '../../useRemovalFocus/useRemovalFocus';
-import { RECENT_GIF_SECTION_ID } from '../gifSections/gifSections';
 
+import {
+  gifCellTargets,
+  gifClearTargets,
+  gifFocusCell,
+  gifFocusSections,
+} from './gifFocus';
 import type { GifRemovalFocus } from './useGifRemovalFocus.types';
 
 /**
- * Фокус после «Убрать из недавних» и «Очистить» в ленте GIF: соседняя недавняя GIF
- * (следующая, иначе предыдущая), а если недавних не осталось или соседки нет в окне ленты —
- * поле поиска, без ключей — кнопка «Открыть настройки».
+ * Фокус после правки ленты GIF из меню — «Убрать из недавних», пункта избранного и «Очистить»:
+ * та же ячейка, если она осталась в разделе, иначе соседняя ячейка раздела, первая GIF другого из
+ * разделов избранного и недавних, а если и её нет или ячейки нет в окне ленты — поле поиска, без
+ * ключей — кнопка «Открыть настройки».
  *
- * @param recent — недавние GIF, свежие первыми
+ * @param sections — показанные разделы ленты сверху вниз
  * @param isOpen — открыт ли пикер
  * @param searchRef — поле поиска; без ключей его нет
- * @returns ссылка для «Открыть настройки» и запоминание целей перед удалением
+ * @returns ссылка для «Открыть настройки» и запоминание целей перед правкой
  */
 export const useGifRemovalFocus = (
-  recent: RemoteGif[],
+  sections: GifSection[],
   isOpen: boolean,
   searchRef: RefObject<HTMLInputElement>
 ): GifRemovalFocus => {
   const settingsRef = useRef<HTMLButtonElement>(null);
 
-  /**
-   * В выборе фокуса — только раздел недавних: убрать можно только недавнюю GIF, а вкладок
-   * разделов, на которые ушёл бы фокус, у ленты GIF нет.
-   */
-  const feed = useMemo((): FocusSection[] => {
-    return [
-      {
-        id: RECENT_GIF_SECTION_ID,
-        items: recent.map((gif) => {
-          return { key: gifKey(gif) };
-        }),
-      },
-    ];
-  }, [recent]);
+  const feed = useMemo(() => {
+    return gifFocusSections(sections);
+  }, [sections]);
 
+  /**
+   * Пустые цели — правка отменена: лента не изменилась, и фокус не переводится.
+   */
   const focusElement = useCallback(
     (targets: FocusTarget[], nextFeed: FocusSection[]) => {
       const fallback = searchRef.current || settingsRef.current;
 
-      if (!fallback) return null;
+      if (!fallback || !targets.length) return null;
 
-      const target = resolveFocusTarget(targets, nextFeed);
+      const cell = gifFocusCell(targets, nextFeed);
 
-      if (target?.kind !== 'cell') return fallback;
+      if (!cell) return fallback;
 
-      return elementById(fallback, gifCellId(target.sectionId, target.key)) || fallback;
+      return elementById(fallback, gifCellId(cell.sectionId, cell.key)) || fallback;
     },
     [searchRef]
   );
 
   const expectRemoval = useRemovalFocus(feed, isOpen, focusElement);
 
-  const expectGifRemoval = useCallback(
-    (gif: RemoteGif) => {
-      expectRemoval(cellRemovalTargets(feed, RECENT_GIF_SECTION_ID, gifKey(gif)));
+  const expectCellChange = useCallback(
+    (sectionId: string, key: string) => {
+      expectRemoval(gifCellTargets(feed, sectionId, key));
     },
     [expectRemoval, feed]
   );
 
   const expectRecentClear = useCallback(() => {
+    expectRemoval(gifClearTargets());
+  }, [expectRemoval]);
+
+  const cancelExpected = useCallback(() => {
     expectRemoval([]);
   }, [expectRemoval]);
 
-  return { settingsRef, expectGifRemoval, expectRecentClear };
+  return { settingsRef, expectCellChange, expectRecentClear, cancelExpected };
 };
