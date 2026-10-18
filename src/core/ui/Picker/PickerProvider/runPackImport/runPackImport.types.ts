@@ -21,7 +21,7 @@ export type PackImportRun = {
   /**
    * Перечитывает паки: вкладки должны совпасть с библиотекой и после успеха, и после ошибки.
    */
-  refreshPacks: () => Promise<void>;
+  refreshPacks: () => Promise<unknown>;
 
   /**
    * Куда показать ошибку в момент завершения импорта.

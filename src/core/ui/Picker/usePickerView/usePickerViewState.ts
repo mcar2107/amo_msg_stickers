@@ -9,10 +9,13 @@ import { DEFAULT_ADD_SEGMENT, resolveAddSegment } from './addSegment';
 import { startMode } from './startMode';
 import type {
   AddSegment,
+  OpenScreenOptions,
   PickerScreen,
   PickerViewValue,
+  ScreenFocus,
   SectionAnchor,
   SectionMotion,
+  SectionScrollOptions,
 } from './usePickerView.types';
 
 /**
@@ -35,6 +38,7 @@ export const usePickerViewState = (
   const [screen, setScreen] = useState<PickerScreen | null>(null);
   const [anchor, setAnchor] = useState<SectionAnchor | null>(null);
   const [addSegment, setAddSegment] = useState<AddSegment>(DEFAULT_ADD_SEGMENT);
+  const [screenFocus, setScreenFocus] = useState<ScreenFocus | null>(null);
   const anchorSeqRef = useRef(0);
   const hasStartedRef = useRef(false);
   const hasChosenRef = useRef(false);
@@ -81,10 +85,13 @@ export const usePickerViewState = (
   );
 
   const openScreen = useCallback(
-    (nextScreen: PickerScreen, segment?: AddSegment) => {
+    (nextScreen: PickerScreen, options: OpenScreenOptions = {}) => {
+      const { segment, focus } = options;
+
       setAddSegment((current) => {
         return resolveAddSegment(current, segment);
       });
+      setScreenFocus(focus || null);
       setScreen(nextScreen);
       clearStatus();
     },
@@ -100,11 +107,13 @@ export const usePickerViewState = (
   );
 
   const scrollToSection = useCallback(
-    (sectionId: string, motion: SectionMotion) => {
+    (sectionId: string, motion: SectionMotion, options: SectionScrollOptions = {}) => {
+      const { shouldFocusTab = false } = options;
+
       anchorSeqRef.current += 1;
       chooseMode('stickers');
       setScreen(null);
-      setAnchor({ sectionId, seq: anchorSeqRef.current, motion });
+      setAnchor({ sectionId, seq: anchorSeqRef.current, motion, shouldFocusTab });
       clearStatus();
     },
     [chooseMode, setScreen, clearStatus]
@@ -116,6 +125,7 @@ export const usePickerViewState = (
       screen,
       anchor,
       addSegment,
+      screenFocus,
       setMode,
       openScreen,
       chooseSegment,
@@ -127,6 +137,7 @@ export const usePickerViewState = (
     screen,
     anchor,
     addSegment,
+    screenFocus,
     setMode,
     openScreen,
     chooseSegment,

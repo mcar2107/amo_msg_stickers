@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { setLocale } from '../src/core/i18n/translate';
-import { packTitle } from '../src/core/ui/Picker/packTitle/packTitle';
+import { packTitle } from '../src/core/packTitle';
 
 afterEach(() => {
   setLocale('ru');

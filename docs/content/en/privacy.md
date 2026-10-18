@@ -27,6 +27,15 @@ Stickers, favorites and history are deleted together with the amo site data in
 in the extension or manager storage are deleted together with the extension or the script, and in the amo site storage —
 together with its data.
 
+## Export file {#export-file}
+
+An `.amostickers` file is created only when you export a pack or the library yourself, and it’s saved to your device
+as a regular browser download. amo stickers doesn’t send it anywhere — only you can forward it.
+
+The file has stickers (ready GIFs), their emoji and captions, pack names and Telegram set names. A whole library export
+also has when each pack was added and when a sticker was last sent from it; a single pack export doesn’t. GIF keys, the
+bot token, recent items, favorites and settings aren’t in the file: whoever you give the file to sees only its contents.
+
 ## What is sent and where
 
 amo stickers contacts only three services and only when you use them:

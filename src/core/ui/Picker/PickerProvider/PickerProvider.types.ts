@@ -1,13 +1,18 @@
 import type { ComponentChildren } from 'preact';
+import type { MutableRef } from 'preact/hooks';
 
 import type { Pack, SendItem } from '../../../db.types';
 import type { Host, Settings } from '../../../host.types';
 import type { HoldReason, OpenedBy, PopupHolds } from '../../../hoverPopup.types';
+import type { ExportProgress } from '../../../libraryFile/exportLibrary.types';
+import type { FileImportProgress } from '../../../libraryFile/prepareImport.types';
+import type { FileCard } from '../../../libraryFile/readLibraryFile.types';
 import type {
   AddSegment,
   PickerScreen,
   PickerViewValue,
   SectionMotion,
+  SectionScrollOptions,
 } from '../usePickerView/usePickerView.types';
 
 import type { PackCard } from './packCardView/packCardView.types';
@@ -67,8 +72,10 @@ export type PickerContextValue = {
   /**
    * Перечитывает паки из базы — на открытии попапа с пересчётом порядка, после импорта, создания или удаления — без
    * него.
+   *
+   * @returns паки в порядке вкладок, как они встали в ленту
    */
-  refreshPacks: (options?: RefreshPacksOptions) => Promise<void>;
+  refreshPacks: (options?: RefreshPacksOptions) => Promise<Pack[]>;
 
   /**
    * Текущий статус; `null` — строка статуса скрыта.
@@ -112,6 +119,16 @@ export type PickerContextValue = {
    * Импорт пака из Telegram: его ход переживает уход с вкладки «Добавить стикеры».
    */
   packImport: PackImportState;
+
+  /**
+   * Импорт библиотеки из файла: выбранный файл, карточка и ход импорта переживают уход с сегмента «Файл».
+   */
+  fileImport: FileImportState;
+
+  /**
+   * Выгрузка пака или библиотеки в файл: одна за раз, её ход переживает закрытие меню и экрана.
+   */
+  libraryExport: LibraryExportState;
 
   /**
    * Чем открыт пикер последний раз: наведением фокус из поля сообщения не уводится.
@@ -174,6 +191,178 @@ export type PackImportState = {
   cancelImport: () => void;
 };
 
+/**
+ * Источник идущего импорта: импорт из Telegram и из файла не идут одновременно.
+ */
+export type ImportSource = 'telegram' | 'file';
+
+/**
+ * Занятость импорта, общая для импорта из Telegram и из файла. `ref`, а не состояние: два запуска в одном кадре
+ * видят её до перерисовки.
+ */
+export type ImportLock = MutableRef<ImportSource | null>;
+
+/**
+ * Этап импорта файла: `checking` — проверка стикеров, её можно отменить; `writing` — запись, её отменить нельзя.
+ */
+export type FileImportStage = 'checking' | 'writing';
+
+export type FileImportState = {
+  /**
+   * Имя выбранного файла; `null` — файл не выбран или импорт его уже добавил.
+   */
+  fileName: string | null;
+
+  /**
+   * Карточка «что добавится» по библиотеке на последнюю сверку; `null` — файл не выбран, читается или не прочитан.
+   * Импорт в начале один раз обновляет её свежей сверкой — в ней может появиться «Всё из этого файла уже в
+   * библиотеке», — а дальше до конца импорта она не меняется.
+   */
+  card: FileCard | null;
+
+  /**
+   * Файл читается: описание и сверка с библиотекой ещё не готовы.
+   */
+  isReading: boolean;
+
+  /**
+   * Ошибка чтения файла или его импорта — у зоны загрузки; `null` — ошибки нет. Новый файл и новый импорт её
+   * снимают.
+   */
+  error: string | null;
+
+  /**
+   * Этап идущего импорта; `null` — импорт не идёт.
+   */
+  stage: FileImportStage | null;
+
+  /**
+   * Ход проверки стикеров «N/M»; `null` — проверка не идёт.
+   */
+  progress: FileImportProgress | null;
+
+  /**
+   * Идёт импорт из файла: на месте «Импорт» — «Отменить», «Импорт» Telegram недоступна.
+   */
+  isImporting: boolean;
+
+  /**
+   * «Импорт» недоступна: файл не выбран, читается, не прочитан или не прошёл проверку (до выбора другого файла),
+   * добавлять нечего или идёт любой импорт.
+   */
+  isImportDisabled: boolean;
+
+  /**
+   * Выбирает файл: читает его описание и сверяет с библиотекой. Пока идёт импорт, ничего не делает; `undefined` —
+   * выбор отменён, прежний файл остаётся.
+   */
+  pickFile: (file: File | undefined) => void;
+
+  /**
+   * Импортирует выбранный файл. Пока «Импорт» недоступна, ничего не делает. Промис не отклоняется: итог и ошибка —
+   * в статусе и у зоны загрузки.
+   */
+  importFile: () => Promise<void>;
+
+  /**
+   * Отменяет проверку стикеров: библиотека не меняется, в статусе «Импорт отменён», файл и карточка остаются. На
+   * этапе записи и без идущего импорта ничего не делает.
+   */
+  cancelImport: () => void;
+};
+
+export type FileImportOptions = {
+  /**
+   * Открытый экран поверх режима: к добавленному лента встаёт, только если по завершении открыт экран «Добавить
+   * стикеры», а карточка пересчитывается при возврате на сегмент «Файл».
+   */
+  screen: PickerScreen | null;
+
+  /**
+   * Выбранный сегмент экрана «Добавить стикеры».
+   */
+  addSegment: AddSegment;
+
+  /**
+   * Занятость импорта, общая с импортом из Telegram.
+   */
+  importLock: ImportLock;
+
+  /**
+   * Идёт импорт из Telegram: «Импорт» файла недоступна.
+   */
+  isPackImporting: boolean;
+
+  /**
+   * Перечитывает паки и отдаёт их в порядке ленты.
+   */
+  refreshPacks: () => Promise<Pack[]>;
+
+  /**
+   * Показывает ход импорта и итог в статусе.
+   */
+  showStatus: (text: string) => void;
+
+  /**
+   * Показывает ошибку импорта в статусе.
+   */
+  showError: (text: string) => void;
+
+  /**
+   * Скрывает строку статуса: ход и ошибку у видимой зоны загрузки статус не дублирует.
+   */
+  clearStatus: () => void;
+
+  /**
+   * Открывает раздел с добавленными стикерами в ленте.
+   */
+  scrollToSection: (
+    sectionId: string,
+    motion: SectionMotion,
+    options?: SectionScrollOptions
+  ) => void;
+};
+
+export type LibraryExportState = {
+  /**
+   * Идёт выгрузка: «Выгрузить пак» и «Выгрузить библиотеку» недоступны до её конца.
+   */
+  isExporting: boolean;
+
+  /**
+   * Ход выгрузки библиотеки по стикерам — рядом с «Выгрузить библиотеку»; `null` — библиотека не выгружается, в том
+   * числе пока идёт выгрузка пака.
+   */
+  libraryProgress: ExportProgress | null;
+
+  /**
+   * Выгружает пак в файл с именем по его названию. Пока идёт выгрузка, вызов ничего не делает. Промис не
+   * отклоняется: ход, итог и ошибка — в статусе.
+   *
+   * @param packId — id пака
+   * @param title — название пака на языке интерфейса для статусов
+   */
+  exportPack: (packId: string, title: string) => Promise<void>;
+
+  /**
+   * Выгружает всю библиотеку одним файлом. Пока идёт выгрузка, вызов ничего не делает. Промис не отклоняется: ход,
+   * итог и ошибка — в статусе.
+   */
+  exportAll: () => Promise<void>;
+};
+
+export type LibraryExportOptions = {
+  /**
+   * Показывает ход и итог выгрузки в статусе.
+   */
+  showStatus: (text: string) => void;
+
+  /**
+   * Показывает ошибку выгрузки в статусе.
+   */
+  showError: (text: string) => void;
+};
+
 export type PackImportOptions = {
   /**
    * Окружение: сеть для Bot API и загрузки файлов.
@@ -203,9 +392,14 @@ export type PackImportOptions = {
   packs: Pack[];
 
   /**
+   * Занятость импорта, общая с импортом из файла: пока идёт он, импорт из Telegram не запускается.
+   */
+  importLock: ImportLock;
+
+  /**
    * Перечитывает паки: вкладка пака появляется после первого стикера и по завершении.
    */
-  refreshPacks: () => Promise<void>;
+  refreshPacks: () => Promise<unknown>;
 
   /**
    * Показывает ход импорта и итог в статусе.
@@ -225,7 +419,11 @@ export type PackImportOptions = {
   /**
    * Открывает раздел импортированного пака в ленте стикеров.
    */
-  scrollToSection: (sectionId: string, motion: SectionMotion) => void;
+  scrollToSection: (
+    sectionId: string,
+    motion: SectionMotion,
+    options?: SectionScrollOptions
+  ) => void;
 };
 
 export type PickerProviderProps = {

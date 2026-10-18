@@ -1,6 +1,6 @@
-import { CUSTOM_PACK_ID } from '../../../db';
-import type { Pack } from '../../../db.types';
-import { t } from '../../../i18n/translate';
+import { t } from './i18n/translate';
+import { CUSTOM_PACK_ID } from './db';
+import type { Pack } from './db.types';
 
 /**
  * Название пака для показа. Свой пак называется на языке интерфейса по id, а не по записи: `title` в

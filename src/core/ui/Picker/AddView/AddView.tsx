@@ -1,28 +1,47 @@
 import type { FunctionComponent as FC } from 'preact';
 
+import type { MessageKey } from '../../../i18n/i18n.types';
 import { t } from '../../../i18n/translate';
+import { usePicker } from '../PickerProvider/usePicker';
 import { Screen } from '../Screen/Screen';
+import { ADD_SEGMENTS } from '../usePickerView/addSegment';
 import { usePickerView } from '../usePickerView/usePickerView';
+import type { AddSegment } from '../usePickerView/usePickerView.types';
 import { useStickerDraft } from '../useStickerDraft/useStickerDraft';
 import { useTelegramImport } from '../useTelegramImport/useTelegramImport';
 
 import { CreateSticker } from './CreateSticker/CreateSticker';
 import { CreateStickerFooter } from './CreateSticker/CreateStickerFooter/CreateStickerFooter';
+import { FileTransfer } from './FileTransfer/FileTransfer';
+import { ImportFooter } from './ImportFooter/ImportFooter';
 import { SegmentForm } from './SegmentForm/SegmentForm';
 import { SegmentTab } from './SegmentTab/SegmentTab';
 import { TelegramImport } from './TelegramImport/TelegramImport';
-import { TelegramImportFooter } from './TelegramImport/TelegramImportFooter/TelegramImportFooter';
 
 /**
- * Добавление стикеров: сегменты «Telegram» (импорт пака) и «Свой стикер» (из файла).
+ * Подписи вкладок сегментов.
+ */
+const SEGMENT_TITLES: Record<AddSegment, MessageKey> = {
+  telegram: 'add.segment.telegram',
+  custom: 'add.segment.custom',
+  file: 'add.segment.file',
+};
+
+/**
+ * Добавление стикеров: сегменты «Telegram» (импорт пака), «Свой стикер» (из картинки или видео) и «Файл» (перенос
+ * библиотеки).
  *
- * Хуки обеих форм вызываются здесь, а не в панелях: главная кнопка футера зависит от
- * выбранного сегмента и состояния его формы. Панели смонтированы обе, поэтому введённая
- * ссылка и черновик стикера переживают смену сегмента. Закрытие экрана сбрасывает черновик, а
- * ссылку и ошибку её поля держит провайдер — до успешного импорта.
+ * Хуки форм вызываются здесь, а не в панелях: главная кнопка футера зависит от выбранного сегмента и состояния его
+ * формы. Панели смонтированы все, поэтому введённая ссылка и черновик стикера переживают смену сегмента. Закрытие
+ * экрана сбрасывает черновик, а ссылку, ошибку её поля и выбранный файл держит провайдер — до успешного импорта.
+ *
+ * Тело сегмента «Файл» делит высоту экрана (`shouldFitBody`): зона с карточкой растёт до свободного места, а дальше
+ * прокручивается список паков внутри неё. Формы «Telegram» и «Свой стикер» в такое тело не сжимаются — у них длинное
+ * содержимое прокручивается вместе с телом.
  */
 export const AddView: FC = () => {
   const { addSegment } = usePickerView();
+  const { fileImport } = usePicker();
   const {
     link,
     hasLink,
@@ -31,6 +50,7 @@ export const AddView: FC = () => {
     card,
     changeLink,
     isImporting,
+    isBlocked,
     startImport,
     cancelImport,
   } = useTelegramImport();
@@ -46,7 +66,7 @@ export const AddView: FC = () => {
     changeCaption,
     save,
   } = useStickerDraft();
-  const isImportDisabled = isImporting || !hasLink || isPackMissing;
+  const isImportDisabled = isImporting || isBlocked || !hasLink || isPackMissing;
 
   /**
    * Enter в поле во время импорта отправляет форму и без кнопки отправки в футере — у формы с
@@ -68,6 +88,17 @@ export const AddView: FC = () => {
     void save();
   };
 
+  const handleFileSubmit = () => {
+    if (!fileImport.isImportDisabled) void fileImport.importFile();
+  };
+
+  /**
+   * Отменить можно только проверку стикеров: на этапе записи кнопка недоступна, и запись доходит до конца.
+   */
+  const handleFileCancel = () => {
+    fileImport.cancelImport();
+  };
+
   const handleFilePick = (file: File | undefined) => {
     pickFile(file);
   };
@@ -80,9 +111,11 @@ export const AddView: FC = () => {
     switch (addSegment) {
       case 'telegram': {
         return (
-          <TelegramImportFooter
+          <ImportFooter
+            segment="telegram"
             isImporting={isImporting}
             isDisabled={isImportDisabled}
+            isCancelDisabled={false}
             onCancel={handleImportCancel}
           />
         );
@@ -98,6 +131,18 @@ export const AddView: FC = () => {
         );
       }
 
+      case 'file': {
+        return (
+          <ImportFooter
+            segment="file"
+            isImporting={fileImport.isImporting}
+            isDisabled={fileImport.isImportDisabled}
+            isCancelDisabled={fileImport.stage === 'writing'}
+            onCancel={handleFileCancel}
+          />
+        );
+      }
+
       default: {
         const unknownSegment: never = addSegment;
 
@@ -107,15 +152,25 @@ export const AddView: FC = () => {
   };
 
   return (
-    <Screen title={t('add.title')} footer={renderFooter()}>
+    <Screen
+      title={t('add.title')}
+      footer={renderFooter()}
+      shouldFitBody={addSegment === 'file'}
+    >
       <div
         role="tablist"
         aria-label={t('add.segments')}
-        className="mb-2 flex items-center gap-0.5"
+        className="mb-2 flex shrink-0 items-center gap-0.5"
       >
-        <SegmentTab segment="telegram" title={t('add.segment.telegram')} />
-
-        <SegmentTab segment="custom" title={t('add.segment.custom')} />
+        {ADD_SEGMENTS.map((segment) => {
+          return (
+            <SegmentTab
+              key={segment}
+              segment={segment}
+              title={t(SEGMENT_TITLES[segment])}
+            />
+          );
+        })}
       </div>
 
       <SegmentForm
@@ -145,6 +200,14 @@ export const AddView: FC = () => {
           onPick={handleFilePick}
           onCaptionChange={handleCaptionChange}
         />
+      </SegmentForm>
+
+      <SegmentForm
+        segment="file"
+        isActive={addSegment === 'file'}
+        onSubmit={handleFileSubmit}
+      >
+        <FileTransfer />
       </SegmentForm>
     </Screen>
   );

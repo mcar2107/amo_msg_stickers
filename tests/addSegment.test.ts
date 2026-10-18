@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  ADD_SEGMENTS,
   DEFAULT_ADD_SEGMENT,
   resolveAddSegment,
 } from '../src/core/ui/Picker/usePickerView/addSegment';
@@ -18,5 +19,16 @@ describe('resolveAddSegment', () => {
   it('плитка открывает «Свой стикер» при любом прежнем выборе', () => {
     expect(resolveAddSegment('telegram', 'custom')).toBe('custom');
     expect(resolveAddSegment('custom', 'custom')).toBe('custom');
+    expect(resolveAddSegment('file', 'custom')).toBe('custom');
+  });
+
+  it('«+» помнит сегмент «Файл»', () => {
+    expect(resolveAddSegment('file', undefined)).toBe('file');
+  });
+});
+
+describe('ADD_SEGMENTS', () => {
+  it('три сегмента по порядку вкладок: «Файл» последний, на него ведёт `End`', () => {
+    expect(ADD_SEGMENTS).toEqual(['telegram', 'custom', 'file']);
   });
 });

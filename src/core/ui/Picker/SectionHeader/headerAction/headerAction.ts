@@ -4,14 +4,19 @@ import { FAVORITE_SECTION_ID, RECENT_SECTION_ID } from '../../usePickerView/sect
 import type { HeaderAction } from './headerAction.types';
 
 /**
- * Действие заголовка раздела. У «Моих стикеров» его нет: пак своих стикеров не удаляется, а
- * меню без пунктов в заголовке было бы пустым. У «Избранного» тоже: элемент убирается из него
- * только пунктом меню ячейки, очистки целиком нет.
+ * Действие заголовка раздела. У «Моих стикеров» меню «…» есть только ради «Выгрузить пак»: пак своих стикеров не
+ * удаляется и ссылки на Telegram у него нет, поэтому пустым «Моим стикерам» выгружать нечего, и меню без пунктов в
+ * заголовке не появляется. У «Избранного» действия нет: элемент убирается из него только пунктом меню ячейки, очистки
+ * целиком нет.
  *
  * @param sectionId — id раздела: `favorite`, `recent` или id пака
+ * @param hasStickers — в разделе есть стикеры
  * @returns действие заголовка; `null` — заголовок без действий
  */
-export const headerAction = (sectionId: string): HeaderAction | null => {
+export const headerAction = (
+  sectionId: string,
+  hasStickers: boolean
+): HeaderAction | null => {
   switch (sectionId) {
     case RECENT_SECTION_ID: {
       return 'clear';
@@ -22,7 +27,7 @@ export const headerAction = (sectionId: string): HeaderAction | null => {
     }
 
     case CUSTOM_PACK_ID: {
-      return null;
+      return hasStickers ? 'exportMenu' : null;
     }
 
     default: {

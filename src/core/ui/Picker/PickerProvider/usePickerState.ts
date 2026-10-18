@@ -12,11 +12,14 @@ import { usePickerViewState } from '../usePickerView/usePickerViewState';
 import { useFavorites } from './useFavorites/useFavorites';
 import { errorMessage } from './errorMessage';
 import type {
+  ImportSource,
   PickerStateOptions,
   PickerStateValue,
   PickerStatus,
   RefreshPacksOptions,
 } from './PickerProvider.types';
+import { useFileImport } from './useFileImport';
+import { useLibraryExport } from './useLibraryExport';
 import { usePackImport } from './usePackImport';
 
 /**
@@ -75,6 +78,8 @@ export const usePickerState = (options: PickerStateOptions): PickerStateValue =>
 
     packOrderRef.current = packSnapshot(ordered);
     setPacks(ordered);
+
+    return ordered;
   }, []);
 
   const showStatus = useCallback((text: string) => {
@@ -141,6 +146,7 @@ export const usePickerState = (options: PickerStateOptions): PickerStateValue =>
   const favorites = useFavorites({ showStatus, showError });
   const view = usePickerViewState(isOpen, clearStatus);
   const { screen, addSegment, scrollToSection } = view;
+  const importLock = useRef<ImportSource | null>(null);
 
   const packImport = usePackImport({
     env,
@@ -148,17 +154,45 @@ export const usePickerState = (options: PickerStateOptions): PickerStateValue =>
     screen,
     addSegment,
     packs,
+    importLock,
     refreshPacks,
     showStatus,
     showError,
     clearStatus,
     scrollToSection,
   });
-  const { isImporting } = packImport;
+  const { isImporting: isPackImporting } = packImport;
 
+  const fileImport = useFileImport({
+    screen,
+    addSegment,
+    importLock,
+    isPackImporting,
+    refreshPacks,
+    showStatus,
+    showError,
+    clearStatus,
+    scrollToSection,
+  });
+  const { isImporting: isFileImporting } = fileImport;
+
+  /**
+   * Одна причина на оба импорта: из Telegram и из файла одновременно они не идут.
+   */
   useEffect(() => {
-    setHold('import', isImporting);
-  }, [isImporting, setHold]);
+    setHold('import', isPackImporting || isFileImporting);
+  }, [isPackImporting, isFileImporting, setHold]);
+
+  const libraryExport = useLibraryExport({ showStatus, showError });
+  const { isExporting } = libraryExport;
+
+  /**
+   * Выгрузка удерживает попап до скачивания: открытый наведением попап, из которого ушёл курсор, иначе закрылся бы
+   * посреди сборки файла, и ход выгрузки пропал бы из виду.
+   */
+  useEffect(() => {
+    setHold('export', isExporting);
+  }, [isExporting, setHold]);
 
   /**
    * Открытый экран удерживает попап: на «Добавить стикеры» и «Настройках» заполняют форму, и
@@ -186,6 +220,8 @@ export const usePickerState = (options: PickerStateOptions): PickerStateValue =>
       urlOf,
       dropUrl,
       packImport,
+      fileImport,
+      libraryExport,
       openedBy,
       setHold,
     },

@@ -6,9 +6,31 @@ import type { PickerMode } from '../../../pickerMode.types';
 export type PickerScreen = 'add' | 'settings';
 
 /**
- * Сегмент экрана «Добавить стикеры»: импорт пака из Telegram или свой стикер из файла.
+ * Сегмент экрана «Добавить стикеры»: импорт пака из Telegram, свой стикер из картинки или видео, перенос библиотеки
+ * файлом.
  */
-export type AddSegment = 'telegram' | 'custom';
+export type AddSegment = 'telegram' | 'custom' | 'file';
+
+/**
+ * Элемент, на который встанет фокус открытого экрана вместо первого поля: точка входа ведёт к конкретному действию.
+ * `libraryExport` — «Выгрузить библиотеку» в «Настройках».
+ */
+export type ScreenFocus = 'libraryExport';
+
+/**
+ * Пожелания точки входа к открываемому экрану.
+ */
+export type OpenScreenOptions = {
+  /**
+   * Сегмент, на котором откроется «Добавить стикеры»; без него — выбранный последним.
+   */
+  segment?: AddSegment;
+
+  /**
+   * Куда встанет фокус экрана; без него — в первое текстовое поле тела, как при обычном открытии.
+   */
+  focus?: ScreenFocus;
+};
 
 /**
  * Способ перехода ленты к разделу. `'smooth'` — лента на виду и едет плавно (клик по вкладке);
@@ -36,6 +58,23 @@ export type SectionAnchor = {
    * Способ перехода: плавно — только если в системе не включено уменьшение движения.
    */
   motion: SectionMotion;
+
+  /**
+   * После перехода фокус встаёт на вкладку раздела, если он потерян — ушёл в `body` вместе с закрытым экраном. Нет —
+   * фокус не трогается.
+   */
+  shouldFocusTab?: boolean;
+};
+
+/**
+ * Необязательные условия перехода к разделу.
+ */
+export type SectionScrollOptions = {
+  /**
+   * Фокус — на вкладку раздела после перехода, если он потерян: переход закрыл экран вместе с кнопкой, на которой
+   * стоял фокус.
+   */
+  shouldFocusTab?: boolean;
 };
 
 export type PickerViewValue = {
@@ -62,15 +101,20 @@ export type PickerViewValue = {
   addSegment: AddSegment;
 
   /**
+   * Цель фокуса экрана, открытого последним; `null` — экран открыт без неё, и фокус встаёт как обычно.
+   */
+  screenFocus: ScreenFocus | null;
+
+  /**
    * Переключает режим, закрывает экран и сохраняет режим для следующих открытий.
    */
   setMode: (mode: PickerMode) => void;
 
   /**
-   * Открывает экран поверх режима. Сегмент выбирает, на чём откроется «Добавить стикеры»;
-   * без него — сегмент, выбранный последним.
+   * Открывает экран поверх режима. Пожелания выбирают сегмент «Добавить стикеры» и цель фокуса; без них — сегмент,
+   * выбранный последним, и фокус в первое поле.
    */
-  openScreen: (screen: PickerScreen, segment?: AddSegment) => void;
+  openScreen: (screen: PickerScreen, options?: OpenScreenOptions) => void;
 
   /**
    * Выбирает сегмент экрана «Добавить стикеры».
@@ -85,5 +129,9 @@ export type PickerViewValue = {
   /**
    * Открывает режим «Стикеры» без экрана и прокручивает ленту к разделу.
    */
-  scrollToSection: (sectionId: string, motion: SectionMotion) => void;
+  scrollToSection: (
+    sectionId: string,
+    motion: SectionMotion,
+    options?: SectionScrollOptions
+  ) => void;
 };

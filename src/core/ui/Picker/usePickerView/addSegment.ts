@@ -7,6 +7,11 @@ import type { AddSegment } from './usePickerView.types';
 export const DEFAULT_ADD_SEGMENT: AddSegment = 'telegram';
 
 /**
+ * Сегменты в порядке вкладок: `Home` ведёт на первый, `End` — на последний.
+ */
+export const ADD_SEGMENTS: readonly AddSegment[] = ['telegram', 'custom', 'file'];
+
+/**
  * Сегмент, на котором откроется экран «Добавить стикеры». Без запрошенного остаётся
  * последний выбранный: «+» возвращает туда, где пользователь был, а плитка «Создать стикер»
  * просит свой.

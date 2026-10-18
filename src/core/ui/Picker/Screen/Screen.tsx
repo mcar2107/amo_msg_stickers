@@ -1,3 +1,4 @@
+import { cva } from 'class-variance-authority';
 import type { FunctionComponent as FC } from 'preact';
 import { useRef } from 'preact/hooks';
 
@@ -37,10 +38,26 @@ const TITLE_CLASS = 'm-0 min-w-0 truncate pl-1 font-primary text-sm font-semibol
  * Нижний отступ тела растёт на высоту строки статуса (`--status-inset` панели): строка лежит
  * слоем поверх низа тела, и без отступа конец содержимого под ней не долистывался бы.
  */
-const BODY_CLASS = [
-  'min-h-0 flex-1 overflow-y-auto px-2.5 pt-1.5 [scrollbar-width:thin]',
-  'pb-[calc(theme(spacing.3)_+_var(--status-inset,0px))]',
-].join(' ');
+const bodyVariants = cva(
+  [
+    'min-h-0 flex-1 overflow-y-auto px-2.5 pt-1.5 [scrollbar-width:thin]',
+    'pb-[calc(theme(spacing.3)_+_var(--status-inset,0px))]',
+  ].join(' '),
+  {
+    variants: {
+      /**
+       * Колонка flex даёт содержимому вырасти `grow` до свободного места тела — за вычетом
+       * отступа под строку статуса — и остановиться на нём, а не тянуть тело в прокрутку. Ниже
+       * наименьшей высоты по содержимому (`min-height: auto`) ребёнок колонки не сжимается,
+       * поэтому то, что не уместилось и в неё, прокручивает тело: прокрутка остаётся запасом.
+       */
+      shouldFitBody: {
+        true: 'flex flex-col',
+        false: '',
+      },
+    },
+  }
+);
 
 /**
  * Футер — постоянной высоты `SCREEN_FOOTER_HEIGHT_PX` и вне прокрутки: главная кнопка видна
@@ -68,7 +85,7 @@ const TITLE_ID = 'picker-screen-title';
  * закрывает экран по концу ухода (`useScreenMotion`).
  */
 export const Screen: FC<ScreenProps> = (props) => {
-  const { title, footer, children } = props;
+  const { title, footer, shouldFitBody = false, children } = props;
   const { screenRef, leave } = useScreenMotion();
   const bodyRef = useRef<HTMLDivElement>(null);
 
@@ -91,7 +108,7 @@ export const Screen: FC<ScreenProps> = (props) => {
         </button>
       </div>
 
-      <div ref={bodyRef} className={BODY_CLASS}>
+      <div ref={bodyRef} className={bodyVariants({ shouldFitBody })}>
         {children}
       </div>
 

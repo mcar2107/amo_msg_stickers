@@ -64,13 +64,14 @@ stickers other than favorites.
 <!-- скрин: img/usage/menu-favorite.png — меню стикера пака: «Предпросмотр», «Добавить в избранное», «Удалить стикер»; заменит menu.png -->
 <div class="media-row">
 <img src="../img/usage/menu.png" alt="Sticker context menu: Preview and Delete sticker" width="300">
-<img src="../img/usage/pack-menu.png" alt="The … menu in a pack header: Copy link and Delete pack" width="300">
+<img src="../img/usage/pack-menu.png" alt="The … menu in a pack header: Copy link, Export pack and Delete pack" width="300">
 </div>
 
 Open the menu of a sticker or GIF with a right click, the menu key or Shift+F10. It has “Preview” and “Add to favorites”
 or “Remove from favorites”; in packs and “My stickers” also “Delete sticker”, in recent items — “Remove from recent”.
-A pack header has “…”: “Copy link” gives a link to [import](./setup/telegram) the pack on another device. The recent
-header has “Clear”.
+A pack header has “…”: “Copy link” gives a link to [import](./setup/telegram) the pack on another device, “Export pack”
+saves the pack as a file — you can [load it](./setup/transfer#share-pack) in another browser or send it to a colleague.
+“My stickers” has only “Export pack” in the menu. The recent header has “Clear”.
 
 Confirm deleting and clearing with a second press within a couple of seconds — the first one changes the label
 to “Really delete?”.

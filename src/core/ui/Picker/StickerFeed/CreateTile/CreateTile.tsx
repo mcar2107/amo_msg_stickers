@@ -32,7 +32,7 @@ export const CreateTile: FC = () => {
   const title = t('add.createTile');
 
   const handleTileClick = () => {
-    openScreen('add', 'custom');
+    openScreen('add', { segment: 'custom' });
   };
 
   return (

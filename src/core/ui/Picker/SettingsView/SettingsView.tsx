@@ -12,6 +12,7 @@ import { Screen } from '../Screen/Screen';
 import { fieldCheckText } from './fieldCheckText/fieldCheckText';
 import { fieldCheckTone } from './fieldCheckTone/fieldCheckTone';
 import { klipyKeyText } from './klipyKeyText/klipyKeyText';
+import { LibraryExport } from './LibraryExport/LibraryExport';
 import { telegramTokenText } from './telegramTokenText/telegramTokenText';
 import { useSettingsDraft } from './useSettingsDraft/useSettingsDraft';
 
@@ -50,6 +51,9 @@ const NOTE_CLASS = 'm-0 text-xs leading-[1.4] text-cadetGray-30 dark:text-gray-7
  * Ключи KLIPY и GIPHY и токен Telegram-бота, двумя группами со своей ссылкой на доку. KLIPY
  * первым: с него дока советует начинать, если ключ нужен один. Кнопки «Сохранить» нет:
  * значения пишутся сами и сразу применяются в ленте GIF и импорте, без перезагрузки страницы.
+ *
+ * Последняя группа — «Библиотека» с выгрузкой в файл. Она вне формы: полей у неё нет, и фиксация полей по уходу фокуса
+ * и `change` её не касается.
  */
 export const SettingsView: FC = () => {
   const { draft, checks, changeField, commit } = useSettingsDraft();
@@ -190,6 +194,8 @@ export const SettingsView: FC = () => {
           />
         </section>
       </form>
+
+      <LibraryExport />
     </Screen>
   );
 };

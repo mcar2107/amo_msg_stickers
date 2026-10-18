@@ -14,7 +14,9 @@ import { MenuContext } from './MenuContext';
 const CLOSE_KEYS = new Set(['Escape', 'Tab']);
 
 /**
- * `z-10` — над абсолютно поставленными рядами ленты, которые идут в DOM после меню.
+ * `z-30` — над абсолютно поставленными рядами ленты, которые идут в DOM после меню, и над строкой статуса (`z-20`):
+ * меню у низа ленты иначе ушло бы пунктами под показанный статус. Экран (`z-10`) меню не перекрывает: экран
+ * открывается нажатием вне меню, и меню к этому времени закрыто.
  *
  * Появление — переход прозрачности при переходе в `isPlaced`: до замера меню невидимо и не
  * мигает в левом верхнем углу, поэтому `@starting-style` не нужен. Закрытие размонтирует меню,
@@ -23,7 +25,7 @@ const CLOSE_KEYS = new Set(['Escape', 'Tab']);
  */
 const menuVariants = cva(
   [
-    'fixed z-10 flex min-w-[160px] flex-col rounded-lg p-1 outline-none',
+    'fixed z-30 flex min-w-[160px] flex-col rounded-lg p-1 outline-none',
     'bg-white-0 shadow-xxl ring-1 ring-cadetGray-30/[.28] dark:bg-gray-10 dark:ring-white-0/10',
   ],
   {

@@ -7,6 +7,8 @@ import type { TelegramImportState } from './useTelegramImport.types';
  * ««название»: N/M», вкладка пака — после первого готового стикера, по завершении — переход в
  * пак.
  *
+ * Пока идёт импорт из файла, импорт из Telegram недоступен: два импорта одновременно не идут.
+ *
  * Уход с экрана импорт не отменяет: он доводится до конца и открывает пак, а отменяет его только
  * `cancelImport`. Ход импорта, ссылку, карточку и ошибку поля хранит провайдер, поэтому после
  * возврата на экран в поле та же ссылка и виден ход импорта.
@@ -14,7 +16,7 @@ import type { TelegramImportState } from './useTelegramImport.types';
  * @returns ссылка, ошибка поля, карточка с ходом импорта, его запуск и отмена
  */
 export const useTelegramImport = (): TelegramImportState => {
-  const { packImport } = usePicker();
+  const { packImport, fileImport } = usePicker();
   const {
     link,
     fieldError,
@@ -35,6 +37,7 @@ export const useTelegramImport = (): TelegramImportState => {
     card,
     changeLink,
     isImporting,
+    isBlocked: fileImport.isImporting,
     startImport: importPack,
     cancelImport,
   };

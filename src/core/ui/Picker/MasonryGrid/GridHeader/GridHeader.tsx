@@ -11,7 +11,9 @@ const TITLE_CLASS =
 
 /**
  * Строка заголовка раздела ленты GIF во всю ширину, на месте из раскладки. Вид и действие справа —
- * как у заголовков ленты стикеров: оба режима читаются одной иерархией.
+ * как у заголовков ленты стикеров: оба режима читаются одной иерархией. Полное название — подсказкой
+ * `title`, как у `SectionHeader`: название, обрезанное многоточием, иначе не прочитать, а `title`,
+ * совпадающий с текстом, скринридер второй раз не читает.
  */
 export const GridHeader: FC<GridHeaderProps> = (props) => {
   const { title, top, height, onClear } = props;
@@ -22,7 +24,9 @@ export const GridHeader: FC<GridHeaderProps> = (props) => {
 
   return (
     <div className={HEADER_CLASS} style={{ top, height }}>
-      <h2 className={TITLE_CLASS}>{title}</h2>
+      <h2 className={TITLE_CLASS} title={title}>
+        {title}
+      </h2>
 
       {onClear && <ClearRecentButton onConfirm={handleClearConfirm} />}
     </div>

@@ -32,6 +32,21 @@ in [Chrome, Yandex Browser, Edge, Opera](./install/chromium) or [Firefox](./in
 You need a pack link — `https://t.me/addstickers/Name` — or just the pack name, not a link to a message, a channel
 or a sticker. How to copy it — in [“Import from Telegram”](./setup/telegram#pack-link).
 
+## A pack moved in the feed {#pack-order}
+
+“Favorites” if it has stickers, “Recent” and “My stickers” always come first, then Telegram packs: the one you last sent
+a sticker from is higher. Sending from “Favorites” and “Recent” doesn’t change the order. A new pack from Telegram goes
+first. A pack loaded from a [file](./setup/transfer) goes by the last-sent time from the file — only a whole library
+export has it — and without it, after the packs you have already sent from.
+
+Packs are reordered the next time the panel opens, not under your cursor.
+
+## How to move stickers to another computer
+
+Export the library to a file — “Settings” → “Library” → “Export library” — and load it in the new browser —
+[“Moving your library”](./setup/transfer). The same file is a backup: packs and custom stickers are stored in the browser
+and are lost when the amo site data is cleared.
+
 ## GIF search stopped working
 
 - **“The built-in KLIPY key is unavailable”** — the shared key hit its limit or was revoked: get

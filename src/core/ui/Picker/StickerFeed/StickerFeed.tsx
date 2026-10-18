@@ -56,7 +56,12 @@ export const StickerFeed: FC<StickerFeedProps> = (props) => {
   const renderRange = (rows: StickerRow<FeedSticker>[], [from, to]: RowRange) => {
     return rows.slice(from, to).map((row, offset) => {
       const { kind, sectionId, top, height } = row;
-      const { title = '', hint = '', pack = null } = byId.get(sectionId) || {};
+      const {
+        title = '',
+        hint = '',
+        pack = null,
+        items = [],
+      } = byId.get(sectionId) || {};
 
       const handleCellDelete = (cell: FeedSticker) => {
         onCellDelete(sectionId, cell);
@@ -70,6 +75,7 @@ export const StickerFeed: FC<StickerFeedProps> = (props) => {
               sectionId={sectionId}
               title={title}
               link={pack ? packLink(pack) : null}
+              hasStickers={items.length > 0}
               top={top}
               height={height}
               onPackDelete={onPackDelete}

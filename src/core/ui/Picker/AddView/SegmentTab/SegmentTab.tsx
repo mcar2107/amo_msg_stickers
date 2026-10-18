@@ -9,10 +9,13 @@ import type { SegmentTabProps } from './SegmentTab.types';
 /**
  * Вид — как у кнопки режима в футере панели: сегменты — тот же переключатель, только внутри
  * экрана. Шрифт задаётся явно: preflight Tailwind сбрасывает у кнопки `font` в `inherit`.
+ *
+ * Подпись — в одну строку, а отступ 8 px, а не 12: три вкладки делят панель 350 px поровну, и «Custom sticker» с
+ * отступом 12 px переносилась бы на вторую строку.
  */
 const SEGMENT_TAB_CLASS = [
-  'flex h-7 flex-1 cursor-pointer items-center justify-center rounded-lg bg-transparent px-3',
-  'font-primary text-xs font-semibold leading-none',
+  'flex h-7 flex-1 cursor-pointer items-center justify-center rounded-lg bg-transparent px-2',
+  'whitespace-nowrap font-primary text-xs font-semibold leading-none',
   'text-cadetGray-30 hover:bg-cadetGray-30/[.14] dark:text-gray-70 dark:hover:bg-white-0/[.07]',
   'aria-selected:bg-cadetGray-30/[.14] aria-selected:text-blue-50',
   'dark:aria-selected:bg-white-0/[.07] dark:aria-selected:text-beige-70',

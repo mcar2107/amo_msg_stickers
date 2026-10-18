@@ -13,9 +13,20 @@ const TITLE_CLASS =
 /**
  * Заголовок раздела ленты: одна строка приглушённого названия и действие раздела справа.
  * Название сжимается многоточием, а действие не сжимается: длинное название его не сдвигает.
+ * Полное название — подсказкой `title`: длинное название пака иначе не прочитать. Имя заголовку
+ * даёт его текст, а `title`, совпадающий с ним, скринридер второй раз не читает.
  */
 export const SectionHeader: FC<SectionHeaderProps> = (props) => {
-  const { sectionId, title, link, top, height, onPackDelete, onRecentClear } = props;
+  const {
+    sectionId,
+    title,
+    link,
+    hasStickers,
+    top,
+    height,
+    onPackDelete,
+    onRecentClear,
+  } = props;
 
   const handleClearConfirm = () => {
     onRecentClear();
@@ -26,24 +37,53 @@ export const SectionHeader: FC<SectionHeaderProps> = (props) => {
   };
 
   const renderAction = () => {
-    switch (headerAction(sectionId)) {
+    const action = headerAction(sectionId, hasStickers);
+
+    switch (action) {
       case 'clear': {
         return <ClearRecentButton onConfirm={handleClearConfirm} />;
       }
 
       case 'menu': {
-        return <PackMenuButton title={title} link={link} onDelete={handlePackDelete} />;
+        return (
+          <PackMenuButton
+            packId={sectionId}
+            title={title}
+            link={link}
+            hasStickers={hasStickers}
+            onDelete={handlePackDelete}
+          />
+        );
+      }
+
+      case 'exportMenu': {
+        return (
+          <PackMenuButton
+            packId={sectionId}
+            title={title}
+            link={null}
+            hasStickers={hasStickers}
+          />
+        );
+      }
+
+      case null: {
+        return null;
       }
 
       default: {
-        return null;
+        const unknownAction: never = action;
+
+        throw new Error(`Unknown header action: ${String(unknownAction)}`);
       }
     }
   };
 
   return (
     <div className={HEADER_CLASS} style={{ top, height }}>
-      <h2 className={TITLE_CLASS}>{title}</h2>
+      <h2 className={TITLE_CLASS} title={title}>
+        {title}
+      </h2>
 
       {renderAction()}
     </div>

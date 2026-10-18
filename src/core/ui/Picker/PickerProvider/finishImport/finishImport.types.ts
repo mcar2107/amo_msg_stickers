@@ -2,6 +2,7 @@ import type { Pack } from '../../../../db.types';
 import type {
   PickerScreen,
   SectionMotion,
+  SectionScrollOptions,
 } from '../../usePickerView/usePickerView.types';
 
 export type FinishImportOptions = {
@@ -18,7 +19,11 @@ export type FinishImportOptions = {
   /**
    * Открывает режим «Стикеры» и прокручивает ленту к разделу.
    */
-  scrollToSection: (sectionId: string, motion: SectionMotion) => void;
+  scrollToSection: (
+    sectionId: string,
+    motion: SectionMotion,
+    options?: SectionScrollOptions
+  ) => void;
 
   /**
    * Показывает итог импорта в статусе.
@@ -27,6 +32,7 @@ export type FinishImportOptions = {
 };
 
 /**
- * Куда показать ошибку импорта: `field` — у поля ссылки на пак, `status` — в строке статуса.
+ * Куда показать ошибку импорта: `field` — у формы импорта (поле ссылки на пак, зона загрузки файла), `status` — в
+ * строке статуса.
  */
 export type ImportErrorTarget = 'field' | 'status';

@@ -8,8 +8,8 @@ import {
   type StickersByPack,
 } from '../../../../db.types';
 import { t } from '../../../../i18n/translate';
+import { packTitle } from '../../../../packTitle';
 import { stickerCellName } from '../../cellName/cellName';
-import { packTitle } from '../../packTitle/packTitle';
 import { FAVORITE_SECTION_ID, RECENT_SECTION_ID } from '../../usePickerView/sectionIds';
 
 import type { FeedSection, FeedSticker } from './feedSections.types';
