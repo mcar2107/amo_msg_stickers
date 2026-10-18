@@ -95,8 +95,8 @@ export const buildImportRecords = (
         blob,
         width,
         height,
-        emoji,
-        caption,
+        ...(emoji === undefined ? {} : { emoji }),
+        ...(caption === undefined ? {} : { caption }),
         createdAt: firstAt + index,
       };
 

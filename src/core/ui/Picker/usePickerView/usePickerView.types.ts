@@ -58,6 +58,23 @@ export type SectionAnchor = {
    * Способ перехода: плавно — только если в системе не включено уменьшение движения.
    */
   motion: SectionMotion;
+
+  /**
+   * После перехода фокус встаёт на вкладку раздела, если он потерян — ушёл в `body` вместе с закрытым экраном. Нет —
+   * фокус не трогается.
+   */
+  shouldFocusTab?: boolean;
+};
+
+/**
+ * Необязательные условия перехода к разделу.
+ */
+export type SectionScrollOptions = {
+  /**
+   * Фокус — на вкладку раздела после перехода, если он потерян: переход закрыл экран вместе с кнопкой, на которой
+   * стоял фокус.
+   */
+  shouldFocusTab?: boolean;
 };
 
 export type PickerViewValue = {
@@ -112,5 +129,9 @@ export type PickerViewValue = {
   /**
    * Открывает режим «Стикеры» без экрана и прокручивает ленту к разделу.
    */
-  scrollToSection: (sectionId: string, motion: SectionMotion) => void;
+  scrollToSection: (
+    sectionId: string,
+    motion: SectionMotion,
+    options?: SectionScrollOptions
+  ) => void;
 };

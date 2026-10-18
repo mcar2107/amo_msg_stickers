@@ -7,7 +7,6 @@ export const menuItemVariants = cva(
   [
     'flex h-8 w-full shrink-0 items-center whitespace-nowrap rounded-md bg-transparent px-3',
     'text-left font-primary text-xsm leading-[normal] transition-colors duration-base',
-    'focus-visible:bg-cadetGray-30/[.14] dark:focus-visible:bg-white-0/[.07]',
   ],
   {
     variants: {
@@ -15,8 +14,15 @@ export const menuItemVariants = cva(
         default: 'text-gray-30 dark:text-gray-40',
         danger: 'text-red-30',
       },
+      /**
+       * Подложка наведения и фокуса — только у доступного пункта: она обещает действие. Недоступный пункт под фокусом
+       * отмечает одно кольцо фокуса — стрелки по-прежнему проходят через него, но выбрать его нечем.
+       */
       isDisabled: {
-        false: 'cursor-pointer hover:bg-cadetGray-30/[.14] dark:hover:bg-white-0/[.07]',
+        false: [
+          'cursor-pointer hover:bg-cadetGray-30/[.14] dark:hover:bg-white-0/[.07]',
+          'focus-visible:bg-cadetGray-30/[.14] dark:focus-visible:bg-white-0/[.07]',
+        ],
         true: 'cursor-default opacity-50',
       },
     },

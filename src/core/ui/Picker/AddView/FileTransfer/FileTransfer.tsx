@@ -1,4 +1,5 @@
 import type { FunctionComponent as FC } from 'preact';
+import { useRef } from 'preact/hooks';
 
 import { t } from '../../../../i18n/translate';
 import { LinkButton } from '../../LinkButton/LinkButton';
@@ -7,6 +8,7 @@ import { usePickerView } from '../../usePickerView/usePickerView';
 
 import { FileDropZone } from './FileDropZone/FileDropZone';
 import { ImportCard } from './ImportCard/ImportCard';
+import { useImportEndFocus } from './useImportEndFocus/useImportEndFocus';
 
 /**
  * Панель сегмента «Файл»: загрузка файла выгрузки — зона с карточкой «что добавится» на её месте и ошибка. Файл,
@@ -22,8 +24,8 @@ import { ImportCard } from './ImportCard/ImportCard';
  *
  * Свободное место делит только зона: заголовок и ошибка держат свою высоту, и зона с карточкой растёт по содержимому до
  * места, что осталось от них, вкладок и строки статуса в теле экрана, — дальше прокручивается список паков внутри неё.
- * Панель не ниже заголовка, зоны наименьшей высоты и ошибки: когда и они не помещаются (ошибка записи под
- * многострочной строкой статуса), прокручивается тело экрана, и ничего не уходит под строку статуса.
+ * Панель не ниже заголовка, зоны наименьшей высоты и ошибки: если они не помещаются над строкой статуса, прокручивается
+ * тело экрана, и ничего не уходит под строку статуса.
  */
 export const FileTransfer: FC = () => {
   const {
@@ -39,6 +41,9 @@ export const FileTransfer: FC = () => {
     },
   } = usePicker();
   const { openScreen } = usePickerView();
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  useImportEndFocus(panelRef, isImporting);
 
   const handleZonePick = (file: File | undefined) => {
     pickFile(file);
@@ -49,7 +54,7 @@ export const FileTransfer: FC = () => {
   };
 
   return (
-    <div className="flex grow flex-col gap-2">
+    <div ref={panelRef} className="flex grow flex-col gap-2">
       <div className="mt-1.5 flex shrink-0 items-baseline justify-between gap-2">
         <h3 className="m-0 min-w-0 truncate text-xsm font-bold">
           {t('add.file.importTitle')}

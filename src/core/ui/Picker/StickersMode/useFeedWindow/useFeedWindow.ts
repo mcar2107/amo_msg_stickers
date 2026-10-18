@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'preact/hooks';
 
+import { elementById } from '../../elementById/elementById';
+import { isFocusLost } from '../../isFocusLost/isFocusLost';
 import { scrollMotion } from '../../scrollMotion/scrollMotion';
+import { sectionTabId } from '../../SectionTabs/sectionTabIds';
 import { buildStickerLayout } from '../../stickerLayout/stickerLayout';
 import type { RowRange } from '../../stickerLayout/stickerLayout.types';
 import { usePickerView } from '../../usePickerView/usePickerView';
@@ -52,7 +55,8 @@ const INTERRUPT_EVENTS = [
  *
  * Запрос `scrollToSection` ставит заголовок раздела вверх ленты. Раздела ещё нет или разделы
  * прочитаны для прежнего списка паков (импорт позвал переход сразу после `refreshPacks`) —
- * запрос ждёт перечитывания и исполняется по свежей раскладке.
+ * запрос ждёт перечитывания и исполняется по свежей раскладке. Запрос с `shouldFocusTab` после перехода ставит фокус на
+ * вкладку раздела, если фокус потерян: переход закрыл экран вместе с кнопкой, на которой он стоял.
  * Прокрутка ставится в эффекте, а не в layout-эффекте: панель режима возвращает запомненную
  * прокрутку в своём layout-эффекте, который идёт после эффектов детей, и перетёрла бы переход.
  *
@@ -215,6 +219,12 @@ export const useFeedWindow = (
     }
 
     syncScroll();
+
+    const tab = anchor.shouldFocusTab
+      ? elementById(element, sectionTabId(anchor.sectionId))
+      : null;
+
+    if (tab && isFocusLost(tab)) tab.focus({ preventScroll: true });
   }, [anchor, layout, isCurrent, scrollRef, syncScroll, lock]);
 
   useEffect(() => {

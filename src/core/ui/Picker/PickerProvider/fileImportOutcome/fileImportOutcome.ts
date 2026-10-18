@@ -1,6 +1,8 @@
 import type { Pack } from '../../../../db.types';
 import { t } from '../../../../i18n/translate';
+import type { FileImportProgress } from '../../../../libraryFile/prepareImport.types';
 import { errorMessage } from '../errorMessage';
+import type { FileImportStage } from '../PickerProvider.types';
 
 import type {
   FileImportFailure,
@@ -32,6 +34,9 @@ export const firstAddedSection = (
  * Итог импорта файла. Дождавшийся импорта на экране «Добавить стикеры» попадает к добавленному в ленте, ушедший с
  * экрана за время импорта уже смотрит что-то своё — лента и режим не двигаются, итог виден только в статусе.
  *
+ * Переход закрывает экран вместе с «Импорт», на которой стоял фокус, — поэтому фокус встаёт на вкладку раздела, а не
+ * падает в `body`.
+ *
  * Переход мгновенный, а статус — после него: `scrollToSection` сбрасывает статус прошлого действия.
  *
  * @param options — экран, паки, записанное и колбэки провайдера
@@ -40,7 +45,7 @@ export const finishFileImport = (options: FinishFileImportOptions): void => {
   const { screen, packs, written, scrollToSection, showStatus } = options;
   const sectionId = screen === 'add' ? firstAddedSection(packs, written.packIds) : null;
 
-  if (sectionId) scrollToSection(sectionId, 'instant');
+  if (sectionId) scrollToSection(sectionId, 'instant', { shouldFocusTab: true });
 
   showStatus(t('status.fileImportDone', { count: written.stickerCount }));
 };
@@ -89,6 +94,38 @@ export const fileImportFailure = (
 
     default: {
       throw new Error(`Unknown file import phase: ${String(phase satisfies never)}`);
+    }
+  }
+};
+
+/**
+ * Что строка статуса говорит о ходе импорта файла. Пока сегмент «Файл» на виду, ход показывает карточка, и строка
+ * статуса его не дублирует; ушедший с сегмента видит ход только в ней. Спрашивается на каждый шаг хода и на уход с
+ * сегмента и возврат: запись хода не сообщает, и ушедший посреди записи без этого не увидел бы «Запись…».
+ *
+ * @param stage — этап идущего импорта
+ * @param progress — ход проверки; `null` — проверка ещё не сообщила хода
+ * @param isFormShown — сегмент «Файл» на виду
+ * @returns текст статуса; `null` — строку статуса очистить
+ */
+export const fileImportStatus = (
+  stage: FileImportStage,
+  progress: FileImportProgress | null,
+  isFormShown: boolean
+): string | null => {
+  if (isFormShown) return null;
+
+  switch (stage) {
+    case 'checking': {
+      return progress ? t('status.fileImportProgress', progress) : null;
+    }
+
+    case 'writing': {
+      return t('status.fileImportWriting');
+    }
+
+    default: {
+      throw new Error(`Unknown file import stage: ${String(stage satisfies never)}`);
     }
   }
 };

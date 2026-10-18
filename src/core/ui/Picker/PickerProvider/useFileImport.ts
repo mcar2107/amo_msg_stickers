@@ -7,7 +7,10 @@ import type { FileImportProgress } from '../../../libraryFile/prepareImport.type
 import { loadFileCard, readLibraryFile } from '../../../libraryFile/readLibraryFile';
 import type { FileCard, LibraryFile } from '../../../libraryFile/readLibraryFile.types';
 
-import { finishFileImport } from './fileImportOutcome/fileImportOutcome';
+import {
+  fileImportStatus,
+  finishFileImport,
+} from './fileImportOutcome/fileImportOutcome';
 import type { FileImportFailure } from './fileImportOutcome/fileImportOutcome.types';
 import { importErrorTarget } from './finishImport/finishImport';
 import type { ImportErrorTarget } from './finishImport/finishImport.types';
@@ -65,6 +68,11 @@ export const useFileImport = (options: FileImportOptions): FileImportState => {
    * Этап — и в `ref`: отмена и сверка при возврате на сегмент читают его до перерисовки.
    */
   const stageRef = useRef<FileImportStage | null>(null);
+
+  /**
+   * Ход — и в `ref`: строка статуса на уходе с сегмента показывает последний ход, не дожидаясь следующего.
+   */
+  const progressRef = useRef<FileImportProgress | null>(null);
   const libraryFileRef = useRef(libraryFile);
 
   libraryFileRef.current = libraryFile;
@@ -85,6 +93,35 @@ export const useFileImport = (options: FileImportOptions): FileImportState => {
     stageRef.current = next;
     setStage(next);
   }, []);
+
+  const changeProgress = useCallback((next: FileImportProgress | null) => {
+    progressRef.current = next;
+    setProgress(next);
+  }, []);
+
+  /**
+   * Строка статуса дублирует ход импорта, пока сегмент «Файл» не виден, — по каждому шагу хода и по уходу с сегмента и
+   * возврату на него: запись хода не сообщает, и ушедший посреди записи без этого не узнал бы о ней.
+   */
+  const syncStatus = useCallback(
+    (isFormShown: boolean) => {
+      const current = stageRef.current;
+
+      if (!current) return;
+      const text = fileImportStatus(current, progressRef.current, isFormShown);
+
+      if (text) {
+        showStatus(text);
+      } else {
+        clearStatus();
+      }
+    },
+    [showStatus, clearStatus]
+  );
+
+  useEffect(() => {
+    syncStatus(isSegmentShown);
+  }, [isSegmentShown, syncStatus]);
 
   const pickFile = useCallback(async (file: File | undefined) => {
     if (!file || stageRef.current) return;
@@ -159,13 +196,8 @@ export const useFileImport = (options: FileImportOptions): FileImportState => {
     };
 
     const trackProgress = (next: FileImportProgress) => {
-      setProgress(next);
-
-      if (isFormShown()) {
-        clearStatus();
-      } else {
-        showStatus(t('status.fileImportProgress', next));
-      }
+      changeProgress(next);
+      syncStatus(isFormShown());
     };
 
     const showImportError = (failure: FileImportFailure, target: ImportErrorTarget) => {
@@ -216,20 +248,15 @@ export const useFileImport = (options: FileImportOptions): FileImportState => {
       onStart: () => {
         requestRef.current += 1;
         changeStage('checking');
-        setProgress(null);
+        changeProgress(null);
         setError(null);
       },
       onCard: setCard,
       onProgress: trackProgress,
       onWriting: () => {
         changeStage('writing');
-        setProgress(null);
-
-        if (isFormShown()) {
-          clearStatus();
-        } else {
-          showStatus(t('status.fileImportWriting'));
-        }
+        changeProgress(null);
+        syncStatus(isFormShown());
       },
       onSuccess: (written, packs) => {
         setLibraryFile(null);
@@ -252,7 +279,7 @@ export const useFileImport = (options: FileImportOptions): FileImportState => {
         controllerRef.current = null;
         importLock.current = null;
         changeStage(null);
-        setProgress(null);
+        changeProgress(null);
       },
     });
   }, [
@@ -265,6 +292,8 @@ export const useFileImport = (options: FileImportOptions): FileImportState => {
     clearStatus,
     scrollToSection,
     changeStage,
+    changeProgress,
+    syncStatus,
   ]);
 
   const cancelImport = useCallback(() => {

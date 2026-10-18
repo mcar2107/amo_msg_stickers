@@ -54,4 +54,67 @@
     @apply hover:[scrollbar-color:theme(colors.cadetGray.30/50%)_transparent];
     @apply dark:hover:[scrollbar-color:theme(colors.white.0/20%)_transparent];
   }
+
+  /**
+   * Короткий список с прокруткой внутри (паки карточки файла): полоса `feed-scroll` видна только под курсором, и без
+   * неё не видно, что строк больше. Край, за которым есть ещё строки, затухает маской — по цвету она не зависит от
+   * темы и фона. Где затухать, решает позиция прокрутки через scroll-driven анимацию, без замера скриптом: у начала
+   * затухает только низ, у конца — только верх. Список без прокрутки — неактивная шкала, анимация не действует, и края
+   * не затухают.
+   *
+   * Анимация идёт по прокрутке, а не по времени, поэтому уменьшение движения её не выключает: это не движение, а вид
+   * края при текущей позиции. Переменные не зарегистрированы (`@property` в shadow root не действует) и меняются
+   * скачком в середине между кадрами — поэтому кадры у самых краёв шкалы.
+   *
+   * Под фокусом с клавиатуры маски нет: она гасила бы кольцо фокуса у затухающего края. Браузер без scroll-driven
+   * анимаций показывает полосу прокрутки всегда.
+   */
+  .scroll-fade {
+    --scroll-fade-top: 0px;
+    --scroll-fade-bottom: 0px;
+
+    mask-image: linear-gradient(
+      to bottom,
+      transparent,
+      #000 var(--scroll-fade-top),
+      #000 calc(100% - var(--scroll-fade-bottom)),
+      transparent
+    );
+  }
+
+  .scroll-fade:focus-visible {
+    mask-image: none;
+  }
+
+  @supports (animation-timeline: scroll()) {
+    .scroll-fade {
+      animation: scroll-fade linear both;
+      animation-timeline: scroll(self);
+    }
+  }
+
+  @supports not (animation-timeline: scroll()) {
+    .scroll-fade {
+      @apply [scrollbar-color:theme(colors.cadetGray.30/50%)_transparent];
+      @apply dark:[scrollbar-color:theme(colors.white.0/20%)_transparent];
+    }
+  }
+}
+
+@keyframes scroll-fade {
+  0% {
+    --scroll-fade-top: 0px;
+    --scroll-fade-bottom: 16px;
+  }
+
+  2%,
+  98% {
+    --scroll-fade-top: 16px;
+    --scroll-fade-bottom: 16px;
+  }
+
+  100% {
+    --scroll-fade-top: 16px;
+    --scroll-fade-bottom: 0px;
+  }
 }

@@ -12,13 +12,17 @@ import type {
 } from '../src/core/libraryFile/readLibraryFile.types';
 import {
   fileImportFailure,
+  fileImportStatus,
   finishFileImport,
   firstAddedSection,
 } from '../src/core/ui/Picker/PickerProvider/fileImportOutcome/fileImportOutcome';
 import type { ImportErrorTarget } from '../src/core/ui/Picker/PickerProvider/finishImport/finishImport.types';
 import { runFileImport } from '../src/core/ui/Picker/PickerProvider/runFileImport/runFileImport';
 import type { FileImportRun } from '../src/core/ui/Picker/PickerProvider/runFileImport/runFileImport.types';
-import type { SectionMotion } from '../src/core/ui/Picker/usePickerView/usePickerView.types';
+import type {
+  SectionMotion,
+  SectionScrollOptions,
+} from '../src/core/ui/Picker/usePickerView/usePickerView.types';
 
 /**
  * Паки в порядке ленты: «Мои стикеры» первыми, затем паки Telegram по использованию.
@@ -74,9 +78,13 @@ const viewCallbacks = () => {
 
   return {
     calls,
-    scrollToSection: vi.fn((sectionId: string, motion: SectionMotion) => {
-      calls.push(`scroll ${sectionId} ${motion}`);
-    }),
+    scrollToSection: vi.fn(
+      (sectionId: string, motion: SectionMotion, options: SectionScrollOptions = {}) => {
+        calls.push(
+          `scroll ${sectionId} ${motion}${options.shouldFocusTab ? ' focus-tab' : ''}`
+        );
+      }
+    ),
     showStatus: vi.fn((text: string) => {
       calls.push(`status ${text}`);
     }),
@@ -84,7 +92,7 @@ const viewCallbacks = () => {
 };
 
 describe('finishFileImport', () => {
-  it('экран «Добавить стикеры» открыт — мгновенный переход к первому разделу ленты, затем статус', () => {
+  it('экран «Добавить стикеры» открыт — мгновенный переход к первому разделу ленты с фокусом на его вкладку, затем статус', () => {
     const { calls, scrollToSection, showStatus } = viewCallbacks();
 
     finishFileImport({
@@ -95,7 +103,10 @@ describe('finishFileImport', () => {
       showStatus,
     });
 
-    expect(calls).toEqual(['scroll custom instant', 'status Добавлено стикеров: 7']);
+    expect(calls).toEqual([
+      'scroll custom instant focus-tab',
+      'status Добавлено стикеров: 7',
+    ]);
   });
 
   it('другой экран или режим — только статус, пользователь остаётся на месте', () => {
@@ -266,6 +277,27 @@ const fileRun = (overrides: RunOverrides = {}) => {
   return { calls, controller, write, start };
 };
 
+describe('fileImportStatus', () => {
+  it('сегмент «Файл» на виду — строка статуса ход не дублирует на любом этапе', () => {
+    expect(fileImportStatus('checking', { done: 3, total: 10 }, true)).toBeNull();
+    expect(fileImportStatus('writing', null, true)).toBeNull();
+  });
+
+  it('проверка вне сегмента — ход «N/M»', () => {
+    expect(fileImportStatus('checking', { done: 3, total: 10 }, false)).toBe(
+      t('status.fileImportProgress', { done: 3, total: 10 })
+    );
+  });
+
+  it('проверка вне сегмента до первого хода — пусто', () => {
+    expect(fileImportStatus('checking', null, false)).toBeNull();
+  });
+
+  it('запись вне сегмента — «Запись…»', () => {
+    expect(fileImportStatus('writing', null, false)).toBe(t('status.fileImportWriting'));
+  });
+});
+
 describe('runFileImport', () => {
   it('успех — карточка пересчитана, проверка, запись, паки перечитаны, итог', async () => {
     const { calls, start } = fileRun();
@@ -375,6 +407,33 @@ describe('runFileImport', () => {
 
     expect(calls).not.toContain('cancel');
     expect(calls).toContain(`error field ${t('error.libraryFile.quota')} retry`);
+  });
+
+  it('сбой свежей сверки — ошибка без проверки и записи, повтор доступен', async () => {
+    const { calls, write, start } = fileRun({
+      loadCard: async () => {
+        throw new Error('база недоступна');
+      },
+    });
+
+    await start();
+
+    expect(write).not.toHaveBeenCalled();
+    expect(calls).toEqual(['start', 'error field база недоступна retry', 'finish']);
+  });
+
+  it('проверка упала своей ошибкой после «Отменить» — отмена, а не ошибка', async () => {
+    const { calls, controller, start } = fileRun({
+      prepare: async () => {
+        controller.abort();
+
+        throw new Error('чтение оборвано');
+      },
+    });
+
+    await start();
+
+    expect(calls).toEqual(['start', 'card 2', 'cancel', 'finish']);
   });
 
   it('цель ошибки берётся в момент завершения', async () => {

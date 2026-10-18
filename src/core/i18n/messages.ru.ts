@@ -182,6 +182,7 @@ export const RU = {
   'error.libraryFile.packTooBig':
     'Пак не помещается в один файл: до {max} стикеров и меньше 4 ГБ',
   'error.libraryFile.packExportEmpty': 'В паке нет стикеров',
+  'error.libraryFile.libraryExportEmpty': 'В библиотеке нет стикеров',
   'error.libraryFile.exportInvalid':
     'Запись библиотеки повреждена — такой файл не прочитать',
   'error.libraryFile.gifTooBig':

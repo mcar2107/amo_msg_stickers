@@ -12,6 +12,7 @@ import type {
   PickerScreen,
   PickerViewValue,
   SectionMotion,
+  SectionScrollOptions,
 } from '../usePickerView/usePickerView.types';
 
 import type { PackCard } from './packCardView/packCardView.types';
@@ -313,7 +314,11 @@ export type FileImportOptions = {
   /**
    * Открывает раздел с добавленными стикерами в ленте.
    */
-  scrollToSection: (sectionId: string, motion: SectionMotion) => void;
+  scrollToSection: (
+    sectionId: string,
+    motion: SectionMotion,
+    options?: SectionScrollOptions
+  ) => void;
 };
 
 export type LibraryExportState = {

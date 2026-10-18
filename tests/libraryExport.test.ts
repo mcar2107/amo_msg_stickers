@@ -346,8 +346,16 @@ describe('exportLibrary — библиотека', () => {
 
   it('пустая библиотека — ошибка, а не файл', async () => {
     await expect(exportLibrary({ now: NOW })).rejects.toThrow(
-      t('settings.library.empty')
+      t('error.libraryFile.libraryExportEmpty')
     );
+  });
+
+  it('текст пустой библиотеки встаёт в статус сбоя одной фразой — без своего префикса', () => {
+    const status = t('status.exportFailed', {
+      message: t('error.libraryFile.libraryExportEmpty'),
+    });
+
+    expect(status.split(':')).toHaveLength(2);
   });
 
   it('больше 10 000 стикеров — ошибка с советом выгружать по пакам', async () => {

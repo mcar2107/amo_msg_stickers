@@ -3,6 +3,7 @@ import type { ImportWritten } from '../../../../libraryFile/importRecords.types'
 import type {
   PickerScreen,
   SectionMotion,
+  SectionScrollOptions,
 } from '../../usePickerView/usePickerView.types';
 
 /**
@@ -46,7 +47,11 @@ export type FinishFileImportOptions = {
   /**
    * Открывает режим «Стикеры» и прокручивает ленту к разделу.
    */
-  scrollToSection: (sectionId: string, motion: SectionMotion) => void;
+  scrollToSection: (
+    sectionId: string,
+    motion: SectionMotion,
+    options?: SectionScrollOptions
+  ) => void;
 
   /**
    * Показывает итог импорта в статусе.

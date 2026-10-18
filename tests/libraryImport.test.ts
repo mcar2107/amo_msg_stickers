@@ -165,7 +165,7 @@ describe('buildImportRecords', () => {
       OPTIONS
     );
 
-    expect(records.stickers).toEqual([
+    expect(records.stickers).toStrictEqual([
       {
         id: 'tg:a',
         packId: 'tg:cats',
@@ -173,10 +173,21 @@ describe('buildImportRecords', () => {
         width: 120,
         height: 90,
         emoji: '😀',
-        caption: undefined,
         createdAt: STARTED_AT,
       },
     ]);
+  });
+
+  it('стикер без эмодзи и подписи — без их ключей в записи', () => {
+    const planSticker = sticker('tg:a');
+    const [record] = buildImportRecords(
+      { packs: [tgPack('cats', [], { stickers: [planSticker] })] },
+      library(),
+      OPTIONS
+    ).stickers;
+
+    expect(record && Object.keys(record)).not.toContain('emoji');
+    expect(record && Object.keys(record)).not.toContain('caption');
   });
 
   it('без времени добавления и использования в файле — время начала и пак без использования', () => {

@@ -15,6 +15,7 @@ import type {
   ScreenFocus,
   SectionAnchor,
   SectionMotion,
+  SectionScrollOptions,
 } from './usePickerView.types';
 
 /**
@@ -102,11 +103,13 @@ export const usePickerViewState = (
   );
 
   const scrollToSection = useCallback(
-    (sectionId: string, motion: SectionMotion) => {
+    (sectionId: string, motion: SectionMotion, options: SectionScrollOptions = {}) => {
+      const { shouldFocusTab = false } = options;
+
       anchorSeqRef.current += 1;
       chooseMode('stickers');
       setScreen(null);
-      setAnchor({ sectionId, seq: anchorSeqRef.current, motion });
+      setAnchor({ sectionId, seq: anchorSeqRef.current, motion, shouldFocusTab });
       clearStatus();
     },
     [chooseMode, setScreen, clearStatus]

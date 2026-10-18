@@ -15,9 +15,11 @@ import type { ImportCardProps } from './ImportCard.types';
  * Фокус с клавиатуры прокручиваемому списку даёт браузер — область прокрутки без фокусируемых потомков встаёт в
  * порядок Tab, только пока её есть куда прокручивать, — а кольцо то же, что у кнопок панели. Кольцо рисуется внутри
  * границы, поэтому у списка свой отступ, снятый отрицательным полем: кольцо ложится вокруг строк, а не по буквам.
+ * Что строк больше, чем видно, показывает затухание края `scroll-fade` из `picker.css`: полоса прокрутки видна только
+ * под курсором.
  */
 const LIST_CLASS = [
-  'feed-scroll -m-1 flex min-h-0 list-none flex-col gap-0.5 overflow-y-auto p-1',
+  'feed-scroll scroll-fade -m-1 flex min-h-0 list-none flex-col gap-0.5 overflow-y-auto p-1',
   'focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-blue-50',
   'dark:focus-visible:outline-beige-70',
 ].join(' ');

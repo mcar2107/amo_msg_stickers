@@ -185,6 +185,7 @@ export const EN: Messages = {
   'error.libraryFile.packTooBig':
     'The pack doesn’t fit in one file: up to {max} stickers and under 4 GB',
   'error.libraryFile.packExportEmpty': 'The pack has no stickers',
+  'error.libraryFile.libraryExportEmpty': 'Your library has no stickers',
   'error.libraryFile.exportInvalid':
     'A library record is damaged, and the file couldn’t be read back',
   'error.libraryFile.gifTooBig':
