@@ -1366,13 +1366,20 @@
         document.documentElement.classList.toggle('dark');
 
       /**
-       * Редактирование, как у amo: отмена правки видна, иконка эмодзи в тёмной теме светлеет, а в
-       * поле — текст правки. Узлы поля меняются, и ядро узнаёт о правке на своём поиске полей.
+       * Редактирование, как у amo: отмена правки видна, иконка эмодзи в тёмной теме светлеет, в
+       * поле — текст правки, а скрепки вложений в строке поля нет. Скрепку стенд не рисует — её
+       * место держит пустая заглушка: ядро узнаёт о правке по смене узлов строки, а не по
+       * атрибутам отмены правки, и выход из правки при пустом поле тоже должен её менять.
        */
       const cancelEdit = legacyRoot.querySelector('[aria-label="cancel edit"]');
       const emojiIcon = composeRow.querySelector(':scope > .z-100 svg');
+      const attachStub = document.createElement('span');
+      attachStub.hidden = true;
+      composeRow.prepend(attachStub);
       document.getElementById('editing').onchange = (e) => {
         const isOn = e.target.checked;
+        if (isOn) attachStub.remove();
+        else composeRow.prepend(attachStub);
         cancelEdit.classList.toggle('opacity-100', isOn);
         cancelEdit.classList.toggle('opacity-0', !isOn);
         if (isStableMarkup) cancelEdit.toggleAttribute('data-visible', isOn);
