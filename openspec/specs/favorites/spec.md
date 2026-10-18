@@ -1,7 +1,8 @@
 # favorites Specification
 
 ## Purpose
-TBD - created by archiving change favorite-stickers-and-gifs. Update Purpose after archive.
+
+Даёт держать под рукой любимые стикеры и GIF: пользователь сам отмечает их пунктом меню ячейки, и они стоят первым разделом в обоих режимах пикера, не вытесняются недавними и переживают удаление пака.
 
 ## Requirements
 
