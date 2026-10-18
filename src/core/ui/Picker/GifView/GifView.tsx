@@ -7,6 +7,7 @@ import type { GifFeed } from '../../../sources/gifs.types';
 import { USER_DOCS_PAGE, userDocsUrl } from '../../../userDocs';
 import { EmptyState } from '../EmptyState/EmptyState';
 import { ExternalLink } from '../ExternalLink/ExternalLink';
+import { useKeptScrollMark } from '../keptScrollTop/useKeptScrollMark/useKeptScrollMark';
 import { gifKey } from '../MasonryGrid/gifCellId';
 import { MasonryGrid } from '../MasonryGrid/MasonryGrid';
 import type { FavoriteToggle } from '../PickerProvider/useFavorites/useFavorites.types';
@@ -56,6 +57,7 @@ export const GifView: FC<GifViewProps> = (props) => {
     useGifFeed(feed, query, isOpen);
   const { recent, remove, clear } = useRecentGifs(isOpen);
   const searchRef = useSearchFocus(isOpen);
+  const keptScroll = useKeptScrollMark(isOpen);
   const hasFeed = Boolean(feed);
 
   const sections = useMemo(() => {
@@ -94,17 +96,22 @@ export const GifView: FC<GifViewProps> = (props) => {
   };
 
   /**
-   * Неудачная правка ленту не меняет, и цели снимаются: иначе фокус ушёл бы по ним на следующей,
-   * чужой перерисовке ленты — подгрузке страницы выдачи.
+   * Неудачная правка ленту не меняет, и цели и метка места снимаются: иначе фокус ушёл бы по ним
+   * на следующей, чужой перерисовке ленты — подгрузке страницы выдачи, — а лента сдвинулась бы по
+   * устаревшей прокрутке.
    */
   const handleFavoriteToggle = async (toggle: FavoriteToggle) => {
     const { sectionId, cellKey, item } = toggle;
 
     expectCellChange(sectionId, cellKey);
+    keptScroll.keep();
 
     const isApplied = await toggleFavorite(item);
 
-    if (!isApplied) cancelExpected();
+    if (isApplied) return;
+
+    cancelExpected();
+    keptScroll.drop();
   };
 
   const handleRecentClear = () => {
@@ -120,6 +127,7 @@ export const GifView: FC<GifViewProps> = (props) => {
         <MasonryGrid
           sections={sections}
           resetKey={resetId}
+          keptScroll={keptScroll}
           onScroll={handleGridScroll}
           onRecentRemove={handleRecentRemove}
           onFavoriteToggle={handleFavoriteToggle}
@@ -165,6 +173,7 @@ export const GifView: FC<GifViewProps> = (props) => {
       <MasonryGrid
         sections={sections}
         resetKey={resetId}
+        keptScroll={keptScroll}
         onScroll={handleGridScroll}
         onRecentRemove={handleRecentRemove}
         onFavoriteToggle={handleFavoriteToggle}

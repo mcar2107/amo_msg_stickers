@@ -1,5 +1,9 @@
 import type { FunctionComponent as FC } from 'preact';
+import { useMemo } from 'preact/hooks';
 
+import { stickerCells } from '../keptScrollTop/keptScrollTop';
+import { useKeptScroll } from '../keptScrollTop/useKeptScroll/useKeptScroll';
+import { useKeptScrollMark } from '../keptScrollTop/useKeptScrollMark/useKeptScrollMark';
 import { useCoverBitmaps } from '../PackCover/useCoverBitmaps/useCoverBitmaps';
 import type { FavoriteToggle } from '../PickerProvider/useFavorites/useFavorites.types';
 import { useFavoritesContext } from '../PickerProvider/useFavorites/useFavoritesContext';
@@ -34,7 +38,7 @@ export const StickersMode: FC<StickersModeProps> = (props) => {
     removePack,
     clearRecentStickers,
   } = useFeedSections(isOpen);
-  const { scrollRef, layout, ranges, activeId, trackScroll } = useFeedWindow(
+  const { scrollRef, layout, ranges, activeId, trackScroll, syncScroll } = useFeedWindow(
     sections,
     isCurrent
   );
@@ -42,6 +46,12 @@ export const StickersMode: FC<StickersModeProps> = (props) => {
   const bitmaps = useCoverBitmaps(isOpen);
   const expectRemoval = useStickerRemovalFocus(sections, scrollRef, isOpen);
   const feed = sections || [];
+  const kept = useKeptScrollMark(isOpen);
+  const cells = useMemo(() => {
+    return layout ? stickerCells(layout.rows) : null;
+  }, [layout]);
+
+  useKeptScroll({ kept, scrollRef, cells, syncScroll });
 
   useFeedEntry(scrollRef);
 
@@ -64,7 +74,8 @@ export const StickersMode: FC<StickersModeProps> = (props) => {
   /**
    * Ячейка уходит из своего раздела, когда пункт выбран в «Избранном» (убрать) или в «Недавних»
    * (добавить: избранное там не показывается); ячейка пака остаётся. Неудачная правка ленту не
-   * меняет, и цели снимаются: иначе фокус ушёл бы по ним на следующей, чужой перерисовке ленты.
+   * меняет, и цели и метка места снимаются: иначе фокус ушёл бы по ним на следующей, чужой
+   * перерисовке ленты, а лента сдвинулась бы по устаревшей прокрутке.
    */
   const handleFavoriteToggle = async (toggle: FavoriteToggle) => {
     const { sectionId, cellKey, item, sticker } = toggle;
@@ -72,10 +83,14 @@ export const StickersMode: FC<StickersModeProps> = (props) => {
       sectionId === FAVORITE_SECTION_ID || sectionId === RECENT_SECTION_ID;
 
     expectRemoval(favoriteToggleTargets(feed, sectionId, cellKey, isLeaving));
+    kept.keep();
 
     const isApplied = await toggleFavorite(item, sticker);
 
-    if (!isApplied) expectRemoval([]);
+    if (isApplied) return;
+
+    expectRemoval([]);
+    kept.drop();
   };
 
   const handlePackDelete = (packId: string) => {

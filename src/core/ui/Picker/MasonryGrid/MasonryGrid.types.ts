@@ -1,4 +1,5 @@
 import type { RemoteGif } from '../../../db.types';
+import type { KeptScroll } from '../keptScrollTop/createKeptScroll/createKeptScroll.types';
 import type { FavoriteToggle } from '../PickerProvider/useFavorites/useFavorites.types';
 
 /**
@@ -47,6 +48,12 @@ export type MasonryGridProps = {
    * Номер сброса выдачи: его смена прокручивает ленту к началу.
    */
   resetKey: number;
+
+  /**
+   * Удержание места ленты на время правки избранного: метку ставит и снимает режим, а прокрутку
+   * для новой раскладки ставит лента.
+   */
+  keptScroll: KeptScroll;
 
   /**
    * Ленту прокрутили: по положению прокручиваемого элемента решается подгрузка страницы.

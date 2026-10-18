@@ -2,6 +2,8 @@ import type { FunctionComponent as FC, TargetedEvent } from 'preact';
 import { useMemo } from 'preact/hooks';
 
 import type { RemoteGif } from '../../../db.types';
+import { gifCells } from '../keptScrollTop/keptScrollTop';
+import { useKeptScroll } from '../keptScrollTop/useKeptScroll/useKeptScroll';
 import { PreviewNavigationContext } from '../Preview/PreviewNavigationContext';
 import { useFeedEntry } from '../useFeedEntry/useFeedEntry';
 
@@ -38,13 +40,15 @@ export const MasonryGrid: FC<MasonryGridProps> = (props) => {
   const {
     sections,
     resetKey,
+    keptScroll,
     children,
     onScroll,
     onRecentRemove,
     onFavoriteToggle,
     onRecentClear,
   } = props;
-  const { scrollRef, width, viewport, scrollTop, trackScroll } = useGridWindow(resetKey);
+  const { scrollRef, width, viewport, scrollTop, trackScroll, syncScroll } =
+    useGridWindow(resetKey);
   const column = columnWidth(width);
 
   useFeedEntry(scrollRef);
@@ -60,6 +64,12 @@ export const MasonryGrid: FC<MasonryGridProps> = (props) => {
 
     return splitColumns(masonry, { count: COLUMN_COUNT, width: column, gap: GRID_GAP });
   }, [sections, column]);
+
+  const cells = useMemo(() => {
+    return layout ? gifCells(layout.tiles) : null;
+  }, [layout]);
+
+  useKeptScroll({ kept: keptScroll, scrollRef, cells, syncScroll });
 
   const navigate = useMasonryNavigator(layout?.tiles || null, scrollRef);
   const tiles = layout ? visibleTiles(layout.tiles, scrollTop, viewport, viewport) : [];
