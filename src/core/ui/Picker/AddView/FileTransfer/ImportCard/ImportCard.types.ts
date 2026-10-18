@@ -1,5 +1,4 @@
-import type { FileImportProgress } from '@core/libraryFile';
-import type { FileCard } from '@core/libraryFile';
+import type { FileCard, FileImportProgress } from '@core/libraryFile';
 import type { FileImportStage } from '@ui/PickerProvider';
 
 export type ImportCardProps = {

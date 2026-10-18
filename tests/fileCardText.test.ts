@@ -1,8 +1,12 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { setLocale } from '@core/i18n';
-import type { ManifestPack, ManifestSticker } from '@core/libraryFile';
-import type { FileCard, FileCardPack } from '@core/libraryFile';
+import type {
+  FileCard,
+  FileCardPack,
+  ManifestPack,
+  ManifestSticker,
+} from '@core/libraryFile';
 import {
   fileCardSummary,
   filePackCount,

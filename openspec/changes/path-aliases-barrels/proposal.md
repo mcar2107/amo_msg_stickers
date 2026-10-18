@@ -8,7 +8,7 @@
 
 - Path aliases по областям, одни и те же для проверки типов, сборки esbuild, vitest и eslint: `@core/*` → `src/core/*`,
   `@ui/*` и `@ui` → `src/core/ui/Picker`, `@shared/*`, `@page/*`, `@extension/*`, `@userscript/*`, `@scripts/*` →
-  `scripts/*`, `@tests/*` → `tests/*`.
+  `scripts/*`. Тесты берут хелперы `./helpers` — модулем ниже по дереву, и своего alias у `tests/` нет.
 - Barrel `index.ts` у каждой папки-модуля: каталоги компонентов и хуков пикера, подмодули ядра `i18n/`, `libraryFile/`,
   `sources/`, `zip/`, `ui/renderMessage/`, хелперы тестов. Плоские области (`src/core/*.ts`, `src/core/ui/*.tsx`,
   `src/shared`, `src/page`, `src/extension`, `src/userscript`, `scripts`) общего barrel не получают — их файлы берутся

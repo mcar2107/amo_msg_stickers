@@ -24,9 +24,9 @@
 ## Decisions
 
 **Схема alias — по областям** (выбор пользователя): `@core/*`, `@ui` / `@ui/*` (= `src/core/ui/Picker`), `@shared/*`,
-`@page/*`, `@extension/*`, `@userscript/*`, `@scripts/*`, `@tests/*`. `paths` без `baseUrl` (пути от `./`): TS 7
-`baseUrl` не требует. Альтернатива — один `@/*` → `src/*`: короче конфиг, но длиннее импорты UI
-(`@/core/ui/Picker/...`).
+`@page/*`, `@extension/*`, `@userscript/*`, `@scripts/*`. У `tests/` alias нет: тесты лежат плоско, а хелперы —
+модуль ниже по дереву, `./helpers`. `paths` без `baseUrl` (пути от `./`): TS 7 `baseUrl` не требует. Альтернатива —
+один `@/*` → `src/*`: короче конфиг, но длиннее импорты UI (`@/core/ui/Picker/...`).
 
 **Модуль — каталог с кодом вне плоских областей.** Barrel модуля реэкспортирует только свои файлы:
 `export * from './X'`, для `*.types.ts` — `export type * from './X.types'`; дочерние модули он не реэкспортирует —
@@ -42,10 +42,16 @@
 | модуль ниже по дереву | `./child` или `./a/b` — путь к каталогу модуля (его barrel) |
 | модуль в другом месте | `@ui/...` / `@core/...` — каталог модуля (barrel) |
 | файл плоской области в другом каталоге | `@core/sender`, `@shared/pageBridge`, `@core/ui/createPicker` |
+| UI пикера (`src/core/ui/Picker`) | всегда `@ui…`, в том числе из `src/core/ui`: на ФС без учёта регистра `./Picker` разрешается в `picker.css` |
 
 Свой barrel изнутри модуля не импортируется. Импорт родительского модуля из дочернего (`feedSections` → типы
 `StickersMode`) идёт через barrel родителя: в рантайме цикла нет, пока импорт типовой (`import type` стирается
-`verbatimModuleSyntax`); циклы значений ищет проверка ниже.
+`verbatimModuleSyntax`); циклы значений ищет проверка ниже. Циклы значений через barrel родителя разорваны переносом
+общего кода в дочерний модуль: `libraryFile/importRecords/`, `PickerProvider/errorMessage/`,
+`Screen/useScreenMotion/screenTiming/`, `ModePanel/scrollMemory/`, `StickerFeed/cellId/`, `MasonryGrid/gifCellId/`.
+
+Исключение из «вверх — только alias» одно: `../../tailwind.config` в `src/core/amoDomStyle.ts` — конфиг лежит в корне
+репозитория, вне областей alias, и своего alias ради одного файла нет. eslint разрешает этот путь только этому файлу.
 
 **Перевод импортов — codemod, а не руками.** Скрипт в scratchpad (не в репозитории): разбирает спецификаторы
 `import` / `export … from` / `vi.mock` / `import()`, разрешает их в файл, выбирает форму по таблице выше и пишет
@@ -60,14 +66,16 @@ barrel-ы. Затем `eslint --fix` (порядок импортов) и `prett
 - `vitest.config.ts` — `resolve.alias` из тех же `paths` (импорт `tsconfig.json`, перевод шаблонов в регулярные
   выражения), а не копия списка: новый alias в `tsconfig.json` не разъедется с тестами. Встроенное `tsconfigPaths`
   vite 8 — если оно есть и работает в проекте `unit`, берётся оно.
-- `eslint.config.mjs`: группа `simple-import-sort` `^@(core|ui|shared|page|extension|userscript|scripts|tests)(/|$)`
-  вместо `^@/`; в `src/**` — запрет `^\.\./` и `^@core/ui/Picker(/|$)`; граница ядра — `^@(userscript|extension)/`,
-  `shared` — любой alias, кроме `@shared/`, `page` — любой alias, кроме `@page/` и `@shared/`. Импорты тестов не
-  ограничиваются: `../build.mjs?raw` и `../docs/...` остаются относительными.
+- `eslint.config.mjs`: группа `simple-import-sort` из имён alias `paths` `tsconfig.json` вместо `^@/`; в `src/**` —
+  запрет пути вверх `^(\./)*\.\.(/|$)` (кроме `../../tailwind.config` в `amoDomStyle.ts`) и `^@core/ui/Picker(/|$)`;
+  граница ядра — `^@(userscript|extension)/`, `shared` — любой alias, кроме `@shared/`, `page` — любой alias, кроме
+  `@page/` и `@shared/`. Импорты тестов не ограничиваются: `../build.mjs?raw` и `../docs/...` остаются относительными.
 
 **Тест структуры** (`tests/moduleStructure.test.ts`): `import.meta.glob` с `?raw` по `src/**/*.{ts,tsx}` и
 `tests/**/*.ts` — у каждого каталога-модуля есть `index.ts`, каждый alias-спецификатор ведёт в каталог с `index.ts` или
-в файл плоской области, а не в файл внутри модуля. Node API тесту не нужен. eslint без плагина файловой системы
+в файл плоской области, а не в файл внутри модуля; относительный путь с целью в `src/`, `scripts/` или `tests/` — в
+файл своего каталога или barrel модуля ниже; модуль не берёт свой barrel (`.`, `./index`, alias на свой каталог), а
+`vi.mock` / `vi.doMock` не подменяет barrel модуля. Node API тесту не нужен. eslint без плагина файловой системы
 этого не проверит: по строке пути не видно, файл это или каталог.
 
 ## Risks / Trade-offs
@@ -80,6 +88,10 @@ barrel-ы. Затем `eslint --fix` (порядок импортов) и `prett
   модуль.
 - [tree-shaking: barrel втягивает в бандл неиспользуемые модули с побочными эффектами] → сравнение бандлов с базой
   до правки: размер и наличие токена, ключа, кода Worker-а по файлам; модули ядра без побочных эффектов при импорте.
+- [тест чистой функции через barrel модуля с хуком грузит весь граф хука: `vitest run` — 2,1 → 2,9 с (~+35 %), около
+  40 тестов, у тестов `useGifFeed` и `useStickerDraft` — +82–84 модуля] → известная цена правила «граница модуля —
+  barrel»: файлы не переносятся (Non-Goals). Вынос чистых функций из модулей с хуками в свои модули — отдельной
+  задачей.
 - [большой дифф, конфликт с параллельными ветками] → отдельный PR без правок логики; ветки после мержа
   переводятся тем же codemod.
 

@@ -30,8 +30,7 @@
       "@page/*": ["./src/page/*"],
       "@extension/*": ["./src/extension/*"],
       "@userscript/*": ["./src/userscript/*"],
-      "@scripts/*": ["./scripts/*"],
-      "@tests/*": ["./tests/*"]
+      "@scripts/*": ["./scripts/*"]
     }
   },
   "include": ["src", "scripts", "tests", "vitest.config.ts", "tailwind.config.ts"]

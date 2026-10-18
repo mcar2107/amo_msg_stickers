@@ -36,11 +36,24 @@ const FLAT_AREAS = new Set([
 const CODE_EXTENSIONS = ['.ts', '.tsx', '.d.ts'];
 
 /**
- * Спецификатор модуля в импорте, реэкспорте, динамическом импорте и подмене `vi.mock` —
- * подмена barrel-а или файла внутри модуля ломается так же, как импорт.
+ * Спецификатор модуля в импорте, реэкспорте, динамическом импорте и вызове `vi.*` с путём
+ * модуля: группа 1 — спецификатор импорта, группа 2 — метод `vi`, группа 3 — его спецификатор.
+ * Импорт файла внутри модуля ломает границу и в подмене, а подмена barrel-а — своё нарушение
+ * (`violationOf`).
  */
 const SPECIFIER_REGEX =
-  /\b(?:from|import)\s*\(?\s*'([^'\n]+)'|\bvi\.(?:mock|doMock|unmock|importActual)(?:<[^>]*>)?\(\s*'([^'\n]+)'/g;
+  /\b(?:from|import)\s*\(?\s*'([^'\n]+)'|\bvi\.(mock|doMock|unmock|importActual)(?:<[^>]*>)?\(\s*'([^'\n]+)'/g;
+
+/**
+ * Методы `vi`, которые подменяют модуль.
+ */
+const MOCK_METHODS = new Set(['mock', 'doMock']);
+
+/**
+ * Области, в которых проверяется цель относительного пути: путь в корень репозитория и в
+ * `docs/` (`../build.mjs?raw`, `../docs/…`) ведёт не в модуль и границу не нарушает.
+ */
+const CHECKED_ROOTS_REGEX = /^(src|scripts|tests)(\/|$)/;
 
 /**
  * Пути файлов от корня репозитория: ключи `import.meta.glob` — пути от теста, файлы его же
@@ -143,14 +156,16 @@ const aliasTarget = (specifier: string): string | null => {
  * Путь, в который относительный спецификатор ведёт из каталога файла.
  *
  * @param dir — каталог импортирующего файла
- * @param specifier — спецификатор, начинающийся с `./` или `../`
- * @returns путь от корня репозитория без `.` и `..`
+ * @param specifier — спецификатор, начинающийся с `.`
+ * @returns путь от корня репозитория без `.`, `..` и завершающего `/`
  */
 const relativeTarget = (dir: string, specifier: string): string => {
   return specifier
     .split('/')
     .reduce<string[]>((acc, part) => {
       switch (part) {
+        case '':
+
         case '.': {
           return acc;
         }
@@ -184,27 +199,54 @@ const codeFileOf = (target: string): string | null => {
 };
 
 /**
- * Нарушение границы модуля: alias ведёт не в barrel и не в файл плоской области, а относительный
- * путь в `src/` — не в файл своего каталога и не в barrel модуля ниже. Файлы не кода (CSS,
- * JSON) проверяются так же по своему каталогу; каталог без кода (`_locales/`, корень
- * репозитория) — не модуль, и путь в него границу не нарушает. Несуществующий путь ловит
- * проверка типов.
+ * Каталог модуля, в barrel которого ведёт путь: сам каталог с `index.ts` или его `index`.
+ *
+ * @param target — путь от корня репозитория без расширения
+ * @returns каталог модуля; `null` — путь ведёт не в barrel
+ */
+const barrelDirOf = (target: string): string | null => {
+  if (FILES.has(`${target}/index.ts`)) {
+    return target;
+  }
+
+  return target.endsWith('/index') && FILES.has(`${target}.ts`) ? dirOf(target) : null;
+};
+
+/**
+ * Нарушение границы модуля: alias ведёт не в barrel и не в файл плоской области, относительный
+ * путь в `src/`, `scripts/` или `tests/` — не в файл своего каталога и не в barrel модуля ниже,
+ * модуль берёт свой же barrel (`.`, `./index`, alias на свой каталог), а `vi.mock` или
+ * `vi.doMock` подменяет barrel: соседние файлы модуля берут друг друга мимо него, и подмена их
+ * не задела бы. Файлы не кода (CSS, JSON) проверяются так же по своему каталогу; каталог без
+ * кода (`_locales/`, корень репозитория) — не модуль, и путь в него границу не нарушает.
+ * Несуществующий путь ловит проверка типов.
  *
  * @param file — импортирующий файл
  * @param specifier — спецификатор без query (`?raw`)
+ * @param isMock — спецификатор подмены модуля
  * @returns текст нарушения; `null` — импорт по правилам или вне проверки
  */
-const violationOf = (file: string, specifier: string): string | null => {
+const violationOf = (file: string, specifier: string, isMock: boolean): string | null => {
   const isRelative = specifier.startsWith('.');
   const target = isRelative
     ? relativeTarget(dirOf(file), specifier)
     : aliasTarget(specifier);
 
-  if (target === null || (isRelative && !file.startsWith('src/'))) {
+  if (target === null || (isRelative && !CHECKED_ROOTS_REGEX.test(target))) {
     return null;
   }
 
-  if (FILES.has(`${target}/index.ts`) && !specifier.endsWith('/index')) {
+  const barrelDir = barrelDirOf(target);
+
+  if (barrelDir === dirOf(file)) {
+    return `${file}: «${specifier}» — свой barrel изнутри модуля: файлы своего каталога берутся как ./X`;
+  }
+
+  if (barrelDir !== null && isMock) {
+    return `${file}: «${specifier}» подменяет barrel модуля ${barrelDir} — соседи внутри модуля берут его файлы мимо barrel-а; подменяется файл плоской области`;
+  }
+
+  if (barrelDir !== null && !specifier.endsWith('/index')) {
     return null;
   }
 
@@ -231,10 +273,11 @@ describe('структура модулей', () => {
   it('импорт ведёт в barrel модуля или в файл плоской области', () => {
     const violations = [...FILES].flatMap(([file, text]) => {
       return [...text.matchAll(SPECIFIER_REGEX)].reduce<string[]>(
-        (acc, [, imported, mocked]) => {
+        (acc, [, imported, method, mocked]) => {
           const violation = violationOf(
             file,
-            (imported || mocked || '').replace(/\?.*$/, '')
+            (imported || mocked || '').replace(/\?.*$/, ''),
+            MOCK_METHODS.has(method || '')
           );
 
           if (violation) {

@@ -3,8 +3,7 @@ import { useEffect, useRef } from 'preact/hooks';
 
 import { isTextField } from '@ui/isTextField';
 import type { ScreenFocus } from '@ui/usePickerView';
-import { SCREEN_FOCUS_ID } from '@ui/usePickerView';
-import { usePickerView } from '@ui/usePickerView';
+import { SCREEN_FOCUS_ID, usePickerView } from '@ui/usePickerView';
 
 import { focusScrollTop } from './focusScrollTop';
 

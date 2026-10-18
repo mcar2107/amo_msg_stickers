@@ -1,9 +1,7 @@
 import { h } from 'preact';
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { EN } from '@core/i18n';
-import { RU } from '@core/i18n';
-import { setLocale } from '@core/i18n';
+import { EN, RU, setLocale } from '@core/i18n';
 import { renderMessage, renderTemplate } from '@core/ui/renderMessage';
 
 const LINK = h('a', { href: 'https://giphy.com' }, 'GIPHY');

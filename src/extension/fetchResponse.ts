@@ -1,6 +1,5 @@
 import type { MessageArgs, MessageKey } from '@core/i18n';
-import { RU } from '@core/i18n';
-import { LocalizedError, PLACEHOLDER } from '@core/i18n';
+import { LocalizedError, PLACEHOLDER, RU } from '@core/i18n';
 
 import type { FetchFailure, FetchResponse, FetchSuccess } from './messages.types';
 

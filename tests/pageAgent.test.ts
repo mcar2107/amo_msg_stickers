@@ -13,11 +13,16 @@ import {
   parsePageResponse,
 } from '@shared/pageBridge';
 
-import { FakeDocument, FakeElement } from './helpers';
-import { fiberChain, nodeWithFiber } from './helpers';
-import { FakePageNode } from './helpers';
-import { CALL_LOADED, FakeWorker } from './helpers';
-import { makeGif } from './helpers';
+import {
+  CALL_LOADED,
+  FakeDocument,
+  FakeElement,
+  FakePageNode,
+  FakeWorker,
+  fiberChain,
+  makeGif,
+  nodeWithFiber,
+} from './helpers';
 
 const CHAT_ID = 'chat-1';
 const DRAFT_TEXT = 'привет, это черновик';

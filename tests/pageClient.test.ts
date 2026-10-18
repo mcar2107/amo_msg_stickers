@@ -9,8 +9,7 @@ import {
   parsePageRequest,
 } from '@shared/pageBridge';
 
-import { FakeDocument, FakeElement } from './helpers';
-import { makeGif } from './helpers';
+import { FakeDocument, FakeElement, makeGif } from './helpers';
 
 const file = new File([makeGif(8, 8)], 'a.amostk.k-sticker.gif', { type: 'image/gif' });
 const dims = { w: 8, h: 8 };

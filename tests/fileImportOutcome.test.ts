@@ -1,10 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type { Pack } from '@core/db.types';
-import { EN } from '@core/i18n';
-import { setLocale, t } from '@core/i18n';
-import type { ImportPlan } from '@core/libraryFile';
-import type { FileCard, LibraryFile } from '@core/libraryFile';
+import { EN, setLocale, t } from '@core/i18n';
+import type { FileCard, ImportPlan, LibraryFile } from '@core/libraryFile';
 import { FORMAT_NAME } from '@core/libraryFile';
 import type { ImportWritten } from '@core/libraryFile/importRecords';
 import {

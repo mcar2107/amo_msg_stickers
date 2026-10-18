@@ -1,7 +1,6 @@
 import { useContext } from 'preact/hooks';
 
-import { PreviewNavigationContext } from '@ui/Preview';
-import { usePreviewActions } from '@ui/Preview';
+import { PreviewNavigationContext, usePreviewActions } from '@ui/Preview';
 import { usePressPreview } from '@ui/usePressPreview';
 
 import type { CellPreview, UseCellPreviewOptions } from './useCellPreview.types';

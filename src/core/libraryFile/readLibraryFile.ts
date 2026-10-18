@@ -1,9 +1,13 @@
 import { CUSTOM_PACK_ID, listPacks, listStickerIds } from '@core/db';
 import { t } from '@core/i18n';
 import type { ZipEntry } from '@core/zip';
-import { ZipError } from '@core/zip';
-import { LOCAL_HEADER_SIGNATURE } from '@core/zip';
-import { findZipRoot, readZipDirectory, readZipEntry } from '@core/zip';
+import {
+  findZipRoot,
+  LOCAL_HEADER_SIGNATURE,
+  readZipDirectory,
+  readZipEntry,
+  ZipError,
+} from '@core/zip';
 
 import {
   MANIFEST_FILE,

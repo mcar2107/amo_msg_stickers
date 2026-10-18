@@ -4,13 +4,16 @@ import type { Pack, StickerRec } from '@core/db.types';
 import { inspectGif } from '@core/gif';
 import { t } from '@core/i18n';
 import type { FileImportProgress } from '@core/libraryFile';
-import { MAX_FILE_STICKERS, MAX_STICKER_BYTES } from '@core/libraryFile';
-import { prepareImport } from '@core/libraryFile';
-import { loadFileCard, readLibraryFile } from '@core/libraryFile';
+import {
+  loadFileCard,
+  MAX_FILE_STICKERS,
+  MAX_STICKER_BYTES,
+  prepareImport,
+  readLibraryFile,
+} from '@core/libraryFile';
 import { writeZip } from '@core/zip';
 
-import { makeGif } from './helpers';
-import { buildZip } from './helpers';
+import { buildZip, makeGif } from './helpers';
 
 /**
  * Библиотека, которую видит загрузка через `listPacks` и `listStickerIds`.

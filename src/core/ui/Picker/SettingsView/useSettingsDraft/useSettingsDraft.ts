@@ -2,8 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
 
 import type { Settings } from '@core/host.types';
 import type { GifProvider } from '@core/sources';
-import { checkGifKey } from '@core/sources';
-import { isBotTokenFormat } from '@core/sources';
+import { checkGifKey, isBotTokenFormat } from '@core/sources';
 import { usePicker } from '@ui/PickerProvider';
 import {
   checkPlan,

@@ -20,8 +20,7 @@ import { StatusBar } from './StatusBar';
 import { StickersMode } from './StickersMode';
 import { useOpenLoad } from './useOpenLoad';
 import type { PickerScreen } from './usePickerView';
-import { hasScreenFooter } from './usePickerView';
-import { usePickerView } from './usePickerView';
+import { hasScreenFooter, usePickerView } from './usePickerView';
 
 /**
  * Геометрия, тень и радиус повторяют попап эмодзи amo; место панели — вариант `anchor`.

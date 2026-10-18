@@ -1,9 +1,14 @@
 import { describe, expect, it } from 'vitest';
 
-import { crc32, crc32Stream } from '@core/zip';
-import { ZipError } from '@core/zip';
-import { findZipRoot, readZipDirectory, readZipEntry } from '@core/zip';
-import { writeZip } from '@core/zip';
+import {
+  crc32,
+  crc32Stream,
+  findZipRoot,
+  readZipDirectory,
+  readZipEntry,
+  writeZip,
+  ZipError,
+} from '@core/zip';
 
 const encoder = new TextEncoder();
 

@@ -1,6 +1,6 @@
 ## 1. Конфиги alias
 
-- [x] 1.1 `paths` в `tsconfig.json` для `@core`, `@ui`, `@shared`, `@page`, `@extension`, `@userscript`, `@scripts`, `@tests`; проверка — `pnpm typecheck` зелёный на пробном alias-импорте
+- [x] 1.1 `paths` в `tsconfig.json` для `@core`, `@ui`, `@shared`, `@page`, `@extension`, `@userscript`, `@scripts`; проверка — `pnpm typecheck` зелёный на пробном alias-импорте
 - [x] 1.2 alias в `vitest.config.ts` из `paths` `tsconfig.json`; проверка — тест с alias-импортом проходит
 - [x] 1.3 esbuild разрешает alias во всех точках входа и вложенных бандлах; проверка — `pnpm build` с alias-импортом в ядре, агенте и Worker-е GIF
 - [x] 1.4 `eslint.config.mjs`: группа alias в `simple-import-sort`, запрет `../` и `@core/ui/Picker` в `src/`, границы core / shared / page для alias; проверка — нарушение каждого правила на пробном файле даёт ошибку eslint

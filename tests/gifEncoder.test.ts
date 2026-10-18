@@ -3,8 +3,8 @@ import { describe, expect, it } from 'vitest';
 import { inspectGif } from '@core/gif';
 import { createGifEncoder } from '@core/gifEncoder';
 
-import { parseGif } from './helpers';
 import {
+  parseGif,
   SYNTHETIC_HEIGHT,
   SYNTHETIC_WIDTH,
   syntheticFrames,

@@ -320,10 +320,8 @@ src/
                   workerCompose.ts — признаки поля Worker-версии, по которым ядро и агент решают, занят ли черновик:
                   маркер капсулы `CAPSULE_TOP_SELECTOR` и полоса вложений `ATTACHMENTS_SELECTOR`
   types.d.ts      описания модулей без типов: gifenc, `*.css`, `gif-worker:code` и `page-agent:code` строкой; флаги
-                  `window.__amoStickers` и `window.__amoStickersPage`;
-                  `ImportMeta.glob` vite для тестов пар страниц доки и структуры модулей; константы сборки
-                  `__TELEGRAM_BOT_TOKEN__` и
-                  `__KLIPY_API_KEY__`
+                  `window.__amoStickers` и `window.__amoStickersPage`; `ImportMeta.glob` vite для тестов пар страниц
+                  доки и структуры модулей; константы сборки `__TELEGRAM_BOT_TOKEN__` и `__KLIPY_API_KEY__`
 dev/harness-server.mjs  сервер стенда (`pnpm harness`): файлы `dev/` и `dist/`, ключи из `.env` и прокси файлов
                   Telegram («Тесты»)
 dev/harness.html  стенд: разметка инпута и сообщения ленты amo на CSS его страницы (`dev/amo.css`, в git не лежит);
@@ -377,10 +375,11 @@ CLAUDE.local.md   локальные заметки; в .gitignore
 ### Импорты и модули
 
 Alias — по областям, единственный их источник — `paths` в `tsconfig.json`: `@core/*` → `src/core/`, `@ui` и `@ui/*` →
-`src/core/ui/Picker/`, `@shared/*`, `@page/*`, `@extension/*`, `@userscript/*`, `@scripts/*`, `@tests/*`. `@ui` ведёт в
-`Picker/index`, а не в каталог: на macOS без учёта регистра `Picker` разрешился бы в `src/core/ui/picker.css`. Остальные
-инструменты берут alias оттуда же: esbuild читает `paths` сам, в том числе во вложенных бандлах `bundleCodePlugin`,
-vitest — `resolve.tsconfigPaths`, eslint — имена alias для группы сортировки и границ («Линтинг»).
+`src/core/ui/Picker/`, `@shared/*`, `@page/*`, `@extension/*`, `@userscript/*`, `@scripts/*`; у `tests/` alias нет —
+хелперы тестов `./helpers` лежат модулем ниже. `@ui` ведёт в `Picker/index`, а не в каталог: на macOS без учёта
+регистра `Picker` разрешился бы в `src/core/ui/picker.css`. Остальные инструменты берут alias оттуда же: esbuild читает
+`paths` сам, в том числе во вложенных бандлах `bundleCodePlugin`, vitest — `resolve.tsconfigPaths`, eslint — имена
+alias для группы сортировки и границ («Линтинг»).
 
 Плоские области — `src/`, `src/core/`, `src/core/ui/`, `src/shared/`, `src/page/`, `src/extension/`, `src/userscript/`,
 `scripts/`, `tests/`: файлы лежат рядом, barrel-а у каталога нет. Любой другой каталог с кодом — модуль с barrel-ом
@@ -400,10 +399,11 @@ vitest — `resolve.tsconfigPaths`, eslint — имена alias для груп�
 `../` в `src/` нет: вверх по дереву — только alias. UI пикера снаружи берётся только как `@ui…`, не `@core/ui/Picker…`.
 Свой barrel изнутри модуля не импортируется, а дочерний модуль берёт родителя через его barrel — обычно `import type`,
 который стирается при сборке. Цикл значений через barrel рвётся переносом общего кода в свой дочерний модуль
-(`libraryFile/importRecords/`, `PickerProvider/errorMessage/`). `vi.mock` указывает туда же, куда импорт проверяемого
-кода: barrel модуля или файл плоской области (`@core/convert`, `@core/db`). Исключение — `../../tailwind.config` в
-`amoDomStyle.ts`: конфиг лежит в корне репозитория, вне областей alias. Правило проверяют eslint и тест структуры
-(«Тесты»).
+(`libraryFile/importRecords/`, `PickerProvider/errorMessage/`, `Screen/useScreenMotion/screenTiming/`,
+`ModePanel/scrollMemory/`, `StickerFeed/cellId/`, `MasonryGrid/gifCellId/`). `vi.mock` и `vi.doMock` подменяют только
+файл плоской области (`@core/convert`, `@core/db`), а не barrel модуля: соседи внутри модуля берут его файлы мимо
+barrel-а, и подмена их не задела бы. Исключение — `../../tailwind.config` в `amoDomStyle.ts`: конфиг лежит в корне
+репозитория, вне областей alias. Правило проверяют eslint и тест структуры («Тесты»).
 
 ## Как работает
 
@@ -1457,8 +1457,10 @@ amo и userscript сборки, — без скрытых путей (`.env`, `.
 Структуру модулей («Импорты и модули») сверяет `tests/moduleStructure.test.ts` по текстам файлов (`import.meta.glob`
 с `?raw`, модули не исполняются): у каждого каталога с кодом вне плоских областей есть `index.ts`; alias-спецификатор
 импорта, реэкспорта, `import()` и `vi.mock` в `src/` и `tests/` ведёт в barrel модуля или в файл плоской области, а
-относительный в `src/` — в файл своего каталога или в barrel модуля ниже. eslint этого не проверит: по строке пути не
-видно, файл это или каталог.
+относительный с целью в `src/`, `scripts/` или `tests/` — в файл своего каталога или в barrel модуля ниже (путь в
+корень репозитория и `docs/` не проверяется); модуль не берёт свой barrel (`.`, `./index`, alias на свой каталог), а
+`vi.mock` / `vi.doMock` не подменяет barrel модуля. eslint этого не проверит: по строке пути не видно, файл это или
+каталог.
 
 **Правило: без Node API в TypeScript.** Код и тесты на TypeScript (`src/`, `tests/`) не используют Node API —
 `node:*`, `Buffer`, `process`, `__dirname`: типов Node в проекте нет, `tsconfig.json` подключает только
@@ -1493,8 +1495,9 @@ eslint.config.mjs        # flat config: typescript-eslint + prettier + jsdoc + s
 Импорты `src/` — `no-restricted-imports` (`srcImportRule`: запреты всего `src/` входят в правило каждой области, потому
 что конфиг области заменяет правило целиком):
 
-- во всём `src/` — `../` (вверх по дереву — только alias; исключение — `../../tailwind.config` из `amoDomStyle.ts`) и
-  `@core/ui/Picker…` (UI пикера — через `@ui`);
+- во всём `src/` — путь вверх `..`, `../…`, `./../…` (вверх по дереву — только alias; исключение —
+  `../../tailwind.config`, и только в `amoDomStyle.ts`: свой блок конфига) и `@core/ui/Picker…` (UI пикера — через
+  `@ui`);
 - `src/core/**` не импортирует `@userscript/…` и `@extension/…` — ядро знает только контракты `core/host.types.ts` и
   протокол агента `shared/pageBridge.ts`, а окружения подключают к ним свои адаптеры и агента;
 - `src/shared/**` не импортирует никакой alias, кроме `@shared/…`: его берут и ядро, и окружения, и агент;
@@ -1502,6 +1505,9 @@ eslint.config.mjs        # flat config: typescript-eslint + prettier + jsdoc + s
   утянется ядро.
 
 Импорты тестов не ограничиваются: `../build.mjs?raw` и `../docs/…` остаются относительными.
+
+`no-duplicate-imports` с `allowSeparateTypeImports`: импорты одного вида из одного спецификатора сливаются в один, а
+пара `import type` и импорта значений остаётся раздельной.
 
 `.claude/hooks/lint.sh` — PostToolUse-хук: после каждой правки гоняет по файлу eslint (+`tsc --noEmit` для `.ts`/
 `.tsx`). Ошибки в правленом файле блокируют правку.

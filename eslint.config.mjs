@@ -44,19 +44,34 @@ const aliasesExcept = (...allowed) => {
 };
 
 /**
+ * Спецификатор вверх по дереву: `..`, `../x` и `./../x`.
+ */
+const PARENT_IMPORT_REGEX = String.raw`^(\./)*\.\.(/|$)`;
+
+/**
+ * Граница ядра: ядро знает только контракты `core/host.types.ts` и протокол агента
+ * `shared/pageBridge.ts`, а окружения подключают к ним свои адаптеры и агента, а не наоборот.
+ */
+const CORE_BOUNDARY = {
+  regex: aliasRegex(['@userscript', '@extension']),
+  message:
+    'Граница ядра: src/core не импортирует из src/userscript и src/extension — только контракты core/host.types.ts.',
+};
+
+/**
  * Правило импортов `src/`: запреты всего `src/` и запреты области. Конфиг области заменяет
  * правило целиком, а не дополняет, поэтому общие запреты входят в каждый.
  *
- * `tailwind.config` в корне репозитория — не область alias, и стиль ленты берёт его токены
- * относительным путём: ради одного файла вне `src/` своего alias нет.
+ * @param patterns — запреты области
+ * @param parentRegex — запрет пути вверх по дереву; свой — у файла с исключением
  */
-const srcImportRule = (...patterns) => {
+const srcImportRule = (patterns = [], parentRegex = PARENT_IMPORT_REGEX) => {
   return [
     'error',
     {
       patterns: [
         {
-          regex: String.raw`^\.\./(?!(\.\./)*tailwind\.config$)`,
+          regex: parentRegex,
           message:
             'Импорт вне своего каталога — через alias (@core, @ui, @shared, …): относительный путь только вниз по дереву.',
         },
@@ -196,6 +211,11 @@ export default defineConfig(
           caughtErrorsIgnorePattern: '^_',
         },
       ],
+      /**
+       * Импорты одного вида из одного спецификатора сливаются в один; пара `import type` и импорта
+       * значений остаётся раздельной — так тип виден в строке импорта.
+       */
+      'no-duplicate-imports': ['error', { allowSeparateTypeImports: true }],
       'simple-import-sort/exports': 'error',
       'simple-import-sort/imports': [
         'error',
@@ -283,13 +303,21 @@ export default defineConfig(
   {
     files: ['src/core/**/*.{ts,tsx}'],
     rules: {
-      // Ядро знает только контракты `core/host.types.ts` и протокол агента `shared/pageBridge.ts`:
-      // окружения подключают к ним свои адаптеры и агента, а не наоборот.
-      'no-restricted-imports': srcImportRule({
-        regex: aliasRegex(['@userscript', '@extension']),
-        message:
-          'Граница ядра: src/core не импортирует из src/userscript и src/extension — только контракты core/host.types.ts.',
-      }),
+      'no-restricted-imports': srcImportRule([CORE_BOUNDARY]),
+    },
+  },
+  {
+    /**
+     * `tailwind.config` в корне репозитория — не область alias, и стиль ленты берёт его токены
+     * относительным путём: ради одного файла вне `src/` своего alias нет. Исключение — только
+     * этому файлу и только этому пути.
+     */
+    files: ['src/core/amoDomStyle.ts'],
+    rules: {
+      'no-restricted-imports': srcImportRule(
+        [CORE_BOUNDARY],
+        String.raw`^(?!\.\./\.\./tailwind\.config$)(\./)*\.\.(/|$)`
+      ),
     },
   },
   {
@@ -297,10 +325,12 @@ export default defineConfig(
     rules: {
       // Общие модули импортируют и ядро, и окружения, и агент в мире страницы: сами они не
       // зависят ни от кого, иначе через них в агента утянется ядро.
-      'no-restricted-imports': srcImportRule({
-        regex: aliasRegex(aliasesExcept('@shared')),
-        message: 'Граница shared: src/shared не импортирует ничего вне src/shared.',
-      }),
+      'no-restricted-imports': srcImportRule([
+        {
+          regex: aliasRegex(aliasesExcept('@shared')),
+          message: 'Граница shared: src/shared не импортирует ничего вне src/shared.',
+        },
+      ]),
     },
   },
   {
@@ -308,10 +338,12 @@ export default defineConfig(
     rules: {
       // Агент уходит в мир страницы строкой в userscript и файлом в расширении: в нём только
       // его модули и протокол, без ядра и окружений.
-      'no-restricted-imports': srcImportRule({
-        regex: aliasRegex(aliasesExcept('@page', '@shared')),
-        message: 'Граница агента: src/page импортирует только src/page и src/shared.',
-      }),
+      'no-restricted-imports': srcImportRule([
+        {
+          regex: aliasRegex(aliasesExcept('@page', '@shared')),
+          message: 'Граница агента: src/page импортирует только src/page и src/shared.',
+        },
+      ]),
     },
   }
 );

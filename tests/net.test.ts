@@ -17,8 +17,7 @@ import {
   tooBigError,
 } from '@core/net';
 
-import { chunkedStream } from './helpers';
-import { mockResponse } from './helpers';
+import { chunkedStream, mockResponse } from './helpers';
 
 describe('isAllowedUrl', () => {
   it.each([

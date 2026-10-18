@@ -5,8 +5,7 @@ import { t } from '@core/i18n';
 import { usePicker } from '@ui/PickerProvider';
 import { Screen } from '@ui/Screen';
 import type { AddSegment } from '@ui/usePickerView';
-import { ADD_SEGMENTS } from '@ui/usePickerView';
-import { usePickerView } from '@ui/usePickerView';
+import { ADD_SEGMENTS, usePickerView } from '@ui/usePickerView';
 import { useStickerDraft } from '@ui/useStickerDraft';
 import { useTelegramImport } from '@ui/useTelegramImport';
 

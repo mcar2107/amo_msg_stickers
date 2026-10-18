@@ -3,8 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { frameDelayMs, openImageSource } from '@core/frameSourceImage';
 import { setLocale } from '@core/i18n';
 
-import { fakeCanvasContext } from './helpers';
-import { FakeImageDecoder, FakeVideoFrame } from './helpers';
+import { fakeCanvasContext, FakeImageDecoder, FakeVideoFrame } from './helpers';
 
 const WEBP = new Blob([], { type: 'image/webp' });
 

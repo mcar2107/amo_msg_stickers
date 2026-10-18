@@ -1,6 +1,5 @@
 import { t } from '@core/i18n';
-import type { ManifestPack } from '@core/libraryFile';
-import type { FileCard, FileCardPack } from '@core/libraryFile';
+import type { FileCard, FileCardPack, ManifestPack } from '@core/libraryFile';
 import { packTitle } from '@core/packTitle';
 
 /**

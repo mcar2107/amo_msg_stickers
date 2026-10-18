@@ -5,6 +5,10 @@ import { defineConfig, type Plugin } from 'vitest/config';
  * `build.mjs`, а vitest их не знает. Barrel модуля тянет все его файлы, и тест модуля, рядом с
  * которым лежит импорт конвертации, без заглушки падал бы на импорте. Строка в тестах пустая:
  * Worker и агент из неё тесты не запускают, а где строка нужна, тест подменяет модуль `vi.mock`.
+ *
+ * Заглушка, которая бросает при использовании, забытую подмену не показала бы: сбой запуска
+ * Worker-а конвертация переводит на главный поток, а `document` для агента в Node нет. Забытая
+ * подмена `@core/convert` и так видна — конвертация падает на API браузера (`createImageBitmap`).
  */
 const VIRTUAL_CODE_MODULES: Record<string, string> = {
   'gif-worker:code': 'GIF_WORKER_CODE',
@@ -16,7 +20,7 @@ const VIRTUAL_PREFIX = '\0virtual-code:';
 const virtualCodeStubs: Plugin = {
   name: 'virtual-code-stubs',
   resolveId(id) {
-    return id in VIRTUAL_CODE_MODULES ? `${VIRTUAL_PREFIX}${id}` : null;
+    return Object.hasOwn(VIRTUAL_CODE_MODULES, id) ? `${VIRTUAL_PREFIX}${id}` : null;
   },
   load(id) {
     if (!id.startsWith(VIRTUAL_PREFIX)) {

@@ -4,8 +4,7 @@ import { t } from '@core/i18n';
 import { Button } from '@ui/Button';
 import { LinkButton } from '@ui/LinkButton';
 import { usePicker } from '@ui/PickerProvider';
-import { SCREEN_FOCUS_ID } from '@ui/usePickerView';
-import { usePickerView } from '@ui/usePickerView';
+import { SCREEN_FOCUS_ID, usePickerView } from '@ui/usePickerView';
 
 import type { LibraryNoteState } from './LibraryExport.types';
 import { useStickerCount } from './useStickerCount';

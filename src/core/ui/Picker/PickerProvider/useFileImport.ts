@@ -2,10 +2,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'preact/hooks'
 
 import { writeImport } from '@core/db';
 import { t } from '@core/i18n';
-import type { FileImportProgress } from '@core/libraryFile';
-import type { FileCard, LibraryFile } from '@core/libraryFile';
-import { prepareImport } from '@core/libraryFile';
-import { loadFileCard, readLibraryFile } from '@core/libraryFile';
+import type { FileCard, FileImportProgress, LibraryFile } from '@core/libraryFile';
+import { loadFileCard, prepareImport, readLibraryFile } from '@core/libraryFile';
 
 import { errorMessage } from './errorMessage';
 import type { FileImportFailure } from './fileImportOutcome';

@@ -5,8 +5,7 @@ import { BYTES_IN_MB } from '@core/net';
 import { orderPacks } from '@core/packOrder';
 import { packTitle } from '@core/packTitle';
 import type { ZipWriteEntry } from '@core/zip';
-import { ZipError } from '@core/zip';
-import { writeZip } from '@core/zip';
+import { writeZip, ZipError } from '@core/zip';
 
 import { libraryFileName, packFileName } from './exportFileName';
 import type { ExportOptions, ExportPack, LibraryExport } from './exportLibrary.types';

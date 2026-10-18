@@ -3,8 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { EVENT_TIMEOUT_MS } from '@core/frameSourceCommon';
 import { openVideoSource, videoPlan } from '@core/frameSourceVideo';
 
-import { fakeCanvasContext } from './helpers';
-import { FakeVideo } from './helpers';
+import { fakeCanvasContext, FakeVideo } from './helpers';
 
 const BLOB_URL = 'blob:video';
 

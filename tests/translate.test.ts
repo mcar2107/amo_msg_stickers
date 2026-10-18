@@ -1,12 +1,12 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { EN } from '@core/i18n';
-import { RU } from '@core/i18n';
 import {
+  EN,
   formatMessage,
   getLocale,
   LocalizedError,
   messageTemplate,
+  RU,
   setLocale,
   t,
 } from '@core/i18n';

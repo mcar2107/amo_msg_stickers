@@ -2,13 +2,15 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { MANIFEST_FILE, MAX_FILE_STICKERS, MAX_ZIP_ENTRIES } from '@core/libraryFile';
 import type { ZipDirectory } from '@core/zip';
-import { crc32 } from '@core/zip';
-import { findZipRoot, readZipDirectory, readZipEntry } from '@core/zip';
-import { writeZip } from '@core/zip';
+import { crc32, findZipRoot, readZipDirectory, readZipEntry, writeZip } from '@core/zip';
 
-import { buildZip } from './helpers';
-import { DITTO_ARCHIVE, FIXTURE_MANIFEST, ZIP_R_ARCHIVE } from './helpers';
-import { countingDecompression } from './helpers';
+import {
+  buildZip,
+  countingDecompression,
+  DITTO_ARCHIVE,
+  FIXTURE_MANIFEST,
+  ZIP_R_ARCHIVE,
+} from './helpers';
 
 const encoder = new TextEncoder();
 const LIMITS = { maxEntries: 100 };

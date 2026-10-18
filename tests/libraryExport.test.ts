@@ -3,15 +3,17 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { Pack, StickerRec } from '@core/db.types';
 import { t } from '@core/i18n';
 import type { ExportProgress } from '@core/libraryFile';
-import { libraryFileName, packFileName } from '@core/libraryFile';
-import { exportLibrary } from '@core/libraryFile';
 import {
+  compareWithLibrary,
+  exportLibrary,
+  libraryFileName,
   MAX_CAPTION_GRAPHEMES,
   MAX_FILE_STICKERS,
   MAX_STICKER_BYTES,
+  packFileName,
+  prepareImport,
+  readLibraryFile,
 } from '@core/libraryFile';
-import { prepareImport } from '@core/libraryFile';
-import { compareWithLibrary, readLibraryFile } from '@core/libraryFile';
 import { BYTES_IN_MB } from '@core/net';
 import { readZipDirectory, readZipEntry } from '@core/zip';
 

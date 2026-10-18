@@ -1,10 +1,11 @@
 import type { Pack } from '@core/db.types';
 import type {
+  FileCard,
   FileImportProgress,
   ImportPlan,
+  LibraryFile,
   PrepareImportOptions,
 } from '@core/libraryFile';
-import type { FileCard, LibraryFile } from '@core/libraryFile';
 import type { ImportWritten } from '@core/libraryFile/importRecords';
 import type { FileImportFailure } from '@ui/PickerProvider/fileImportOutcome';
 import type { ImportErrorTarget } from '@ui/PickerProvider/finishImport';
