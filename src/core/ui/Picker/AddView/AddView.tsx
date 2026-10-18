@@ -13,10 +13,10 @@ import { useTelegramImport } from '../useTelegramImport/useTelegramImport';
 import { CreateSticker } from './CreateSticker/CreateSticker';
 import { CreateStickerFooter } from './CreateSticker/CreateStickerFooter/CreateStickerFooter';
 import { FileTransfer } from './FileTransfer/FileTransfer';
+import { ImportFooter } from './ImportFooter/ImportFooter';
 import { SegmentForm } from './SegmentForm/SegmentForm';
 import { SegmentTab } from './SegmentTab/SegmentTab';
 import { TelegramImport } from './TelegramImport/TelegramImport';
-import { TelegramImportFooter } from './TelegramImport/TelegramImportFooter/TelegramImportFooter';
 
 /**
  * Подписи вкладок сегментов.
@@ -111,7 +111,7 @@ export const AddView: FC = () => {
     switch (addSegment) {
       case 'telegram': {
         return (
-          <TelegramImportFooter
+          <ImportFooter
             segment="telegram"
             isImporting={isImporting}
             isDisabled={isImportDisabled}
@@ -133,7 +133,7 @@ export const AddView: FC = () => {
 
       case 'file': {
         return (
-          <TelegramImportFooter
+          <ImportFooter
             segment="file"
             isImporting={fileImport.isImporting}
             isDisabled={fileImport.isImportDisabled}

@@ -101,6 +101,14 @@ export default defineConfig(
     rules: {
       ...eslintPluginReactHooks.configs['recommended-latest'].rules,
       ...eslintPluginJsxA11y.flatConfigs.recommended.rules,
+      /**
+       * Набор recommended плюс `region`: прокручиваемая область без фокусируемых потомков должна получать фокус с
+       * клавиатуры, иначе до скрытых строк не добраться, а сама в порядок Tab браузер ставит её только с Chrome 130.
+       */
+      'jsx-a11y/no-noninteractive-tabindex': [
+        'error',
+        { tags: [], roles: ['tabpanel', 'region'], allowExpressionValues: true },
+      ],
     },
   },
   {

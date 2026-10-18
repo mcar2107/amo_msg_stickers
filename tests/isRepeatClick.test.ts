@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { isRepeatClick } from '../src/core/ui/Picker/AddView/TelegramImport/TelegramImportFooter/isRepeatClick/isRepeatClick';
+import { isRepeatClick } from '../src/core/ui/Picker/AddView/ImportFooter/isRepeatClick/isRepeatClick';
 
 describe('isRepeatClick', () => {
   it('второй клик двойного клика — повтор', () => {

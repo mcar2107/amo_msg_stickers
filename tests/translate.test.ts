@@ -39,6 +39,22 @@ describe('formatMessage', () => {
     ).toBe('cat: 0 МБ, снова cat');
   });
 
+  it('число — с разрядами по языку интерфейса', () => {
+    expect(formatMessage('до {max} стикеров', { max: 10_000 })).toBe(
+      'до 10\u00A0000 стикеров'
+    );
+    expect(formatMessage('{size} МБ', { size: 0.8 })).toBe('0,8 МБ');
+    setLocale('en');
+    expect(formatMessage('up to {max} stickers', { max: 10_000 })).toBe(
+      'up to 10,000 stickers'
+    );
+    expect(t('error.libraryFile.packTooBig', { max: 10_000 })).toContain('10,000');
+  });
+
+  it('строка-параметр не форматируется как число', () => {
+    expect(formatMessage('{name}', { name: '10000' })).toBe('10000');
+  });
+
   it('без параметров возвращает строку как есть', () => {
     expect(formatMessage('Стикеры и GIF')).toBe('Стикеры и GIF');
   });

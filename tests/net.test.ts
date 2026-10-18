@@ -272,10 +272,10 @@ describe('ошибки политики и лимита на языке инте
     setLocale('ru');
   });
 
-  it('на ru текст прежний', () => {
+  it('на ru — русский текст, дробный лимит с запятой', () => {
     expect(notAllowedError().message).toBe('Адрес вне списка разрешённых');
     expect(tooBigError(5 * BYTES_IN_MB).message).toBe('Файл больше 5 МБ');
-    expect(tooBigError(BYTES_IN_MB / 2).message).toBe('Файл больше 0.5 МБ');
+    expect(tooBigError(BYTES_IN_MB / 2).message).toBe('Файл больше 0,5 МБ');
   });
 
   it('несут ключ и лимит в МБ для пересоздания за границей service worker', () => {

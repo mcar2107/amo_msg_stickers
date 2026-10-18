@@ -1,5 +1,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import {
+  MANIFEST_FILE,
+  MAX_FILE_STICKERS,
+  MAX_ZIP_ENTRIES,
+} from '../src/core/libraryFile/limits';
 import { crc32 } from '../src/core/zip/crc32';
 import type { ZipDirectory } from '../src/core/zip/zip.types';
 import { findZipRoot, readZipDirectory, readZipEntry } from '../src/core/zip/zipRead';
@@ -92,9 +97,11 @@ const readNamed = async (
 
   if (!entry) throw new Error(`нет записи ${name}`);
 
-  return new Uint8Array(
-    await (await readZipEntry(archive, entry, { maxBytes })).arrayBuffer()
-  );
+  const { blob, bytes } = await readZipEntry(archive, entry, { maxBytes });
+
+  expect(new Uint8Array(await blob.arrayBuffer())).toEqual(bytes);
+
+  return bytes;
 };
 
 /**
@@ -219,7 +226,10 @@ describe('readZipDirectory и readZipEntry', () => {
 
     if (!entry) throw new Error('нет записи');
 
-    const blob = await readZipEntry(archive, entry, { maxBytes: 100, type: 'image/gif' });
+    const { blob } = await readZipEntry(archive, entry, {
+      maxBytes: 100,
+      type: 'image/gif',
+    });
 
     expect(blob.type).toBe('image/gif');
     expect(blob.size).toBe(GIF_SMALL.byteLength);
@@ -440,6 +450,47 @@ describe('битый архив', () => {
     await expect(readZipDirectory(blobOf(multiDisk), LIMITS)).rejects.toMatchObject(
       BROKEN
     );
+  });
+
+  it('10 000 стикеров, пересжатые архиватором macOS, — записи `__MACOSX/` в предел не идут', async () => {
+    const byte = Uint8Array.of(0);
+    const stickers = Array.from({ length: MAX_FILE_STICKERS }, (_, index) => {
+      return `${index}.gif`;
+    });
+    const files = [MANIFEST_FILE, ...stickers];
+    const archive = await buildZip([
+      { name: 'amo-stickers/', data: new Uint8Array() },
+      ...files.map((name) => {
+        return { name: `amo-stickers/${name}`, data: byte };
+      }),
+      { name: '__MACOSX/', data: new Uint8Array() },
+      { name: '__MACOSX/amo-stickers/', data: new Uint8Array() },
+      ...files.map((name) => {
+        return { name: `__MACOSX/amo-stickers/._${name}`, data: byte };
+      }),
+    ]);
+
+    const { entries } = await readZipDirectory(blobOf(archive.bytes), {
+      maxEntries: MAX_ZIP_ENTRIES,
+    });
+
+    expect(entries.has(`amo-stickers/${MANIFEST_FILE}`)).toBe(true);
+    expect(entries.has(`amo-stickers/${MAX_FILE_STICKERS - 1}.gif`)).toBe(true);
+  });
+
+  it('записи `__MACOSX/` не идут в предел, остальные — идут', async () => {
+    const archive = await buildZip([
+      { name: 'a.gif', data: GIF_SMALL },
+      { name: '__MACOSX/._a.gif', data: utf8('xattr') },
+      { name: 'b.gif', data: GIF_SMALL },
+    ]);
+
+    await expect(
+      readZipDirectory(blobOf(archive.bytes), { maxEntries: 2 })
+    ).resolves.toBeDefined();
+    await expect(
+      readZipDirectory(blobOf(archive.bytes), { maxEntries: 1 })
+    ).rejects.toMatchObject({ name: 'ZipError', kind: 'tooLarge' });
   });
 
   it('записей больше предела — tooLarge', async () => {

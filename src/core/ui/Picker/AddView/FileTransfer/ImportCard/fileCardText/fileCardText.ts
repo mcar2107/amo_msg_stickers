@@ -4,7 +4,7 @@ import type {
   FileCard,
   FileCardPack,
 } from '../../../../../../libraryFile/readLibraryFile.types';
-import { packTitle } from '../../../../packTitle/packTitle';
+import { packTitle } from '../../../../../../packTitle';
 
 /**
  * Название пака из файла для карточки. Свой пак — на языке интерфейса, как в ленте: в файле его название записано на
@@ -18,7 +18,8 @@ export const filePackTitle = (pack: ManifestPack): string => {
 };
 
 /**
- * Что импорт сделает с паком. Новый пак добавится целиком. «Мои стикеры» новым паком не бывают — у них, как у пака
+ * Что импорт сделает с паком. У нового пака — сколько стикеров в нём будет: стикер, id которого занят в другом паке,
+ * пропускается, и строка пака сходится с итогом карточки. «Мои стикеры» новым паком не бывают — у них, как у пака
  * из библиотеки, сказано, сколько стикеров добавится; пак без новых стикеров уже в библиотеке.
  *
  * @param cardPack — пак файла, сверенный с библиотекой
@@ -28,7 +29,7 @@ export const filePackCount = (cardPack: FileCardPack): string => {
   const { pack, isNew, newStickers } = cardPack;
   const total = pack.stickers.length;
 
-  if (isNew) return t('add.file.packNew', { total });
+  if (isNew) return t('add.file.packNew', { total: newStickers.length });
   if (!newStickers.length) return t('add.file.packPresent');
 
   return t('add.file.packAdds', { count: newStickers.length, total });

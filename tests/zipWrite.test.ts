@@ -162,15 +162,16 @@ describe('writeZip', () => {
 
     if (!gif || !text) return;
 
-    const gifBlob = await readZipEntry(archive, gif, {
+    const { blob: gifBlob, bytes } = await readZipEntry(archive, gif, {
       maxBytes: 100,
       type: 'image/gif',
     });
 
     expect(gifBlob.type).toBe('image/gif');
     expect(new Uint8Array(await gifBlob.arrayBuffer())).toEqual(GIF);
+    expect(bytes).toEqual(GIF);
     await expect(
-      (await readZipEntry(archive, text, { maxBytes: 100 })).text()
+      (await readZipEntry(archive, text, { maxBytes: 100 })).blob.text()
     ).resolves.toBe('ё');
   });
 

@@ -54,6 +54,14 @@ describe('filePackCount', () => {
     );
   });
 
+  it('новый пак, часть стикеров которого занята другими паками, — только новые, как в итоге', () => {
+    const cats = pack('tg:Cats', 'Котики', stickers(3, 'c'));
+
+    expect(filePackCount(cardPack(cats, 2, { isInLibrary: false, isNew: true }))).toBe(
+      'Новый пак, стикеров: 2'
+    );
+  });
+
   it('«Мои стикеры» не новый пак — сколько добавится', () => {
     const custom = pack('custom', 'Мои стикеры', stickers(3, 'm'));
 

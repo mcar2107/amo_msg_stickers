@@ -129,6 +129,18 @@ describe('parseManifest', () => {
     expect(errorOf(manifest([tgPack({ id: 'tg:', sourceRef: '' })]))).toBe('invalid');
   });
 
+  it('имя набора — не длиннее 64 символов, как у Telegram', () => {
+    const longest = 'a'.repeat(64);
+    const tooLong = 'a'.repeat(65);
+
+    expect(
+      parsed(manifest([tgPack({ id: `tg:${longest}`, sourceRef: longest })]))
+    ).toBeDefined();
+    expect(errorOf(manifest([tgPack({ id: `tg:${tooLong}`, sourceRef: tooLong })]))).toBe(
+      'invalid'
+    );
+  });
+
   it('sourceRef, если есть, равен имени из id', () => {
     expect(errorOf(manifest([tgPack({ sourceRef: 'Other' })]))).toBe('invalid');
     expect(errorOf(manifest([tgPack({ sourceRef: 42 })]))).toBe('invalid');

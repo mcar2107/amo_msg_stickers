@@ -200,7 +200,7 @@ describe('fileImportFailure', () => {
 });
 
 type RunOverrides = Partial<
-  Pick<FileImportRun, 'loadCard' | 'prepare' | 'write' | 'errorTarget'>
+  Pick<FileImportRun, 'loadCard' | 'prepare' | 'write' | 'refreshPacks' | 'errorTarget'>
 >;
 
 /**
@@ -237,11 +237,13 @@ const fileRun = (overrides: RunOverrides = {}) => {
           return PLAN;
         }),
       write,
-      refreshPacks: async () => {
-        calls.push('refresh');
+      refreshPacks:
+        overrides.refreshPacks ||
+        (async () => {
+          calls.push('refresh');
 
-        return FEED_PACKS;
-      },
+          return FEED_PACKS;
+        }),
       errorTarget:
         overrides.errorTarget ||
         ((): ImportErrorTarget => {
@@ -314,6 +316,32 @@ describe('runFileImport', () => {
       'success 7 3',
       'finish',
     ]);
+  });
+
+  it('сбой перечитывания паков после записи — не ошибка импорта: итог есть, сбой — в консоль', async () => {
+    const failure = new Error('база недоступна');
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {
+      return undefined;
+    });
+    const { calls, start } = fileRun({
+      refreshPacks: async () => {
+        throw failure;
+      },
+    });
+
+    await start();
+
+    expect(calls).toEqual([
+      'start',
+      'card 2',
+      'progress 0/2',
+      'progress 2/2',
+      'writing',
+      'success 7 0',
+      'finish',
+    ]);
+    expect(warn).toHaveBeenCalledWith(expect.any(String), failure);
+    warn.mockRestore();
   });
 
   it('по свежей сверке добавлять нечего — без проверки и записи, карточка обновлена', async () => {

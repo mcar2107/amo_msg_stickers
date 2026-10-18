@@ -3,7 +3,7 @@ import type { StickerRec } from '../db.types';
 import { t } from '../i18n/translate';
 import { BYTES_IN_MB } from '../net';
 import { orderPacks } from '../packOrder';
-import { packTitle } from '../ui/Picker/packTitle/packTitle';
+import { packTitle } from '../packTitle';
 import type { ZipWriteEntry } from '../zip/zip.types';
 import { ZipError } from '../zip/zipError';
 import { writeZip } from '../zip/zipWrite';

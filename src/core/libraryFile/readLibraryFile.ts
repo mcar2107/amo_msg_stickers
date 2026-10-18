@@ -13,14 +13,17 @@ import {
   MAX_STICKER_BYTES,
   MAX_ZIP_ENTRIES,
 } from './limits';
-import type { LibraryManifest, ManifestError } from './manifest.types';
+import type { LibraryManifest } from './manifest.types';
 import { parseManifest } from './manifest.types';
 import type {
   FileCard,
   FileCardPack,
+  FileErrorReason,
   LibraryFile,
   LibraryState,
 } from './readLibraryFile.types';
+
+const UTF8 = new TextDecoder();
 
 /**
  * Ошибка файла на языке интерфейса. Создаётся на каждый отказ: текст берётся в момент броска.
@@ -29,7 +32,7 @@ import type {
  * @param cause — исходная ошибка для консоли
  * @returns ошибка с текстом для пользователя
  */
-const fileError = (reason: ManifestError | 'broken' | 'readFailed', cause?: unknown) => {
+const fileError = (reason: FileErrorReason, cause?: unknown) => {
   const options = cause === undefined ? undefined : { cause };
 
   switch (reason) {
@@ -149,9 +152,9 @@ const readManifestText = async (file: Blob, entry: ZipEntry) => {
   if (entry.uncompressedSize > MAX_MANIFEST_BYTES) throw fileError('invalid');
 
   try {
-    const blob = await readZipEntry(file, entry, { maxBytes: MAX_MANIFEST_BYTES });
+    const { bytes } = await readZipEntry(file, entry, { maxBytes: MAX_MANIFEST_BYTES });
 
-    return await blob.text();
+    return UTF8.decode(bytes);
   } catch (error) {
     throw toFileError(error);
   }

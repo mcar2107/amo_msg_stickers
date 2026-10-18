@@ -1,8 +1,8 @@
 import { CUSTOM_PACK_ID } from '../../../../db';
 import type { Pack, RecentRec, StickerRec, StickersByPack } from '../../../../db.types';
 import { t } from '../../../../i18n/translate';
+import { packTitle } from '../../../../packTitle';
 import { stickerCellName } from '../../cellName/cellName';
-import { packTitle } from '../../packTitle/packTitle';
 import { RECENT_SECTION_ID } from '../../usePickerView/sectionIds';
 
 import type { FeedSection, FeedSticker } from './feedSections.types';

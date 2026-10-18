@@ -3,6 +3,7 @@ import type { FunctionComponent as FC, TargetedDragEvent, TargetedEvent } from '
 import { useRef, useState } from 'preact/hooks';
 
 import { t } from '../../../../../i18n/translate';
+import { FILE_EXTENSION } from '../../../../../libraryFile/exportFileName';
 import { usePicker } from '../../../PickerProvider/usePicker';
 
 import type { FileDropZoneProps } from './FileDropZone.types';
@@ -13,6 +14,12 @@ import type { FileDropZoneProps } from './FileDropZone.types';
  * свободное место тела экрана — по содержимому, не выше него (`max-h-max`). Цвета обычной и подсвеченной зоны —
  * взаимоисключающие наборы, длительность — под `motion-safe:`, как у перехода.
  */
+/**
+ * Фильтр диалога — расширение выгрузки и `.zip`: файл, распакованный и сжатый заново архиватором, приходит с ним, а
+ * узнаётся файл всё равно по содержимому. Расширение — то же, что пишет выгрузка.
+ */
+const ACCEPT = `${FILE_EXTENSION},.zip`;
+
 const zoneVariants = cva(
   [
     'flex max-h-max min-h-31 grow basis-31 flex-col rounded-lgx border-[1.5px] border-dashed text-xs',
@@ -197,7 +204,7 @@ export const FileDropZone: FC<FileDropZoneProps> = (props) => {
       <input
         ref={inputRef}
         type="file"
-        accept=".amostickers,.zip"
+        accept={ACCEPT}
         hidden
         onChange={handleFileChange}
         onCancel={handleFileCancel}

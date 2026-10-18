@@ -80,8 +80,12 @@ const promisify = <T>(req: IDBRequest): Promise<T> => {
  * Ждёт `abort` наравне с `error`: транзакция, прерванная без ошибки запроса (сбой коммита по квоте), иначе оставила
  * бы промис неразрешённым навсегда.
  *
+ * На `error` причина берётся из упавшего запроса, а не из транзакции: `tx.error` в этот момент ещё `null`, транзакция
+ * получает ошибку только при следующем за ним `abort`. Прерывание без ошибки (`abort()` вызван руками) отклоняет
+ * промис `AbortError`, а не `null`: по причине отказа импорт выбирает текст ошибки.
+ *
  * @param tx — транзакция IndexedDB
- * @returns завершение транзакции; отклоняется ошибкой транзакции при сбое или прерывании
+ * @returns завершение транзакции; отклоняется ошибкой упавшего запроса или транзакции при сбое или прерывании
  */
 const txDone = (tx: IDBTransaction): Promise<void> => {
   return new Promise((resolve, reject) => {
@@ -89,14 +93,26 @@ const txDone = (tx: IDBTransaction): Promise<void> => {
       return resolve();
     };
 
-    tx.onerror = () => {
-      return reject(tx.error);
+    tx.onerror = (event) => {
+      const { target } = event;
+      const requestError = target instanceof IDBRequest ? target.error : null;
+
+      return reject(requestError || tx.error || abortError());
     };
 
     tx.onabort = () => {
-      return reject(tx.error);
+      return reject(tx.error || abortError());
     };
   });
+};
+
+/**
+ * Причина прерывания транзакции, у которой нет своей ошибки.
+ *
+ * @returns `DOMException` вида `AbortError`
+ */
+const abortError = () => {
+  return new DOMException(t('error.db.aborted'), 'AbortError');
 };
 
 const store = async (name: StoreName, mode: IDBTransactionMode = 'readonly') => {
@@ -297,7 +313,7 @@ export const deletePack = async (packId: string) => {
  *
  * @param plan — проверенный план импорта
  * @returns что записано на самом деле: паки, в которые добавлены стикеры, и число стикеров; отклоняется ошибкой
- * транзакции при сбое или прерывании
+ * упавшего запроса или транзакции при сбое или прерывании
  */
 export const writeImport = async (plan: ImportPlan): Promise<ImportWritten> => {
   const db = await openDb();

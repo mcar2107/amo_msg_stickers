@@ -1,7 +1,7 @@
 import type { FunctionComponent as FC } from 'preact';
 
 import { CUSTOM_PACK_ID } from '../../../db';
-import { packTitle } from '../packTitle/packTitle';
+import { packTitle } from '../../../packTitle';
 
 import { CoverCanvas } from './CoverCanvas/CoverCanvas';
 import { coverLetters } from './coverLetters/coverLetters';

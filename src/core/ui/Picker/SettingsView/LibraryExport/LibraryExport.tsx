@@ -1,7 +1,6 @@
 import type { FunctionComponent as FC } from 'preact';
 
 import { t } from '../../../../i18n/translate';
-import type { ExportProgress } from '../../../../libraryFile/exportLibrary.types';
 import { Button } from '../../Button/Button';
 import { LinkButton } from '../../LinkButton/LinkButton';
 import { usePicker } from '../../PickerProvider/usePicker';
@@ -9,6 +8,7 @@ import { SCREEN_FOCUS_ID } from '../../usePickerView/screenFocus';
 import { usePickerView } from '../../usePickerView/usePickerView';
 
 import { useStickerCount } from './useStickerCount/useStickerCount';
+import type { LibraryNoteState } from './LibraryExport.types';
 
 const GROUP_ID = 'settings-group-library';
 const NOTE_ID = 'settings-library-export-note';
@@ -21,14 +21,18 @@ const GROUP_TITLE_CLASS = 'm-0 font-primary text-xsm font-semibold';
 const NOTE_CLASS = 'm-0 text-xs leading-[1.4] text-cadetGray-30 dark:text-gray-70';
 
 /**
- * Текст рядом с кнопкой: ход выгрузки библиотеки важнее причины недоступности — пока она идёт, стикеры есть.
+ * Текст рядом с кнопкой: ход выгрузки библиотеки важнее причины недоступности — пока она идёт, стикеры есть. Выгрузка
+ * пака из меню хода здесь не показывает (он в строке статуса), но недоступную кнопку объясняет: иначе скринридер
+ * прочитал бы «недоступна» без причины.
  *
- * @param progress — ход выгрузки библиотеки
- * @param stickerCount — стикеров в библиотеке
+ * @param state — идёт ли выгрузка, ход выгрузки библиотеки и число стикеров в библиотеке
  * @returns текст; пустая строка — пояснять нечего
  */
-const noteText = (progress: ExportProgress | null, stickerCount: number | null) => {
+const noteText = (state: LibraryNoteState) => {
+  const { isExporting, progress, stickerCount } = state;
+
   if (progress) return t('settings.library.progress', progress);
+  if (isExporting) return t('settings.library.packExporting');
   if (stickerCount === 0) return t('settings.library.empty');
 
   return '';
@@ -48,7 +52,7 @@ export const LibraryExport: FC = () => {
   } = usePicker();
   const { openScreen } = usePickerView();
   const stickerCount = useStickerCount();
-  const note = noteText(libraryProgress, stickerCount);
+  const note = noteText({ isExporting, progress: libraryProgress, stickerCount });
 
   const handleExportClick = () => {
     void exportAll();

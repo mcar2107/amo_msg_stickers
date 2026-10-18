@@ -1,5 +1,6 @@
 import { inspectGif } from '../gif';
 import { t } from '../i18n/translate';
+import type { ZipEntryContent } from '../zip/zip.types';
 import { readZipEntry } from '../zip/zipRead';
 
 import { MAX_STICKER_BYTES } from './limits';
@@ -31,15 +32,13 @@ const checkSticker = async (
   const entry = libraryFile.entries.get(id);
 
   if (!entry) throw new Error(t('error.libraryFile.broken'));
-  let blob: Blob;
-  let bytes: Uint8Array;
+  let content: ZipEntryContent;
 
   try {
-    blob = await readZipEntry(libraryFile.file, entry, {
+    content = await readZipEntry(libraryFile.file, entry, {
       maxBytes: MAX_STICKER_BYTES,
       type: GIF_TYPE,
     });
-    bytes = new Uint8Array(await blob.arrayBuffer());
   } catch (error) {
     throw toFileError(error);
   }
@@ -47,6 +46,7 @@ const checkSticker = async (
   /**
    * Стороны — логический экран из заголовка GIF, а не из недоверенного описания.
    */
+  const { blob, bytes } = content;
   const info = inspectGif(bytes);
 
   if (!info) throw new Error(t('error.libraryFile.broken'));

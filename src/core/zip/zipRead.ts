@@ -1,8 +1,9 @@
-import { CRC32_START, crc32Finish, crc32Stream, crc32Update } from './crc32';
+import { crc32, CRC32_START, crc32Finish, crc32Update } from './crc32';
 import type {
   ZipDirectory,
   ZipDirectoryLimits,
   ZipEntry,
+  ZipEntryContent,
   ZipEntryData,
   ZipEntryReadOptions,
 } from './zip.types';
@@ -26,9 +27,17 @@ import {
 
 /**
  * Служебная папка, которую архиватор macOS кладёт рядом с содержимым (ресурсные вилки и
- * атрибуты): при поиске единственной папки верхнего уровня она не считается.
+ * атрибуты): при поиске единственной папки верхнего уровня и в пределе записей она не считается.
  */
 const MAC_SERVICE_DIR = '__MACOSX';
+
+/**
+ * @param name — имя записи
+ * @returns запись лежит в служебной папке архиватора macOS
+ */
+const isMacService = (name: string) => {
+  return name === MAC_SERVICE_DIR || name.startsWith(`${MAC_SERVICE_DIR}/`);
+};
 
 const utf8 = new TextDecoder('utf-8', { fatal: true });
 const latin1 = new TextDecoder('latin1');
@@ -163,7 +172,9 @@ const regionEnds = (offsets: number[], centralOffset: number) => {
  *
  * Ошибка `broken` — не zip, обрезанный файл, zip64, многодисковый архив, данные, дописанные перед
  * архивом (смещение каталога не сходится с положением его конца), повтор имени. Ошибка
- * `tooLarge` — записей больше `maxEntries`. Записи с опасными именами пропускаются.
+ * `tooLarge` — записей больше `maxEntries`, не считая служебных `__MACOSX/`: архиватор macOS кладёт
+ * их по одной на каждый файл с атрибутами, и пересжатый в Finder файл иначе упёрся бы в предел вдвое
+ * раньше. Записи с опасными именами пропускаются.
  *
  * @param blob — архив
  * @param limits — пределы каталога
@@ -200,10 +211,6 @@ export const readZipDirectory = async (
     throw broken('Многодисковый архив');
   }
 
-  if (totalEntries > limits.maxEntries) {
-    throw new ZipError('tooLarge', `Записей ${totalEntries} больше ${limits.maxEntries}`);
-  }
-
   if (centralOffset + centralSize !== position) {
     throw broken('Центральный каталог не сходится с концом каталога');
   }
@@ -212,6 +219,7 @@ export const readZipDirectory = async (
   const view = new DataView(central.buffer);
   const parsed: Omit<ZipEntry, 'regionEnd'>[] = [];
   const unsafeOffsets: number[] = [];
+  let counted = 0;
   let cursor = 0;
 
   for (let index = 0; index < totalEntries; index++) {
@@ -252,6 +260,8 @@ export const readZipDirectory = async (
       )
     );
 
+    if (!isMacService(name)) counted += 1;
+
     if (isUnsafeName(name)) {
       unsafeOffsets.push(localOffset);
     } else {
@@ -270,6 +280,10 @@ export const readZipDirectory = async (
   }
 
   if (cursor !== centralSize) throw broken('Лишние байты в центральном каталоге');
+
+  if (counted > limits.maxEntries) {
+    throw new ZipError('tooLarge', `Записей ${counted} больше ${limits.maxEntries}`);
+  }
 
   const ends = regionEnds(
     [
@@ -343,7 +357,10 @@ const inflate = async (
     .stream()
     .pipeThrough(new DecompressionStream('deflate-raw'))
     .getReader();
-  const chunks: Uint8Array<ArrayBuffer>[] = [];
+  /**
+   * Выход не длиннее размера из каталога — это проверяется на каждом куске, поэтому буфер выделяется сразу.
+   */
+  const bytes = new Uint8Array(entry.uncompressedSize);
   let state = CRC32_START;
   let size = 0;
 
@@ -352,22 +369,22 @@ const inflate = async (
       const { done, value } = await reader.read();
 
       if (done) break;
-      size += value.byteLength;
 
-      if (size > entry.uncompressedSize) {
+      if (size + value.byteLength > entry.uncompressedSize) {
         await reader.cancel();
         throw broken(`${entry.name}: распаковано больше ${entry.uncompressedSize}`);
       }
 
       state = crc32Update(state, value);
-      chunks.push(new Uint8Array(value));
+      bytes.set(value, size);
+      size += value.byteLength;
     }
   } catch (error) {
     if (error instanceof ZipError) throw error;
     throw broken(`${entry.name}: поток deflate повреждён`, error);
   }
 
-  return { blob: new Blob(chunks, { type }), crc: crc32Finish(state), size };
+  return { blob: new Blob([bytes], { type }), bytes, crc: crc32Finish(state), size };
 };
 
 /**
@@ -382,14 +399,16 @@ const inflate = async (
  *
  * @param blob — архив
  * @param entry — запись из `readZipDirectory` этого архива
+ * Каждый срез архива читается один раз: CRC считается по прочитанным байтам, и они же отдаются вызывающему.
+ *
  * @param options — предел размера и MIME-тип результата
- * @returns данные записи; у метода 0 — срез архива без копии
+ * @returns данные записи `Blob`-ом (у метода 0 — срез архива без копии) и байтами
  */
 export const readZipEntry = async (
   blob: Blob,
   entry: ZipEntry,
   options: ZipEntryReadOptions
-): Promise<Blob> => {
+): Promise<ZipEntryContent> => {
   const { maxBytes, type = '' } = options;
   const { name, localOffset, regionEnd, compressedSize, uncompressedSize } = entry;
 
@@ -431,7 +450,9 @@ export const readZipEntry = async (
         throw broken(`${name}: у записи без сжатия размеры различаются`);
       }
 
-      result = { blob: data, ...(await crc32Stream(data.stream())) };
+      const bytes = new Uint8Array(await data.arrayBuffer());
+
+      result = { blob: data, bytes, crc: crc32(bytes), size: bytes.byteLength };
       break;
     }
 
@@ -451,5 +472,5 @@ export const readZipEntry = async (
 
   if (result.crc !== entry.crc32) throw broken(`${name}: CRC-32 не совпадает`);
 
-  return result.blob;
+  return { blob: result.blob, bytes: result.bytes };
 };

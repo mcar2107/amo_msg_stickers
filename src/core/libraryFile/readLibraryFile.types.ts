@@ -1,6 +1,16 @@
 import type { ZipEntry } from '../zip/zip.types';
 
-import type { LibraryManifest, ManifestPack, ManifestSticker } from './manifest.types';
+import type {
+  LibraryManifest,
+  ManifestError,
+  ManifestPack,
+  ManifestSticker,
+} from './manifest.types';
+
+/**
+ * Причина отказа файла выгрузки: ошибка описания, битый архив или сбой чтения файла с диска.
+ */
+export type FileErrorReason = ManifestError | 'broken' | 'readFailed';
 
 /**
  * Прочитанный файл выгрузки: описание проверено, у каждого стикера есть запись в архиве. GIF ещё не прочитаны.

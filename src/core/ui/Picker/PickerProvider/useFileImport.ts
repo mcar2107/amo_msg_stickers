@@ -123,7 +123,7 @@ export const useFileImport = (options: FileImportOptions): FileImportState => {
     syncStatus(isSegmentShown);
   }, [isSegmentShown, syncStatus]);
 
-  const pickFile = useCallback(async (file: File | undefined) => {
+  const readFile = useCallback(async (file: File | undefined) => {
     if (!file || stageRef.current) return;
     requestRef.current += 1;
     const request = requestRef.current;
@@ -300,11 +300,14 @@ export const useFileImport = (options: FileImportOptions): FileImportState => {
     if (stageRef.current === 'checking') controllerRef.current?.abort();
   }, []);
 
-  const handleFilePick = useCallback(
+  /**
+   * Наружу выбор файла — метод без промиса: чтение сообщает исход состоянием провайдера, и ждать его некому.
+   */
+  const pickFile = useCallback(
     (file: File | undefined) => {
-      void pickFile(file);
+      void readFile(file);
     },
-    [pickFile]
+    [readFile]
   );
 
   return useMemo(() => {
@@ -317,7 +320,7 @@ export const useFileImport = (options: FileImportOptions): FileImportState => {
       progress,
       isImporting,
       isImportDisabled,
-      pickFile: handleFilePick,
+      pickFile,
       importFile,
       cancelImport,
     };
@@ -330,7 +333,7 @@ export const useFileImport = (options: FileImportOptions): FileImportState => {
     progress,
     isImporting,
     isImportDisabled,
-    handleFilePick,
+    pickFile,
     importFile,
     cancelImport,
   ]);

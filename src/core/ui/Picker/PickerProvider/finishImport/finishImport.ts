@@ -1,5 +1,5 @@
 import { t } from '../../../../i18n/translate';
-import { packTitle } from '../../packTitle/packTitle';
+import { packTitle } from '../../../../packTitle';
 import type { AddSegment, PickerScreen } from '../../usePickerView/usePickerView.types';
 
 import type { FinishImportOptions, ImportErrorTarget } from './finishImport.types';

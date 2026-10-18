@@ -22,7 +22,9 @@ export const MANIFEST_FILE = 'manifest.json';
 export const MAX_FILE_STICKERS = 10_000;
 
 /**
- * Записей в архиве: стикеры, описание и запас на служебные записи архиватора (`__MACOSX/`, `.DS_Store`, папки).
+ * Записей в архиве: стикеры, описание и запас на записи папок и `.DS_Store`, которые добавляет архиватор, когда файл
+ * распаковали и сжали заново. Служебные записи `__MACOSX/` (по одной на файл с атрибутами) `readZipDirectory` в предел
+ * не считает.
  */
 export const MAX_ZIP_ENTRIES = 2 * MAX_FILE_STICKERS;
 
@@ -41,6 +43,12 @@ export const MAX_STICKER_BYTES = 8 * BYTES_IN_MB;
  * Распакованный `manifest.json`: 10 000 стикеров со строками в пределах ниже укладываются примерно в 10 МБ.
  */
 export const MAX_MANIFEST_BYTES = 16 * BYTES_IN_MB;
+
+/**
+ * Имя набора Telegram в id пака: у Telegram оно от 1 до 64 символов. Имя из файла идёт в id пака, ссылку на пак и
+ * ключи ленты, и без предела файл мог бы занести id длиной в мегабайты.
+ */
+export const MAX_SET_NAME_LENGTH = 64;
 
 /**
  * Название пака, графем.

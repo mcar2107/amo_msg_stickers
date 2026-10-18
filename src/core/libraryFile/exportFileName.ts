@@ -1,5 +1,5 @@
 import type { Pack } from '../db.types';
-import { packTitle } from '../ui/Picker/packTitle/packTitle';
+import { packTitle } from '../packTitle';
 
 import { clampGraphemes } from './limits';
 

@@ -1,4 +1,4 @@
-import { IDBFactory, IDBObjectStore } from 'fake-indexeddb';
+import { IDBFactory, IDBObjectStore, IDBRequest } from 'fake-indexeddb';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { Pack, StickerRec } from '../src/core/db.types';
@@ -7,6 +7,7 @@ import type {
   ImportPlanPack,
   ImportPlanSticker,
 } from '../src/core/libraryFile/prepareImport.types';
+import { fileImportFailure } from '../src/core/ui/Picker/PickerProvider/fileImportOutcome/fileImportOutcome';
 
 type Db = typeof import('../src/core/db');
 
@@ -28,6 +29,7 @@ let db: Db;
 
 beforeEach(async () => {
   vi.stubGlobal('indexedDB', new IDBFactory());
+  vi.stubGlobal('IDBRequest', IDBRequest);
   vi.resetModules();
   db = await import('../src/core/db');
 });
@@ -152,6 +154,34 @@ describe('writeImport', () => {
       await expect(db.writeImport(plan)).rejects.toBeDefined();
       vi.restoreAllMocks();
       expect(await snapshot()).toEqual(before);
+    });
+
+    it('запрос записи падает — импорт отклонён ошибкой запроса, а не null, и её текст доходит до статуса', async () => {
+      const plan: ImportPlan = { packs: [tgPack('cats', ['c1', 'c2', 'c3'])] };
+      const { add } = IDBObjectStore.prototype;
+      let calls = 0;
+
+      /**
+       * Второй `add` той же записи падает `ConstraintError` на запросе: так ошибка приходит в `error` транзакции до её
+       * `abort`, когда `tx.error` ещё `null`.
+       */
+      vi.spyOn(IDBObjectStore.prototype, 'put').mockImplementation(function mockPut(
+        this: IDBObjectStore,
+        ...args: Parameters<IDBObjectStore['put']>
+      ) {
+        calls += 1;
+        if (calls === 2) add.apply(this, args);
+
+        return add.apply(this, args);
+      });
+
+      const error: unknown = await db.writeImport(plan).catch((reason: unknown) => {
+        return reason;
+      });
+
+      expect(error).toBeInstanceOf(DOMException);
+      expect(error).toMatchObject({ name: 'ConstraintError' });
+      expect(fileImportFailure('write', error).message).not.toContain('null');
     });
 
     it('без сбоя тот же план записывается целиком', async () => {

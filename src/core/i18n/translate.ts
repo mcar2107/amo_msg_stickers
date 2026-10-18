@@ -45,7 +45,19 @@ export const messageTemplate = (key: MessageKey) => {
 };
 
 /**
- * Подстановка без параметра остаётся в тексте как есть — пропуск виден в интерфейсе, а не теряется молча.
+ * Число в тексте — с разделителями разрядов и десятичным знаком языка интерфейса: «10 000» и «0,8» по-русски,
+ * «10,000» и «0.8» по-английски, как в доке. `String` дал бы «10000» на обоих языках.
+ *
+ * @param value — число для подстановки
+ * @returns число в записи текущего языка
+ */
+export const formatNumber = (value: number) => {
+  return new Intl.NumberFormat(currentLocale).format(value);
+};
+
+/**
+ * Подстановка без параметра остаётся в тексте как есть — пропуск виден в интерфейсе, а не теряется молча. Число
+ * подставляется в записи языка интерфейса (`formatNumber`), строка — как есть.
  *
  * @param template — строка словаря с подстановками `{name}`
  * @param params — значения подстановок
@@ -56,7 +68,10 @@ export const formatMessage = (
   params: Readonly<Record<string, MessageParam>> = {}
 ) => {
   return template.replaceAll(PLACEHOLDER, (placeholder, name: string) => {
-    return Object.hasOwn(params, name) ? String(params[name]) : placeholder;
+    if (!Object.hasOwn(params, name)) return placeholder;
+    const value = params[name];
+
+    return typeof value === 'number' ? formatNumber(value) : String(value);
   });
 };
 

@@ -159,7 +159,8 @@ const readArchive = async (blob: Blob) => {
   const entry = directory.entries.get('manifest.json');
 
   if (!entry) throw new Error('нет manifest.json');
-  const text = await (await readZipEntry(blob, entry, { maxBytes: 1_000_000 })).text();
+  const { blob: manifest } = await readZipEntry(blob, entry, { maxBytes: 1_000_000 });
+  const text = await manifest.text();
 
   return { manifest: JSON.parse(text) as unknown, names: [...directory.entries.keys()] };
 };

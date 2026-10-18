@@ -9,6 +9,7 @@ import {
   MAX_CAPTION_GRAPHEMES,
   MAX_EMOJI_GRAPHEMES,
   MAX_FILE_STICKERS,
+  MAX_SET_NAME_LENGTH,
   MAX_TITLE_GRAPHEMES,
 } from './limits';
 
@@ -231,7 +232,14 @@ const parseSource = (value: object, id: string) => {
       const name = id.slice(TELEGRAM_PREFIX.length);
       const sourceRef = field(value, 'sourceRef');
 
-      if (!id.startsWith(TELEGRAM_PREFIX) || !SET_NAME_RE.test(name)) return null;
+      if (
+        !id.startsWith(TELEGRAM_PREFIX) ||
+        name.length > MAX_SET_NAME_LENGTH ||
+        !SET_NAME_RE.test(name)
+      ) {
+        return null;
+      }
+
       if (sourceRef !== undefined && sourceRef !== name) return null;
 
       return { source, sourceRef };

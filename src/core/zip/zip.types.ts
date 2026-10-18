@@ -102,7 +102,7 @@ export type ZipDirectory = {
  */
 export type ZipDirectoryLimits = {
   /**
-   * Наибольшее число записей в архиве; больше — ошибка `tooLarge`.
+   * Наибольшее число записей в архиве без служебных `__MACOSX/`; больше — ошибка `tooLarge`.
    */
   maxEntries: number;
 };
@@ -124,14 +124,24 @@ export type ZipEntryReadOptions = {
 };
 
 /**
- * Прочитанные данные записи до сверки с каталогом.
+ * Данные записи, сверенные с каталогом.
  */
-export type ZipEntryData = {
+export type ZipEntryContent = {
   /**
-   * Распакованные данные.
+   * Данные записи; у метода 0 — срез архива без копии.
    */
   blob: Blob;
 
+  /**
+   * Те же данные в памяти: по ним посчитан CRC-32, и вызывающему не нужно читать запись второй раз.
+   */
+  bytes: Uint8Array<ArrayBuffer>;
+};
+
+/**
+ * Прочитанные данные записи до сверки с каталогом.
+ */
+export type ZipEntryData = ZipEntryContent & {
   /**
    * CRC-32 прочитанных байтов.
    */

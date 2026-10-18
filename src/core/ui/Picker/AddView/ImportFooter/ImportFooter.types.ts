@@ -1,6 +1,6 @@
-import type { AddSegment } from '../../../usePickerView/usePickerView.types';
+import type { AddSegment } from '../../usePickerView/usePickerView.types';
 
-export type TelegramImportFooterProps = {
+export type ImportFooterProps = {
   /**
    * Сегмент, чью форму отправляет «Импорт».
    */

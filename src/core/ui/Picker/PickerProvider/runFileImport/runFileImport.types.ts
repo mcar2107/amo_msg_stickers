@@ -76,7 +76,7 @@ export type FileImportRun = {
    * Записано, паки перечитаны.
    *
    * @param written — что записал импорт
-   * @param packs — паки библиотеки в порядке ленты
+   * @param packs — паки библиотеки в порядке ленты; пустой список — перечитать не удалось
    */
   onSuccess: (written: ImportWritten, packs: Pack[]) => void;
 
