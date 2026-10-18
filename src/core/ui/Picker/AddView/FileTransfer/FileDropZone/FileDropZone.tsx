@@ -8,14 +8,14 @@ import { usePicker } from '../../../PickerProvider/usePicker';
 import type { FileDropZoneProps } from './FileDropZone.types';
 
 /**
- * Вид и наименьшая высота — как у зоны своего стикера (`min-h-31`), это и высота без файла. С карточкой зона растёт по
- * содержимому, а сжимается до свободного места тела экрана не ниже `min-h-31` — минимум задан явно, поэтому
- * flex-родитель может ужать её меньше содержимого. Цвета обычной и подсвеченной зоны — взаимоисключающие наборы,
- * длительность — под `motion-safe:`, как у перехода.
+ * Вид и наименьшая высота — как у зоны своего стикера (`min-h-31`), это и высота без файла. Основа зоны — эта же
+ * наименьшая высота (`basis-31`), а не содержимое: колонка-родитель не ниже основы, и только зона растёт (`grow`) в
+ * свободное место тела экрана — по содержимому, не выше него (`max-h-max`). Цвета обычной и подсвеченной зоны —
+ * взаимоисключающие наборы, длительность — под `motion-safe:`, как у перехода.
  */
 const zoneVariants = cva(
   [
-    'flex min-h-31 flex-col rounded-lgx border-[1.5px] border-dashed text-xs',
+    'flex max-h-max min-h-31 grow basis-31 flex-col rounded-lgx border-[1.5px] border-dashed text-xs',
     'motion-safe:transition-[color,background-color,border-color] motion-safe:duration-base',
   ].join(' '),
   {

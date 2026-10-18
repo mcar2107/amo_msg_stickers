@@ -13,6 +13,8 @@ const TITLE_CLASS =
 /**
  * Заголовок раздела ленты: одна строка приглушённого названия и действие раздела справа.
  * Название сжимается многоточием, а действие не сжимается: длинное название его не сдвигает.
+ * Полное название — подсказкой `title`: длинное название пака иначе не прочитать. Имя заголовку
+ * даёт его текст, а `title`, совпадающий с ним, скринридер второй раз не читает.
  */
 export const SectionHeader: FC<SectionHeaderProps> = (props) => {
   const {
@@ -79,7 +81,9 @@ export const SectionHeader: FC<SectionHeaderProps> = (props) => {
 
   return (
     <div className={HEADER_CLASS} style={{ top, height }}>
-      <h2 className={TITLE_CLASS}>{title}</h2>
+      <h2 className={TITLE_CLASS} title={title}>
+        {title}
+      </h2>
 
       {renderAction()}
     </div>
