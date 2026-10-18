@@ -20,3 +20,11 @@
 Циклы через barrel родителя разорваны переносом в дочерние модули: libraryFile/importRecords/, PickerProvider/errorMessage/, Screen/useScreenMotion/screenTiming/, ModePanel/scrollMemory/, StickerFeed/cellId/, MasonryGrid/gifCellId/.
 Аудит: ok с первого круга; бандлы равны базе по размеру, page.js побайтно, токен/ключ только в content.js и userscript.
 Долг: исключение tailwind.config пускает его из любого файла src/; отдельные импорты из ./helpers в tests/pageAgent, pageMarkRows не слиты; moduleStructure.test читает tsconfig как JSON (комментарий в нём уронит тест); CLAUDE.md называет 2 из 6 переносов.
+
+### Стенд
+
+Стенд pnpm harness, headless Chrome 155, сборка ветки (userscript).
+Прежняя разметка: пикер открывается, GIF и стикер уходят очередью amo (alt с amostk.k-gif / k-sticker).
+Стабильная: стикер уходит, data-file-name с меткой.
+Worker-версия: стикер уходит ядром страницы (без no-core/запасного пути), строка помечена data-amo-stickers-kind="sticker", --amostk-w на коробке.
+Ошибок в консоли нет (кроме 404 favicon стенда).
