@@ -1,8 +1,8 @@
 import type { FunctionComponent as FC, TargetedKeyboardEvent } from 'preact';
 
-import { moveTabFocus } from '../../moveTabFocus/moveTabFocus';
-import { usePickerView } from '../../usePickerView/usePickerView';
-import { segmentFormId, segmentTabId } from '../segmentIds/segmentIds';
+import { segmentFormId, segmentTabId } from '@ui/AddView/segmentIds';
+import { moveTabFocus } from '@ui/moveTabFocus';
+import { usePickerView } from '@ui/usePickerView';
 
 import type { SegmentTabProps } from './SegmentTab.types';
 

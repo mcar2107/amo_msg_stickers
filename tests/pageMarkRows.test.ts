@@ -1,16 +1,16 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { markRows, rowsOf, watchFeedRows } from '../src/page/markRows';
-import type { FeedMutation } from '../src/page/markRows.types';
+import { markRows, rowsOf, watchFeedRows } from '@page/markRows';
+import type { FeedMutation } from '@page/markRows.types';
 import {
   MARK_BOX_SELECTOR,
   MARK_HEIGHT_VAR,
   MARK_KIND_ATTR,
   MARK_WIDTH_VAR,
-} from '../src/shared/stickerMark';
+} from '@shared/stickerMark';
 
-import type { FakeFiber } from './helpers/fakeFiber';
-import { fiberChain } from './helpers/fakeFiber';
+import type { FakeFiber } from './helpers';
+import { fiberChain } from './helpers';
 
 const FIBER_KEY = '__reactFiber$t1';
 const PROPS_KEY = '__reactProps$t1';

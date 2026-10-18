@@ -1,7 +1,7 @@
 import type { RefObject } from 'preact';
 import { useEffect } from 'preact/hooks';
 
-import { entryIndex } from '../feedEntry/feedEntry';
+import { entryIndex } from '@ui/feedEntry';
 
 import type { TabPress } from './useFeedEntry.types';
 

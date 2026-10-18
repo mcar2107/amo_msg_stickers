@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { shouldFocusSearch } from '../src/core/ui/Picker/GifView/useSearchFocus/shouldFocusSearch';
+import { shouldFocusSearch } from '@ui/GifView/useSearchFocus';
 
 describe('shouldFocusSearch', () => {
   it('при открытии кликом ставит фокус в поиск', () => {

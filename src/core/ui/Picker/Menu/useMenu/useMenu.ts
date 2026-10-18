@@ -1,8 +1,8 @@
 import type { RefObject } from 'preact';
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'preact/hooks';
 
-import { menuPosition } from '../menuPosition/menuPosition';
-import type { Box, MenuPoint } from '../menuPosition/menuPosition.types';
+import type { Box, MenuPoint } from '@ui/Menu/menuPosition';
+import { menuPosition } from '@ui/Menu/menuPosition';
 
 import type { MenuState } from './useMenu.types';
 

@@ -1,14 +1,8 @@
-import { gifKey } from '../../MasonryGrid/gifCellId';
-import type { GifSection } from '../../MasonryGrid/MasonryGrid.types';
-import {
-  favoriteToggleTargets,
-  resolveFocusTarget,
-} from '../../removalFocus/removalFocus';
-import type { FocusSection, FocusTarget } from '../../removalFocus/removalFocus.types';
-import {
-  FAVORITE_GIF_SECTION_ID,
-  RECENT_GIF_SECTION_ID,
-} from '../gifSections/gifSections';
+import { FAVORITE_GIF_SECTION_ID, RECENT_GIF_SECTION_ID } from '@ui/GifView/gifSections';
+import type { GifSection } from '@ui/MasonryGrid';
+import { gifKey } from '@ui/MasonryGrid/gifCellId';
+import type { FocusSection, FocusTarget } from '@ui/removalFocus';
+import { favoriteToggleTargets, resolveFocusTarget } from '@ui/removalFocus';
 
 import type { GifFocusCell } from './useGifRemovalFocus.types';
 

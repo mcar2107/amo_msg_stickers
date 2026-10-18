@@ -1,5 +1,5 @@
-import type { LocalSendItem, Pack, StickerRec } from '../../../../db.types';
-import type { CellNames } from '../../cellName/cellName.types';
+import type { LocalSendItem, Pack, StickerRec } from '@core/db.types';
+import type { CellNames } from '@ui/cellName';
 
 /**
  * Стикер в ленте: одна ячейка сетки раздела.

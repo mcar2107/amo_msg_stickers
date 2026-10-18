@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { draftSize } from '../src/core/ui/Picker/useStickerDraft/draftSize';
-import type { StickerDraft } from '../src/core/ui/Picker/useStickerDraft/useStickerDraft.types';
+import type { StickerDraft } from '@ui/useStickerDraft';
+import { draftSize } from '@ui/useStickerDraft';
 
 /**
  * Черновик с GIF заданного веса и сторон.

@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
-import { findClient } from '../src/page/findClient';
+import { findClient } from '@page/findClient';
 
-import { fiberChain, nodeWithFiber } from './helpers/fakeFiber';
+import { fiberChain, nodeWithFiber } from './helpers';
 
 const makeClient = () => {
   return {

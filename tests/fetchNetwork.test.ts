@@ -1,10 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { MAX_JSON_BYTES, tooBigError } from '../src/core/net';
-import { fetchNetwork } from '../src/userscript/fetchNetwork';
+import { MAX_JSON_BYTES, tooBigError } from '@core/net';
+import { fetchNetwork } from '@userscript/fetchNetwork';
 
-import { chunkedStream } from './helpers/chunkedStream';
-import { mockResponse } from './helpers/mockResponse';
+import { chunkedStream, mockResponse } from './helpers';
 
 const API_URL = 'https://api.giphy.com/v1/gifs/trending';
 

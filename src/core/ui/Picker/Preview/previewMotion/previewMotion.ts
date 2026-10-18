@@ -1,4 +1,4 @@
-import { isMotionReduced } from '../../scrollMotion/scrollMotion';
+import { isMotionReduced } from '@ui/scrollMotion';
 
 import type { PreviewLeave, PreviewOpenTargets, RectLike } from './previewMotion.types';
 

@@ -1,5 +1,5 @@
-import { t } from './i18n/translate';
 import type { FramePlanItem } from './frameSource.types';
+import { t } from './i18n';
 
 export const MAX_FRAMES = 100;
 export const MAX_DURATION_SEC = 4;

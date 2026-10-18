@@ -1,4 +1,4 @@
-import type { FavoriteRec } from '../../../../db.types';
+import type { FavoriteRec } from '@core/db.types';
 
 /**
  * Избранное после записи в базу. Запись по ключу заменяет прежнюю, как в базе, поэтому повторное добавление не

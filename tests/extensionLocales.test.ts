@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
+import messagesEn from '@extension/_locales/en/messages.json';
+import messagesRu from '@extension/_locales/ru/messages.json';
+import manifest from '@extension/manifest.json';
+
 import buildSource from '../build.mjs?raw';
-import messagesEn from '../src/extension/_locales/en/messages.json';
-import messagesRu from '../src/extension/_locales/ru/messages.json';
-import manifest from '../src/extension/manifest.json';
 
 /**
  * Копирование каталога переводов в сборку расширения: без него `__MSG_…__` в

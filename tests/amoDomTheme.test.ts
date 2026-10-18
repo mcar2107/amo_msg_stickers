@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { resolveDarkTheme } from '../src/core/amoDom';
-import type { ThemeSignals } from '../src/core/amoDom.types';
+import { resolveDarkTheme } from '@core/amoDom';
+import type { ThemeSignals } from '@core/amoDom.types';
 
 const NONE: ThemeSignals = {
   hasDarkClass: false,

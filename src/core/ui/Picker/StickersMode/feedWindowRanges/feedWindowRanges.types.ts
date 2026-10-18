@@ -1,4 +1,4 @@
-import type { StickerRow } from '../../stickerLayout/stickerLayout.types';
+import type { StickerRow } from '@ui/stickerLayout';
 
 export type FeedWindowRangesOptions<T> = {
   /**

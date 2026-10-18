@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { sectionScrollPlan } from '../src/core/ui/Picker/StickersMode/sectionScrollPlan/sectionScrollPlan';
+import { sectionScrollPlan } from '@ui/StickersMode/sectionScrollPlan';
 
 const VIEWPORT = 400;
 const MAX_SCROLL = 5000;

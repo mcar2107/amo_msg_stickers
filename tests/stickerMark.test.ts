@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { markKindOf } from '../src/shared/stickerMark';
-import type { StickerKind } from '../src/shared/stickerMark.types';
+import { markKindOf } from '@shared/stickerMark';
+import type { StickerKind } from '@shared/stickerMark.types';
 
 describe('markKindOf', () => {
   it.each([

@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
-import { buildStickerLayout } from '../src/core/ui/Picker/stickerLayout/stickerLayout';
-import type { StickerSection } from '../src/core/ui/Picker/stickerLayout/stickerLayout.types';
-import { feedActiveSection } from '../src/core/ui/Picker/StickersMode/feedActiveSection/feedActiveSection';
+import type { StickerSection } from '@ui/stickerLayout';
+import { buildStickerLayout } from '@ui/stickerLayout';
+import { feedActiveSection } from '@ui/StickersMode/feedActiveSection';
 
 /**
  * Раздел с `count` стикерами-номерами.

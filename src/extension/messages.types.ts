@@ -1,4 +1,4 @@
-import type { MessageKey, MessageParam } from '../core/i18n/i18n.types';
+import type { MessageKey, MessageParam } from '@core/i18n';
 
 type FetchRequestBase = {
   /**

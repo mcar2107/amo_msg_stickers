@@ -1,14 +1,14 @@
 import { describe, expect, it } from 'vitest';
 
-import type { RemoteGif } from '../src/core/db.types';
+import type { RemoteGif } from '@core/db.types';
 import {
   gifCellTargets,
   gifClearTargets,
   gifFocusCell,
   gifFocusSections,
-} from '../src/core/ui/Picker/GifView/useGifRemovalFocus/gifFocus';
-import type { GifSection } from '../src/core/ui/Picker/MasonryGrid/MasonryGrid.types';
-import type { FocusSection } from '../src/core/ui/Picker/removalFocus/removalFocus.types';
+} from '@ui/GifView/useGifRemovalFocus';
+import type { GifSection } from '@ui/MasonryGrid';
+import type { FocusSection } from '@ui/removalFocus';
 
 /**
  * GIF с номером.

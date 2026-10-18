@@ -1,12 +1,11 @@
-import { getPack, listAllStickers, listPacks, listStickers } from '../db';
-import type { StickerRec } from '../db.types';
-import { t } from '../i18n/translate';
-import { BYTES_IN_MB } from '../net';
-import { orderPacks } from '../packOrder';
-import { packTitle } from '../packTitle';
-import type { ZipWriteEntry } from '../zip/zip.types';
-import { ZipError } from '../zip/zipError';
-import { writeZip } from '../zip/zipWrite';
+import { getPack, listAllStickers, listPacks, listStickers } from '@core/db';
+import type { StickerRec } from '@core/db.types';
+import { t } from '@core/i18n';
+import { BYTES_IN_MB } from '@core/net';
+import { orderPacks } from '@core/packOrder';
+import { packTitle } from '@core/packTitle';
+import type { ZipWriteEntry } from '@core/zip';
+import { writeZip, ZipError } from '@core/zip';
 
 import { libraryFileName, packFileName } from './exportFileName';
 import type { ExportOptions, ExportPack, LibraryExport } from './exportLibrary.types';

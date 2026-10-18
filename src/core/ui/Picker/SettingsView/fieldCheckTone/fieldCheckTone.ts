@@ -1,5 +1,5 @@
-import type { FieldTone } from '../../Field/Field.types';
-import type { FieldCheck } from '../useSettingsDraft/useSettingsDraft.types';
+import type { FieldTone } from '@ui/Field';
+import type { FieldCheck } from '@ui/SettingsView/useSettingsDraft';
 
 /**
  * Тон поля по результату проверки: принятый ключ — `valid`, отказ источника и токен не того

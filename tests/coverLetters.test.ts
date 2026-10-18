@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { coverLetters } from '../src/core/ui/Picker/PackCover/coverLetters/coverLetters';
+import { coverLetters } from '@ui/PackCover/coverLetters';
 
 describe('coverLetters', () => {
   it('берёт первые две буквы названия', () => {

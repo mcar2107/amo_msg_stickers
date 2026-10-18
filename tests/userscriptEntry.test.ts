@@ -1,13 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { Host } from '../src/core/host.types';
-import type { GmXmlhttpRequest } from '../src/userscript/gm.types';
+import type { Host } from '@core/host.types';
+import type { GmXmlhttpRequest } from '@userscript/gm.types';
 
 /**
  * Ядро с пикером и DOM amo тесту не нужно: проверяется только `Host`, который точка входа
  * передаёт в `start`.
  */
-vi.mock('../src/core/app', () => {
+vi.mock('@core/app', () => {
   return { start: vi.fn() };
 });
 
@@ -69,8 +69,8 @@ const entryDocument = () => {
  */
 const bootHost = async () => {
   vi.resetModules();
-  await import('../src/userscript/index');
-  const { start } = await import('../src/core/app');
+  await import('@userscript/index');
+  const { start } = await import('@core/app');
   const host = vi.mocked(start).mock.calls[0]?.[0];
 
   if (!host) throw new Error('start не вызван');
@@ -210,7 +210,7 @@ describe('userscript: выбор настроек', () => {
 
 describe('userscript: агент в мире страницы', () => {
   it('внедряется элементом <script> до start и сразу удаляется', async () => {
-    const { start } = await import('../src/core/app');
+    const { start } = await import('@core/app');
 
     vi.mocked(start).mockImplementation(() => {
       bootOrder.push('start');
@@ -221,7 +221,7 @@ describe('userscript: агент в мире страницы', () => {
   });
 
   it('документ грузится — агент сразу, start по DOMContentLoaded', async () => {
-    const { start } = await import('../src/core/app');
+    const { start } = await import('@core/app');
     const target = new EventTarget();
 
     vi.mocked(start).mockImplementation(() => {
@@ -240,7 +240,7 @@ describe('userscript: агент в мире страницы', () => {
       addEventListener: target.addEventListener.bind(target),
     });
     vi.resetModules();
-    await import('../src/userscript/index');
+    await import('@userscript/index');
 
     expect(bootOrder).toEqual(['inject:/* agent */', 'remove']);
 
@@ -263,7 +263,7 @@ describe('userscript: агент в мире страницы', () => {
       addEventListener: vi.fn(),
     });
     vi.resetModules();
-    await import('../src/userscript/index');
+    await import('@userscript/index');
 
     expect(bootOrder).toEqual(['inject:/* agent */', 'remove']);
   });
@@ -272,7 +272,7 @@ describe('userscript: агент в мире страницы', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {
       return undefined;
     });
-    const { start } = await import('../src/core/app');
+    const { start } = await import('@core/app');
 
     vi.mocked(start).mockImplementation(() => {
       bootOrder.push('start');

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { createTabCentering } from '../src/core/ui/Picker/SectionTabs/tabCentering/tabCentering';
+import { createTabCentering } from '@ui/SectionTabs/tabCentering';
 
 /**
  * Контроллер с подменённой постановкой вкладки: `place` отвечает `isShown` и пишет, с каким

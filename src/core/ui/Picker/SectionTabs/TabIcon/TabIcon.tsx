@@ -1,9 +1,9 @@
 import type { FunctionComponent as FC } from 'preact';
 
-import { PackCover } from '../../PackCover/PackCover';
-import { FAVORITE_SECTION_ID } from '../../usePickerView/sectionIds';
-import { ClockIcon } from '../ClockIcon/ClockIcon';
-import { StarIcon } from '../StarIcon/StarIcon';
+import { PackCover } from '@ui/PackCover';
+import { ClockIcon } from '@ui/SectionTabs/ClockIcon';
+import { StarIcon } from '@ui/SectionTabs/StarIcon';
+import { FAVORITE_SECTION_ID } from '@ui/usePickerView';
 
 import type { TabIconProps } from './TabIcon.types';
 

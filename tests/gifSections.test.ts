@@ -1,11 +1,8 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import type { FavoriteRec, RecentRec, RemoteGif } from '../src/core/db.types';
-import { setLocale } from '../src/core/i18n/translate';
-import {
-  gifSections,
-  recentGifs,
-} from '../src/core/ui/Picker/GifView/gifSections/gifSections';
+import type { FavoriteRec, RecentRec, RemoteGif } from '@core/db.types';
+import { setLocale } from '@core/i18n';
+import { gifSections, recentGifs } from '@ui/GifView/gifSections';
 
 /**
  * GIF из выдачи с номером.

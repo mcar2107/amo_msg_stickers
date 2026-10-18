@@ -1,4 +1,4 @@
-import type { FocusTarget } from '../removalFocus/removalFocus.types';
+import type { FocusTarget } from '@ui/removalFocus';
 
 /**
  * Ожидание перечитанной ленты после удаления или правки.

@@ -1,5 +1,5 @@
-import type { RemoteGif, StickerRec } from '../../../db.types';
-import { t } from '../../../i18n/translate';
+import type { RemoteGif, StickerRec } from '@core/db.types';
+import { t } from '@core/i18n';
 
 import type { CellNames } from './cellName.types';
 

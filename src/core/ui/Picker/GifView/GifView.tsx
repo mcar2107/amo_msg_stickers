@@ -1,31 +1,31 @@
 import type { FunctionComponent as FC } from 'preact';
 import { useMemo, useState } from 'preact/hooks';
 
-import type { FavoriteRec, RemoteGif } from '../../../db.types';
-import { getLocale, t } from '../../../i18n/translate';
-import type { GifFeed } from '../../../sources/gifs.types';
-import { USER_DOCS_PAGE, userDocsUrl } from '../../../userDocs';
-import { EmptyState } from '../EmptyState/EmptyState';
-import { ExternalLink } from '../ExternalLink/ExternalLink';
-import { useKeptScrollMark } from '../keptScrollTop/useKeptScrollMark/useKeptScrollMark';
-import { gifKey } from '../MasonryGrid/gifCellId';
-import { MasonryGrid } from '../MasonryGrid/MasonryGrid';
-import type { FavoriteToggle } from '../PickerProvider/useFavorites/useFavorites.types';
-import { useFavoritesContext } from '../PickerProvider/useFavorites/useFavoritesContext';
-import { usePicker } from '../PickerProvider/usePicker';
-import { TextInput } from '../TextInput/TextInput';
-import { useGifFeed } from '../useGifFeed/useGifFeed';
-import { usePickerView } from '../usePickerView/usePickerView';
-import { ViewHeader } from '../ViewHeader/ViewHeader';
+import type { FavoriteRec, RemoteGif } from '@core/db.types';
+import { getLocale, t } from '@core/i18n';
+import type { GifFeed } from '@core/sources';
+import { USER_DOCS_PAGE, userDocsUrl } from '@core/userDocs';
+import { EmptyState } from '@ui/EmptyState';
+import { ExternalLink } from '@ui/ExternalLink';
+import { useKeptScrollMark } from '@ui/keptScrollTop/useKeptScrollMark';
+import { MasonryGrid } from '@ui/MasonryGrid';
+import { gifKey } from '@ui/MasonryGrid/gifCellId';
+import { usePicker } from '@ui/PickerProvider';
+import type { FavoriteToggle } from '@ui/PickerProvider/useFavorites';
+import { useFavoritesContext } from '@ui/PickerProvider/useFavorites';
+import { TextInput } from '@ui/TextInput';
+import { useGifFeed } from '@ui/useGifFeed';
+import { usePickerView } from '@ui/usePickerView';
+import { ViewHeader } from '@ui/ViewHeader';
 
-import { FeedAttribution } from './FeedAttribution/FeedAttribution';
-import { FeedChips } from './FeedChips/FeedChips';
-import { gifSections, RECENT_GIF_SECTION_ID } from './gifSections/gifSections';
-import { useFeedChoice } from './useFeedChoice/useFeedChoice';
-import { useGifRemovalFocus } from './useGifRemovalFocus/useGifRemovalFocus';
-import { useRecentGifs } from './useRecentGifs/useRecentGifs';
-import { useSearchFocus } from './useSearchFocus/useSearchFocus';
+import { FeedAttribution } from './FeedAttribution';
+import { FeedChips } from './FeedChips';
+import { gifSections, RECENT_GIF_SECTION_ID } from './gifSections';
 import type { GifViewProps } from './GifView.types';
+import { useFeedChoice } from './useFeedChoice';
+import { useGifRemovalFocus } from './useGifRemovalFocus';
+import { useRecentGifs } from './useRecentGifs';
+import { useSearchFocus } from './useSearchFocus';
 
 /**
  * Кнопка в виде ссылки: `href="#"` у `<a>` запрещён jsx-a11y, а действие — открытие

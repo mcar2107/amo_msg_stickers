@@ -1,6 +1,6 @@
 import { useEffect } from 'preact/hooks';
 
-import type { PreviewState } from '../PreviewProvider.types';
+import type { PreviewState } from '@ui/Preview';
 
 /**
  * Атрибут кнопки ячейки, которую показывает закреплённый предпросмотр: по нему `picker.css`

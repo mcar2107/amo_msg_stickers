@@ -1,4 +1,4 @@
-import type { AddSegment } from '../../usePickerView/usePickerView.types';
+import type { AddSegment } from '@ui/usePickerView';
 
 /**
  * id вкладки сегмента — для `aria-labelledby` его панели.

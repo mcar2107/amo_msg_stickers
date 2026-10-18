@@ -82,7 +82,7 @@ export type IconButtonProps = {
 
 ```tsx
 // IconButton/IconButton.tsx
-import type {ButtonProps} from '../Button/Button.types';
+import type {ButtonProps} from '@ui/Button';
 
 export type IconButtonProps = ButtonProps & { icon: IconType };
 // связали два компонента — изменение ButtonProps ударит по IconButton

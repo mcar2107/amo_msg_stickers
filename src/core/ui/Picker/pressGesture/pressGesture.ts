@@ -1,4 +1,4 @@
-import { NO_TIMER, scheduleTimeout } from '../../../hoverPopup';
+import { NO_TIMER, scheduleTimeout } from '@core/hoverPopup';
 
 import type {
   PressGesture,

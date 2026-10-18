@@ -8,14 +8,13 @@ import {
   useState,
 } from 'preact/hooks';
 
-import { usePicker } from '../PickerProvider/usePicker';
-import { usePickerView } from '../usePickerView/usePickerView';
+import { usePicker } from '@ui/PickerProvider';
+import { usePickerView } from '@ui/usePickerView';
 
-import { watchHoldRelease } from './holdRelease/holdRelease';
-import type { PreviewDirection } from './previewDirection/previewDirection.types';
-import { useCurrentCellMark } from './useCurrentCellMark/useCurrentCellMark';
+import { watchHoldRelease } from './holdRelease';
 import { PreviewActionsContext } from './PreviewActionsContext';
 import { PreviewContext } from './PreviewContext';
+import type { PreviewDirection } from './previewDirection';
 import type {
   PreviewActions,
   PreviewContextValue,
@@ -24,6 +23,7 @@ import type {
   PreviewState,
   PreviewTarget,
 } from './PreviewProvider.types';
+import { useCurrentCellMark } from './useCurrentCellMark';
 
 /**
  * Предпросмотр один на панель, а не на ячейку: ячейки лежат под виртуализацией и

@@ -1,6 +1,6 @@
 import type { FunctionComponent as FC } from 'preact';
 
-import { t } from '../../../../../i18n/translate';
+import { t } from '@core/i18n';
 
 import type { HintToggleProps } from './HintToggle.types';
 

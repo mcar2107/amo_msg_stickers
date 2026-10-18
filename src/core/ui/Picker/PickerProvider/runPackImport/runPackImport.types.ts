@@ -1,5 +1,5 @@
-import type { Pack } from '../../../../db.types';
-import type { ImportErrorTarget } from '../finishImport/finishImport.types';
+import type { Pack } from '@core/db.types';
+import type { ImportErrorTarget } from '@ui/PickerProvider/finishImport';
 
 export type PackImportRun = {
   /**

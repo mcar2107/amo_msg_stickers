@@ -1,12 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
-import { masonryNeighbor } from '../src/core/ui/Picker/MasonryGrid/masonryNeighbor/masonryNeighbor';
-import { splitColumns } from '../src/core/ui/Picker/MasonryGrid/splitColumns/splitColumns';
-import type {
-  MasonryTile,
-  SizedItem,
-} from '../src/core/ui/Picker/MasonryGrid/splitColumns/splitColumns.types';
-import type { PreviewDirection } from '../src/core/ui/Picker/Preview/previewDirection/previewDirection.types';
+import { masonryNeighbor } from '@ui/MasonryGrid/masonryNeighbor';
+import type { MasonryTile, SizedItem } from '@ui/MasonryGrid/splitColumns';
+import { splitColumns } from '@ui/MasonryGrid/splitColumns';
+import type { PreviewDirection } from '@ui/Preview/previewDirection';
 
 type Item = SizedItem & {
   /**

@@ -1,4 +1,4 @@
-import { fetchChecked, readJson, readResponseLimited } from '../core/net';
+import { fetchChecked, readJson, readResponseLimited } from '@core/net';
 
 import { actionIconPaths, isIconThemeMessage } from './actionIcon';
 import { toFailureResponse } from './fetchResponse';

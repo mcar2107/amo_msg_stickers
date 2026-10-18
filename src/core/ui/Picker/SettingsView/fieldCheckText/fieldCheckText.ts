@@ -1,5 +1,5 @@
-import { t } from '../../../../i18n/translate';
-import type { FieldCheck } from '../useSettingsDraft/useSettingsDraft.types';
+import { t } from '@core/i18n';
+import type { FieldCheck } from '@ui/SettingsView/useSettingsDraft';
 
 /**
  * Текст результата проверки у поля. Зовётся в рендере: язык интерфейса выбирается при старте,

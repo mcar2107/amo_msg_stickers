@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { klipyKeyText } from '../src/core/ui/Picker/SettingsView/klipyKeyText/klipyKeyText';
+import { klipyKeyText } from '@ui/SettingsView/klipyKeyText';
 
 describe('klipyKeyText', () => {
   it('со встроенным ключом — свой необязателен, поиск KLIPY без ключа', () => {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { cellMenuItems } from '../src/core/ui/Picker/Menu/CellMenu/cellMenuItems/cellMenuItems';
+import { cellMenuItems } from '@ui/Menu/CellMenu/cellMenuItems';
 
 describe('cellMenuItems', () => {
   it('найденная GIF и ячейка «Избранного» без kind: «Предпросмотр» и избранное', () => {

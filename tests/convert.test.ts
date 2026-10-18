@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { toStickerGif } from '../src/core/convert';
-import type { FrameSink } from '../src/core/frameSink.types';
-import type { FrameSource } from '../src/core/frameSource.types';
+import { toStickerGif } from '@core/convert';
+import type { FrameSink } from '@core/frameSink.types';
+import type { FrameSource } from '@core/frameSource.types';
 
 /**
  * Приёмник и источник подменяются: настоящий приёмник тянет код Worker-а из сборки, а
@@ -15,7 +15,7 @@ const fakes = vi.hoisted(() => {
   };
 });
 
-vi.mock('../src/core/frameSink', () => {
+vi.mock('@core/frameSink', () => {
   return {
     createFrameSink: vi.fn((): FrameSink => {
       const sink: FrameSink = {
@@ -35,7 +35,7 @@ vi.mock('../src/core/frameSink', () => {
   };
 });
 
-vi.mock('../src/core/frameSource', () => {
+vi.mock('@core/frameSource', () => {
   return {
     openFrameSource: vi.fn(async () => {
       return fakes.source;

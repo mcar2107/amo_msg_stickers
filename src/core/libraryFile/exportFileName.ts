@@ -1,5 +1,5 @@
-import type { Pack } from '../db.types';
-import { packTitle } from '../packTitle';
+import type { Pack } from '@core/db.types';
+import { packTitle } from '@core/packTitle';
 
 import { clampGraphemes } from './limits';
 

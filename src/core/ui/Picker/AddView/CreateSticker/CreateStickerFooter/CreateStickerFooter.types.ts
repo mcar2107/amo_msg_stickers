@@ -1,7 +1,4 @@
-import type {
-  DraftSize,
-  SaveBlock,
-} from '../../../useStickerDraft/useStickerDraft.types';
+import type { DraftSize, SaveBlock } from '@ui/useStickerDraft';
 
 export type CreateStickerFooterProps = {
   /**

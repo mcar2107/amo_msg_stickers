@@ -1,22 +1,20 @@
 import type { ComponentChildren } from 'preact';
 import type { MutableRef } from 'preact/hooks';
 
-import type { Pack, SendItem } from '../../../db.types';
-import type { Host, Settings } from '../../../host.types';
-import type { HoldReason, OpenedBy, PopupHolds } from '../../../hoverPopup.types';
-import type { ExportProgress } from '../../../libraryFile/exportLibrary.types';
-import type { FileImportProgress } from '../../../libraryFile/prepareImport.types';
-import type { FileCard } from '../../../libraryFile/readLibraryFile.types';
+import type { Pack, SendItem } from '@core/db.types';
+import type { Host, Settings } from '@core/host.types';
+import type { HoldReason, OpenedBy, PopupHolds } from '@core/hoverPopup.types';
+import type { ExportProgress, FileCard, FileImportProgress } from '@core/libraryFile';
 import type {
   AddSegment,
   PickerScreen,
   PickerViewValue,
   SectionMotion,
   SectionScrollOptions,
-} from '../usePickerView/usePickerView.types';
+} from '@ui/usePickerView';
 
-import type { PackCard } from './packCardView/packCardView.types';
-import type { FavoritesContextValue } from './useFavorites/useFavorites.types';
+import type { PackCard } from './packCardView';
+import type { FavoritesContextValue } from './useFavorites';
 
 export type PickerStatus = {
   /**

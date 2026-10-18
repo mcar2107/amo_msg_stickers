@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { setLocale } from '../src/core/i18n/translate';
+import { setLocale } from '@core/i18n';
 import {
   BYTES_IN_MB,
   ERROR_BODY_MAX_BYTES,
@@ -8,10 +8,10 @@ import {
   MAX_JSON_BYTES,
   notAllowedError,
   tooBigError,
-} from '../src/core/net';
-import { gmNetwork } from '../src/userscript/gmNetwork';
+} from '@core/net';
+import { gmNetwork } from '@userscript/gmNetwork';
 
-import { gmResponse, mockGmRequest } from './helpers/mockGmRequest';
+import { gmResponse, mockGmRequest } from './helpers';
 
 /**
  * В пути запроса к Telegram лежит токен бота — он не должен попасть в текст ошибки.

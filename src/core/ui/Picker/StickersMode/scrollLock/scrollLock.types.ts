@@ -1,4 +1,4 @@
-import type { ScheduleTimer } from '../../../../hoverPopup.types';
+import type { ScheduleTimer } from '@core/hoverPopup.types';
 
 export type ScrollLockOptions = {
   /**

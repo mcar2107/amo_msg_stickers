@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { setLocale } from '../src/core/i18n/translate';
-import { packCardCount } from '../src/core/ui/Picker/AddView/TelegramImport/PackCard/packCardCount/packCardCount';
+import { setLocale } from '@core/i18n';
+import { packCardCount } from '@ui/AddView/TelegramImport/PackCard/packCardCount';
 
 describe('packCardCount', () => {
   afterEach(() => {

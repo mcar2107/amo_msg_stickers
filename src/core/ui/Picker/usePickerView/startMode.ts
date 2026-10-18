@@ -1,6 +1,6 @@
-import type { PageStorage } from '../../../pageStorage.types';
-import { readMode } from '../../../pickerMode';
-import type { PickerMode } from '../../../pickerMode.types';
+import type { PageStorage } from '@core/pageStorage.types';
+import { readMode } from '@core/pickerMode';
+import type { PickerMode } from '@core/pickerMode.types';
 
 /**
  * @param count — подсчёт стикеров

@@ -1,15 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
 
-import { listPacks, touchPack } from '../../../db';
-import type { Pack, SendItem } from '../../../db.types';
-import { DEFAULT_SETTINGS } from '../../../host';
-import type { Settings } from '../../../host.types';
-import { t } from '../../../i18n/translate';
-import { orderPacks, packSnapshot } from '../../../packOrder';
-import { useObjectUrls } from '../useObjectUrls/useObjectUrls';
-import { usePickerViewState } from '../usePickerView/usePickerViewState';
+import { listPacks, touchPack } from '@core/db';
+import type { Pack, SendItem } from '@core/db.types';
+import { DEFAULT_SETTINGS } from '@core/host';
+import type { Settings } from '@core/host.types';
+import { t } from '@core/i18n';
+import { orderPacks, packSnapshot } from '@core/packOrder';
+import { useObjectUrls } from '@ui/useObjectUrls';
+import { usePickerViewState } from '@ui/usePickerView';
 
-import { useFavorites } from './useFavorites/useFavorites';
 import { errorMessage } from './errorMessage';
 import type {
   ImportSource,
@@ -18,6 +17,7 @@ import type {
   PickerStatus,
   RefreshPacksOptions,
 } from './PickerProvider.types';
+import { useFavorites } from './useFavorites';
 import { useFileImport } from './useFileImport';
 import { useLibraryExport } from './useLibraryExport';
 import { usePackImport } from './usePackImport';

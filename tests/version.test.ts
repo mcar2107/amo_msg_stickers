@@ -5,7 +5,7 @@ import {
   compareVersions,
   parseVersion,
   toErrorAnnotation,
-} from '../scripts/version';
+} from '@scripts/version';
 
 describe('parseVersion', () => {
   it('разбирает MAJOR.MINOR.PATCH в числа', () => {

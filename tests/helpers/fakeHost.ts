@@ -1,7 +1,7 @@
 import { vi } from 'vitest';
 
-import { DEFAULT_SETTINGS } from '../../src/core/host';
-import type { Host } from '../../src/core/host.types';
+import { DEFAULT_SETTINGS } from '@core/host';
+import type { Host } from '@core/host.types';
 
 import type { FakeHostInit } from './fakeHost.types';
 

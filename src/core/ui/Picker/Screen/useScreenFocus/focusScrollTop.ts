@@ -1,4 +1,4 @@
-import { revealScrollTop } from '../../revealScrollTop/revealScrollTop';
+import { revealScrollTop } from '@ui/revealScrollTop';
 
 import type { FocusScrollInput } from './focusScrollTop.types';
 

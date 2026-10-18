@@ -1,8 +1,8 @@
 import { cva } from 'class-variance-authority';
 import type { FunctionComponent as FC } from 'preact';
 
-import { t } from '../../../../i18n/translate';
-import { useConfirmPress } from '../../useConfirmPress/useConfirmPress';
+import { t } from '@core/i18n';
+import { useConfirmPress } from '@ui/useConfirmPress';
 
 import type { ClearRecentButtonProps } from './ClearRecentButton.types';
 

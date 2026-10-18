@@ -1,5 +1,5 @@
-import { cellTops, keptScrollTop } from '../keptScrollTop';
-import type { CellPosition } from '../keptScrollTop.types';
+import type { CellPosition } from '@ui/keptScrollTop';
+import { cellTops, keptScrollTop } from '@ui/keptScrollTop';
 
 import type {
   KeptMark,

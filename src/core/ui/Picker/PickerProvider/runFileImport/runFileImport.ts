@@ -1,5 +1,5 @@
-import { fileImportFailure } from '../fileImportOutcome/fileImportOutcome';
-import type { FileImportPhase } from '../fileImportOutcome/fileImportOutcome.types';
+import type { FileImportPhase } from '@ui/PickerProvider/fileImportOutcome';
+import { fileImportFailure } from '@ui/PickerProvider/fileImportOutcome';
 
 import type { FileImportRun } from './runFileImport.types';
 

@@ -1,10 +1,10 @@
 import type { FunctionComponent as FC } from 'preact';
 
-import { t } from '../../../i18n/translate';
-import { usePickerView } from '../usePickerView/usePickerView';
+import { t } from '@core/i18n';
+import { usePickerView } from '@ui/usePickerView';
 
-import { ModeTab } from './ModeTab/ModeTab';
-import { SettingsIcon } from './SettingsIcon/SettingsIcon';
+import { ModeTab } from './ModeTab';
+import { SettingsIcon } from './SettingsIcon';
 
 const FOOTER_CLASS = [
   'flex shrink-0 items-center gap-0.5 px-1.5 py-1',

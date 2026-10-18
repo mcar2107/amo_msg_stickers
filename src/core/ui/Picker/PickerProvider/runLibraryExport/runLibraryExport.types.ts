@@ -1,7 +1,4 @@
-import type {
-  ExportOptions,
-  LibraryExport,
-} from '../../../../libraryFile/exportLibrary.types';
+import type { ExportOptions, LibraryExport } from '@core/libraryFile';
 
 /**
  * Что выгружается: пак с названием для статусов или вся библиотека.

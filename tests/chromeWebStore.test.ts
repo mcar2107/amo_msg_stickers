@@ -5,13 +5,10 @@ import {
   findRevisionState,
   publishToChromeWebStore,
   readServiceAccountKey,
-} from '../scripts/chromeWebStore';
-import type { PublishOptions } from '../scripts/chromeWebStore.types';
+} from '@scripts/chromeWebStore';
+import type { PublishOptions } from '@scripts/chromeWebStore.types';
 
-import { fromBase64Url } from './helpers/fromBase64Url';
-import { mockResponse } from './helpers/mockResponse';
-import { privateKeyPem } from './helpers/privateKeyPem';
-import { routedFetch } from './helpers/routedFetch';
+import { fromBase64Url, mockResponse, privateKeyPem, routedFetch } from './helpers';
 
 const ITEM = { publisherId: 'pub-1', itemId: 'abjnjphijggkkdbbmkldhibgepgdcgip' };
 

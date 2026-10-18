@@ -1,13 +1,13 @@
 import type { FunctionComponent as FC } from 'preact';
 
-import type { CellRemoveKind } from '../../Menu/CellMenu/CellMenu.types';
-import { usePicker } from '../../PickerProvider/usePicker';
-import { StickerCell } from '../../StickerCell/StickerCell';
-import type { StickerCellRemove } from '../../StickerCell/StickerCell.types';
-import { COLUMNS, GAP } from '../../stickerLayout/stickerLayout';
-import { FAVORITE_SECTION_ID, RECENT_SECTION_ID } from '../../usePickerView/sectionIds';
-import { cellId } from '../cellId';
-import { CreateTile } from '../CreateTile/CreateTile';
+import type { CellRemoveKind } from '@ui/Menu/CellMenu';
+import { usePicker } from '@ui/PickerProvider';
+import type { StickerCellRemove } from '@ui/StickerCell';
+import { StickerCell } from '@ui/StickerCell';
+import { cellId } from '@ui/StickerFeed/cellId';
+import { CreateTile } from '@ui/StickerFeed/CreateTile';
+import { COLUMNS, GAP } from '@ui/stickerLayout';
+import { FAVORITE_SECTION_ID, RECENT_SECTION_ID } from '@ui/usePickerView';
 
 import type { FeedRowProps } from './FeedRow.types';
 

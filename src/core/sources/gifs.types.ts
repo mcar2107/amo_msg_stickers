@@ -1,5 +1,5 @@
-import { isObject } from '../../shared/guards';
-import type { RemoteGif } from '../db.types';
+import type { RemoteGif } from '@core/db.types';
+import { isObject } from '@shared/guards';
 
 export type GifFeed = 'giphy-gifs' | 'giphy-stickers' | 'klipy';
 

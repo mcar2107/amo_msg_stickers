@@ -1,23 +1,28 @@
 import type { Mock } from 'vitest';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { startAgent } from '../src/page/agent';
-import type { AmoRequest } from '../src/page/amo.types';
-import { nextSeq, SENDING_MAX } from '../src/page/coreSend';
-import { fieldOf } from '../src/page/field';
+import { startAgent } from '@page/agent';
+import type { AmoRequest } from '@page/amo.types';
+import { nextSeq, SENDING_MAX } from '@page/coreSend';
+import { fieldOf } from '@page/field';
 import {
   PAGE_FILE_ATTR,
   PAGE_REQUEST_EVENT,
   PAGE_RESPONSE_EVENT,
   PAGE_TARGET_ATTR,
   parsePageResponse,
-} from '../src/shared/pageBridge';
+} from '@shared/pageBridge';
 
-import { FakeDocument, FakeElement } from './helpers/fakeDocument';
-import { fiberChain, nodeWithFiber } from './helpers/fakeFiber';
-import { FakePageNode } from './helpers/fakePageNode';
-import { CALL_LOADED, FakeWorker } from './helpers/fakeWorker';
-import { makeGif } from './helpers/makeGif';
+import {
+  CALL_LOADED,
+  FakeDocument,
+  FakeElement,
+  FakePageNode,
+  FakeWorker,
+  fiberChain,
+  makeGif,
+  nodeWithFiber,
+} from './helpers';
 
 const CHAT_ID = 'chat-1';
 const DRAFT_TEXT = 'привет, это черновик';

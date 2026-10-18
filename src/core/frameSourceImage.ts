@@ -1,6 +1,6 @@
-import { t } from './i18n/translate';
 import type { FramePlanItem, FrameSource } from './frameSource.types';
 import { fit, MAX_DURATION_SEC, MAX_FRAMES, planItem } from './frameSourceCommon';
+import { t } from './i18n';
 
 const MAX_DURATION_MS = MAX_DURATION_SEC * 1000;
 

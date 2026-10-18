@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { encodeLadder } from '../src/core/encodeLadder';
-import type { EncodedPass } from '../src/core/encodeLadder.types';
-import { MAX_GIF_BYTES, SAFETY, SAMPLE_FRAMES } from '../src/core/sidePick';
+import { encodeLadder } from '@core/encodeLadder';
+import type { EncodedPass } from '@core/encodeLadder.types';
+import { MAX_GIF_BYTES, SAFETY, SAMPLE_FRAMES } from '@core/sidePick';
 
 const MB = 1024 * 1024;
 

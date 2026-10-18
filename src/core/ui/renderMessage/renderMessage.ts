@@ -1,7 +1,7 @@
 import type { ComponentChild } from 'preact';
 
-import type { MessageKey } from '../../i18n/i18n.types';
-import { messageTemplate, PLACEHOLDER } from '../../i18n/translate';
+import type { MessageKey } from '@core/i18n';
+import { messageTemplate, PLACEHOLDER } from '@core/i18n';
 
 import type { MessageNodes, TemplateNodes } from './renderMessage.types';
 

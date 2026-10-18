@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { readTelegramToken } from '../scripts/telegramToken';
+import { readTelegramToken } from '@scripts/telegramToken';
 
 describe('readTelegramToken', () => {
   it.each([undefined, '', '  \n'])('без значения («%s») — пустая строка', (value) => {

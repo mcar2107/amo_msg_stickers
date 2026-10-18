@@ -1,4 +1,4 @@
-import type { FileCardPack } from '../../../../../../libraryFile/readLibraryFile.types';
+import type { FileCardPack } from '@core/libraryFile';
 
 export type PackListProps = {
   /**

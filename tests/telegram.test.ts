@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { toStickerGif } from '../src/core/convert';
+import { toStickerGif } from '@core/convert';
 import {
   deletePack,
   deleteSticker,
@@ -9,26 +9,26 @@ import {
   putPack,
   putSticker,
   setPackCover,
-} from '../src/core/db';
-import type { Pack, StickerRec } from '../src/core/db.types';
-import type { Host } from '../src/core/host.types';
-import { setLocale } from '../src/core/i18n/translate';
-import { httpError, tooBigError } from '../src/core/net';
+} from '@core/db';
+import type { Pack, StickerRec } from '@core/db.types';
+import type { Host } from '@core/host.types';
+import { setLocale } from '@core/i18n';
+import { httpError, tooBigError } from '@core/net';
+import type { ImportProgress } from '@core/sources';
 import {
   importTelegramSet,
   isBotTokenFormat,
   previewOutcome,
   resolveTelegramSet,
-} from '../src/core/sources/telegram';
-import type { ImportProgress } from '../src/core/sources/telegram.types';
+} from '@core/sources';
 
-import { fakeHost } from './helpers/fakeHost';
+import { fakeHost } from './helpers';
 
 /**
  * Конвертации нужен canvas, а базе — IndexedDB: в Node их нет, и проверяем мы здесь
  * обращение к Bot API, а не их.
  */
-vi.mock('../src/core/convert', () => {
+vi.mock('@core/convert', () => {
   return {
     toStickerGif: vi.fn(async () => {
       return { blob: new Blob(['gif']), width: 512, height: 512 };
@@ -43,7 +43,7 @@ const builtin = vi.hoisted(() => {
   return { token: '' };
 });
 
-vi.mock('../src/core/builtinToken', () => {
+vi.mock('@core/builtinToken', () => {
   return {
     get BUILTIN_TELEGRAM_TOKEN() {
       return builtin.token;
@@ -51,7 +51,7 @@ vi.mock('../src/core/builtinToken', () => {
   };
 });
 
-vi.mock('../src/core/db', () => {
+vi.mock('@core/db', () => {
   return {
     getPack: vi.fn(async () => {}),
     putPack: vi.fn(async () => {}),

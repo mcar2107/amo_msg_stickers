@@ -1,6 +1,6 @@
 import type { FunctionComponent as FC, TargetedKeyboardEvent } from 'preact';
 
-import { moveTabFocus } from '../../moveTabFocus/moveTabFocus';
+import { moveTabFocus } from '@ui/moveTabFocus';
 
 import type { SectionTabProps } from './SectionTab.types';
 

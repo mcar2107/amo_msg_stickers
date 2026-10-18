@@ -1,6 +1,6 @@
 import type { FunctionComponent as FC } from 'preact';
 
-import { FeedChip } from './FeedChip/FeedChip';
+import { FeedChip } from './FeedChip';
 import type { FeedChipsProps } from './FeedChips.types';
 
 /**

@@ -1,5 +1,5 @@
-import type { MenuOpening } from '../Menu.types';
-import type { MenuPoint } from '../menuPosition/menuPosition.types';
+import type { MenuOpening } from '@ui/Menu';
+import type { MenuPoint } from '@ui/Menu/menuPosition';
 
 /**
  * Открытое контекстное меню с номером открытия.

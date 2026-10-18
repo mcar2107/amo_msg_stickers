@@ -1,12 +1,12 @@
 import type { FunctionComponent as FC } from 'preact';
 
-import { t } from '../../../../i18n/translate';
-import { Button } from '../../Button/Button';
-import type { ButtonClickEvent } from '../../Button/Button.types';
-import { segmentFormId } from '../segmentIds/segmentIds';
+import { t } from '@core/i18n';
+import { segmentFormId } from '@ui/AddView/segmentIds';
+import type { ButtonClickEvent } from '@ui/Button';
+import { Button } from '@ui/Button';
 
-import { isRepeatClick } from './isRepeatClick/isRepeatClick';
 import type { ImportFooterProps } from './ImportFooter.types';
+import { isRepeatClick } from './isRepeatClick';
 
 /**
  * Футер экрана на сегментах импорта — «Telegram» и «Файл»: «Импорт» отправляет форму сегмента, во время импорта на

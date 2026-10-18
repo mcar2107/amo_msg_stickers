@@ -1,9 +1,9 @@
-import { itemKey } from '../../../../db';
-import type { FavoriteRec, RecentRec, RemoteGif } from '../../../../db.types';
-import { t } from '../../../../i18n/translate';
-import type { GifSection } from '../../MasonryGrid/MasonryGrid.types';
-import { COLUMN_COUNT } from '../../MasonryGrid/tileBox/tileBox';
-import type { FeedLoading } from '../../useGifFeed/useGifFeed.types';
+import { itemKey } from '@core/db';
+import type { FavoriteRec, RecentRec, RemoteGif } from '@core/db.types';
+import { t } from '@core/i18n';
+import type { GifSection } from '@ui/MasonryGrid';
+import { COLUMN_COUNT } from '@ui/MasonryGrid/tileBox';
+import type { FeedLoading } from '@ui/useGifFeed';
 
 import type { FavoriteGifs, GifSectionsInput } from './gifSections.types';
 

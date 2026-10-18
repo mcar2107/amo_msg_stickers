@@ -1,5 +1,5 @@
-import type { CoverBitmaps } from '../PackCover/coverBitmaps/coverBitmaps.types';
-import type { FeedSection } from '../StickersMode/feedSections/feedSections.types';
+import type { CoverBitmaps } from '@ui/PackCover/coverBitmaps';
+import type { FeedSection } from '@ui/StickersMode/feedSections';
 
 export type SectionTabsProps = {
   /**

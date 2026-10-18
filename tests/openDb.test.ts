@@ -144,7 +144,7 @@ beforeEach(async () => {
     },
   });
   vi.resetModules();
-  ({ openDb } = await import('../src/core/db'));
+  ({ openDb } = await import('@core/db'));
 });
 
 describe('openDb', () => {

@@ -7,7 +7,7 @@ import {
   SAMPLE_FRAMES,
   sampleIndices,
   sideLadder,
-} from '../src/core/sidePick';
+} from '@core/sidePick';
 
 const MB = 1024 * 1024;
 

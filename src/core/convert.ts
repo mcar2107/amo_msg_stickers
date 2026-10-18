@@ -1,4 +1,3 @@
-import { t } from './i18n/translate';
 import {
   type CanvasBox,
   type Decorate,
@@ -13,6 +12,7 @@ import type { FrameSink } from './frameSink.types';
 import { openFrameSource } from './frameSource';
 import type { FrameSource } from './frameSource.types';
 import { fit, planItem } from './frameSourceCommon';
+import { t } from './i18n';
 import { MAX_GIF_BYTES } from './sidePick';
 
 /**

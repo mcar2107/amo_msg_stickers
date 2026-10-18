@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef } from 'preact/hooks';
 
-import { createPressGesture, shouldSwapPreview } from '../pressGesture/pressGesture';
+import { createPressGesture, shouldSwapPreview } from '@ui/pressGesture';
 
 import type {
   PressPreviewMethods,

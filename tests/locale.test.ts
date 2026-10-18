@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { AMO_LOCALE_KEY, readAmoLocale, resolveLocale } from '../src/core/i18n/locale';
+import { AMO_LOCALE_KEY, readAmoLocale, resolveLocale } from '@core/i18n';
 
 /**
  * @param getItem — чтение хранилища страницы

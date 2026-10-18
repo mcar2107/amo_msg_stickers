@@ -1,9 +1,9 @@
 import { useLayoutEffect, useRef, useState } from 'preact/hooks';
 
-import { scrollMotion } from '../../scrollMotion/scrollMotion';
-import { centerScrollLeft } from '../centerScrollLeft/centerScrollLeft';
-import { createTabCentering } from '../tabCentering/tabCentering';
-import { placeIndicator } from '../tabIndicator/tabIndicator';
+import { scrollMotion } from '@ui/scrollMotion';
+import { centerScrollLeft } from '@ui/SectionTabs/centerScrollLeft';
+import { createTabCentering } from '@ui/SectionTabs/tabCentering';
+import { placeIndicator } from '@ui/SectionTabs/tabIndicator';
 
 import type { CenterTabRefs } from './useCenterTab.types';
 

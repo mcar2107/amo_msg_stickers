@@ -1,8 +1,8 @@
 import type { FunctionComponent as FC } from 'preact';
 
-import { t } from '../../../../../i18n/translate';
-import { MenuItem } from '../../MenuItem/MenuItem';
-import { useMenuClose } from '../../useMenuClose/useMenuClose';
+import { t } from '@core/i18n';
+import { MenuItem } from '@ui/Menu/MenuItem';
+import { useMenuClose } from '@ui/Menu/useMenuClose';
 
 import type { PreviewItemProps } from './PreviewItem.types';
 

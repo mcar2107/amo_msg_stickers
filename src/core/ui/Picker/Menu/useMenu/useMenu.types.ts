@@ -1,4 +1,4 @@
-import type { MenuPoint } from '../menuPosition/menuPosition.types';
+import type { MenuPoint } from '@ui/Menu/menuPosition';
 
 export type MenuState = {
   /**

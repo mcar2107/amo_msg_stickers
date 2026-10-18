@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { columnWidth, tileBox } from '../src/core/ui/Picker/MasonryGrid/tileBox/tileBox';
+import { columnWidth, tileBox } from '@ui/MasonryGrid/tileBox';
 
 describe('columnWidth', () => {
   it('делит ширину ленты на две колонки за вычетом зазора 4 px', () => {

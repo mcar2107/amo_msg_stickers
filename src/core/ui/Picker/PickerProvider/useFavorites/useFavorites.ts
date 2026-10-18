@@ -1,9 +1,9 @@
 import { useCallback, useMemo, useRef, useState } from 'preact/hooks';
 
-import { deleteFavorite, itemKey, listFavorites, putFavorite } from '../../../../db';
-import type { FavoriteRec, SendItem, StickerRec } from '../../../../db.types';
-import { t } from '../../../../i18n/translate';
-import { errorMessage } from '../errorMessage';
+import { deleteFavorite, itemKey, listFavorites, putFavorite } from '@core/db';
+import type { FavoriteRec, SendItem, StickerRec } from '@core/db.types';
+import { t } from '@core/i18n';
+import { errorMessage } from '@ui/PickerProvider/errorMessage';
 
 import { favoritesAfterChange } from './favoritesAfterChange';
 import type { FavoritesContextValue, FavoritesOptions } from './useFavorites.types';

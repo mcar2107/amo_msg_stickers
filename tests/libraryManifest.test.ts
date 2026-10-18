@@ -5,8 +5,8 @@ import {
   MAX_CAPTION_GRAPHEMES,
   MAX_FILE_STICKERS,
   MAX_TITLE_GRAPHEMES,
-} from '../src/core/libraryFile/limits';
-import { parseManifest } from '../src/core/libraryFile/manifest.types';
+  parseManifest,
+} from '@core/libraryFile';
 
 /**
  * Стикер Telegram из описания.

@@ -1,15 +1,15 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { EN } from '../src/core/i18n/messages.en';
-import { RU } from '../src/core/i18n/messages.ru';
 import {
+  EN,
   formatMessage,
   getLocale,
   LocalizedError,
   messageTemplate,
+  RU,
   setLocale,
   t,
-} from '../src/core/i18n/translate';
+} from '@core/i18n';
 
 const PLACEHOLDER = /\{(\w+)\}/g;
 

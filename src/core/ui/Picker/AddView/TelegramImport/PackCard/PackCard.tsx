@@ -1,9 +1,9 @@
 import type { FunctionComponent as FC } from 'preact';
 
-import { t } from '../../../../../i18n/translate';
+import { t } from '@core/i18n';
 
-import { packCardCount } from './packCardCount/packCardCount';
 import type { PackCardProps } from './PackCard.types';
+import { packCardCount } from './packCardCount';
 
 /**
  * Появление — переход из `@starting-style` при монтировании карточки; без уменьшения движения

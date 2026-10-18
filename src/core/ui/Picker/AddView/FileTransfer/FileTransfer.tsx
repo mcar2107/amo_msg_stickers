@@ -1,14 +1,14 @@
 import type { FunctionComponent as FC } from 'preact';
 import { useRef } from 'preact/hooks';
 
-import { t } from '../../../../i18n/translate';
-import { LinkButton } from '../../LinkButton/LinkButton';
-import { usePicker } from '../../PickerProvider/usePicker';
-import { usePickerView } from '../../usePickerView/usePickerView';
+import { t } from '@core/i18n';
+import { LinkButton } from '@ui/LinkButton';
+import { usePicker } from '@ui/PickerProvider';
+import { usePickerView } from '@ui/usePickerView';
 
-import { FileDropZone } from './FileDropZone/FileDropZone';
-import { ImportCard } from './ImportCard/ImportCard';
-import { useImportEndFocus } from './useImportEndFocus/useImportEndFocus';
+import { FileDropZone } from './FileDropZone';
+import { ImportCard } from './ImportCard';
+import { useImportEndFocus } from './useImportEndFocus';
 
 /**
  * Панель сегмента «Файл»: загрузка файла выгрузки — зона с карточкой «что добавится» на её месте и ошибка. Файл,

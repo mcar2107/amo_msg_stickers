@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
-import { createGifWorkerHandler } from '../src/core/gifWorker';
-import type { GifWorkerResponse } from '../src/core/gifWorker.types';
+import { createGifWorkerHandler } from '@core/gifWorker';
+import type { GifWorkerResponse } from '@core/gifWorker.types';
 
-import { solidFrame } from './helpers/solidFrame';
+import { solidFrame } from './helpers';
 
 const SIZE = 4;
 const DELAY_MS = 40;

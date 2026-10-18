@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
-import type { Settings } from '../src/core/host.types';
+import type { Settings } from '@core/host.types';
 import {
   checkPlan,
   dropWritten,
   forgetChecked,
   pendingWrite,
-} from '../src/core/ui/Picker/SettingsView/settingsDraft/settingsDraft';
+} from '@ui/SettingsView/settingsDraft';
 
 const SAVED: Settings = { giphyKey: 'g1', klipyKey: '', telegramToken: '123:abc' };
 

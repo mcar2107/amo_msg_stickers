@@ -1,7 +1,7 @@
-import { t } from './i18n/translate';
 import { isDraftEmpty, isEditing, sendButtonOf } from './amoDom';
 import type { SendComposer } from './amoDom.types';
 import { GIF_HEADER_BYTES, gifScreenSize, inspectGif } from './gif';
+import { t } from './i18n';
 import type { PageClient, PageSendResult } from './pageClient.types';
 
 export class SendError extends Error {}

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { packLink } from '../src/core/packLink';
+import { packLink } from '@core/packLink';
 
 describe('packLink', () => {
   it('у пака Telegram с именем набора — ссылка на добавление', () => {

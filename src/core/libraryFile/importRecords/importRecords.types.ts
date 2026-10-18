@@ -1,4 +1,4 @@
-import type { Pack, StickerRec } from '../db.types';
+import type { Pack, StickerRec } from '@core/db.types';
 
 /**
  * Состояние библиотеки в момент записи импорта — то, что транзакция прочитала перед записью.

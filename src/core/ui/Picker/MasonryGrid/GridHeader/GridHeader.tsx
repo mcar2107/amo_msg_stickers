@@ -1,6 +1,6 @@
 import type { FunctionComponent as FC } from 'preact';
 
-import { ClearRecentButton } from '../../SectionHeader/ClearRecentButton/ClearRecentButton';
+import { ClearRecentButton } from '@ui/SectionHeader/ClearRecentButton';
 
 import type { GridHeaderProps } from './GridHeader.types';
 

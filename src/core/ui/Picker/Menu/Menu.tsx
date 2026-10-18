@@ -2,10 +2,10 @@ import { cva } from 'class-variance-authority';
 import type { FunctionComponent as FC, TargetedFocusEvent } from 'preact';
 import { useRef } from 'preact/hooks';
 
-import { nextMenuIndex } from './menuFocus/menuFocus';
-import { useMenu } from './useMenu/useMenu';
 import type { MenuProps } from './Menu.types';
 import { MenuContext } from './MenuContext';
+import { nextMenuIndex } from './menuFocus';
+import { useMenu } from './useMenu';
 
 /**
  * Tab тоже закрывает меню: пункты вне порядка Tab, и без закрытия фокус ушёл бы из открытого

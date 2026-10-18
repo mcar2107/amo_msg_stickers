@@ -1,10 +1,10 @@
 import type { FunctionComponent as FC } from 'preact';
 
-import { itemKey } from '../../../../../db';
-import { t } from '../../../../../i18n/translate';
-import { useFavoritesContext } from '../../../PickerProvider/useFavorites/useFavoritesContext';
-import { MenuItem } from '../../MenuItem/MenuItem';
-import { useMenuClose } from '../../useMenuClose/useMenuClose';
+import { itemKey } from '@core/db';
+import { t } from '@core/i18n';
+import { MenuItem } from '@ui/Menu/MenuItem';
+import { useMenuClose } from '@ui/Menu/useMenuClose';
+import { useFavoritesContext } from '@ui/PickerProvider/useFavorites';
 
 import type { FavoriteItemProps } from './FavoriteItem.types';
 

@@ -1,6 +1,6 @@
-import { isObject } from '../../shared/guards';
-import { CUSTOM_PACK_ID } from '../db';
-import { SET_NAME_RE } from '../sources/telegram.types';
+import { CUSTOM_PACK_ID } from '@core/db';
+import { SET_NAME_RE } from '@core/sources';
+import { isObject } from '@shared/guards';
 
 import {
   clampGraphemes,

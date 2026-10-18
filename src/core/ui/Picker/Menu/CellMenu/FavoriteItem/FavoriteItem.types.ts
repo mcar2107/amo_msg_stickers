@@ -1,4 +1,4 @@
-import type { SendItem } from '../../../../../db.types';
+import type { SendItem } from '@core/db.types';
 
 export type FavoriteItemProps = {
   /**

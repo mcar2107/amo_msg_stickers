@@ -1,12 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
-import type { PreviewDirection } from '../src/core/ui/Picker/Preview/previewDirection/previewDirection.types';
-import { stickerNeighbor } from '../src/core/ui/Picker/StickerFeed/stickerNeighbor/stickerNeighbor';
-import { buildStickerLayout } from '../src/core/ui/Picker/stickerLayout/stickerLayout';
-import type {
-  StickerRow,
-  StickerSection,
-} from '../src/core/ui/Picker/stickerLayout/stickerLayout.types';
+import type { PreviewDirection } from '@ui/Preview/previewDirection';
+import { stickerNeighbor } from '@ui/StickerFeed/stickerNeighbor';
+import type { StickerRow, StickerSection } from '@ui/stickerLayout';
+import { buildStickerLayout } from '@ui/stickerLayout';
 
 /**
  * Раздел со стикерами `<префикс>0…<префикс>{count−1}`.

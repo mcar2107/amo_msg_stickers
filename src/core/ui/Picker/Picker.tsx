@@ -2,26 +2,25 @@ import { cva } from 'class-variance-authority';
 import type { FunctionComponent as FC, TargetedFocusEvent } from 'preact';
 import { useState } from 'preact/hooks';
 
-import type { ButtonAnchor } from '../../amoDom.types';
-import type { PanelPhase } from '../../hoverPopup.types';
-import { t } from '../../i18n/translate';
+import type { ButtonAnchor } from '@core/amoDom.types';
+import type { PanelPhase } from '@core/hoverPopup.types';
+import { t } from '@core/i18n';
 
-import { AddView } from './AddView/AddView';
-import { Footer } from './Footer/Footer';
-import { GifView } from './GifView/GifView';
-import { isTextField } from './isTextField/isTextField';
-import { ModePanel } from './ModePanel/ModePanel';
-import { usePicker } from './PickerProvider/usePicker';
-import { PreviewOverlay } from './Preview/PreviewOverlay/PreviewOverlay';
-import { PreviewProvider } from './Preview/PreviewProvider';
-import { SettingsView } from './SettingsView/SettingsView';
-import { StatusBar } from './StatusBar/StatusBar';
-import { StickersMode } from './StickersMode/StickersMode';
-import { useOpenLoad } from './useOpenLoad/useOpenLoad';
-import { hasScreenFooter } from './usePickerView/hasScreenFooter';
-import { usePickerView } from './usePickerView/usePickerView';
-import type { PickerScreen } from './usePickerView/usePickerView.types';
+import { PreviewOverlay } from './Preview/PreviewOverlay';
+import { AddView } from './AddView';
+import { Footer } from './Footer';
+import { GifView } from './GifView';
+import { isTextField } from './isTextField';
+import { ModePanel } from './ModePanel';
 import type { PickerProps } from './Picker.types';
+import { usePicker } from './PickerProvider';
+import { PreviewProvider } from './Preview';
+import { SettingsView } from './SettingsView';
+import { StatusBar } from './StatusBar';
+import { StickersMode } from './StickersMode';
+import { useOpenLoad } from './useOpenLoad';
+import type { PickerScreen } from './usePickerView';
+import { hasScreenFooter, usePickerView } from './usePickerView';
 
 /**
  * Геометрия, тень и радиус повторяют попап эмодзи amo; место панели — вариант `anchor`.

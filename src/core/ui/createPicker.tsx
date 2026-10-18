@@ -1,14 +1,14 @@
 import { render } from 'preact';
 
+import type { Host } from '@core/host.types';
+import type { OpenedBy } from '@core/hoverPopup.types';
+import { createPopupHolds } from '@core/hoverPopupHolds';
+import { createPanelPhase } from '@core/hoverPopupPhase';
+import { Picker } from '@ui';
+import { PickerProvider } from '@ui/PickerProvider';
+
 import css from './picker.css';
 
-import type { Host } from '../host.types';
-import type { OpenedBy } from '../hoverPopup.types';
-import { createPopupHolds } from '../hoverPopupHolds';
-import { createPanelPhase } from '../hoverPopupPhase';
-
-import { Picker } from './Picker/Picker';
-import { PickerProvider } from './Picker/PickerProvider/PickerProvider';
 import type { PanelAnchor, PickerCallbacks, PickerHandle } from './createPicker.types';
 
 /**

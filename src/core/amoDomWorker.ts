@@ -12,8 +12,8 @@ import {
   MARK_HEIGHT_VAR,
   MARK_KIND_ATTR,
   MARK_WIDTH_VAR,
-} from '../shared/stickerMark';
-import { ATTACHMENTS_SELECTOR, CAPSULE_TOP_SELECTOR } from '../shared/workerCompose';
+} from '@shared/stickerMark';
+import { ATTACHMENTS_SELECTOR, CAPSULE_TOP_SELECTOR } from '@shared/workerCompose';
 
 import type {
   AmoMarkup,

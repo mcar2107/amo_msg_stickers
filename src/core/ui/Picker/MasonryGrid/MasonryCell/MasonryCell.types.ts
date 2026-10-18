@@ -1,5 +1,5 @@
-import type { RemoteGif } from '../../../../db.types';
-import type { TileRect } from '../tileBox/tileBox.types';
+import type { RemoteGif } from '@core/db.types';
+import type { TileRect } from '@ui/MasonryGrid/tileBox';
 
 export type MasonryCellProps = {
   /**

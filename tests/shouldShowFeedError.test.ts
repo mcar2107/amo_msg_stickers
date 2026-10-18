@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { shouldShowFeedError } from '../src/core/ui/Picker/useGifFeed/shouldShowFeedError';
+import { shouldShowFeedError } from '@ui/useGifFeed';
 
 describe('shouldShowFeedError', () => {
   it('пока открыт экран, ошибка ленты не перебивает его статус', () => {

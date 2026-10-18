@@ -1,11 +1,11 @@
-import { isDimension } from '../shared/guards';
+import { isDimension } from '@shared/guards';
 import {
   MARK_BOX_SELECTOR,
   MARK_HEIGHT_VAR,
   MARK_KIND_ATTR,
   MARK_WIDTH_VAR,
   markKindOf,
-} from '../shared/stickerMark';
+} from '@shared/stickerMark';
 
 import { propsUp } from './fiber';
 import { fieldOf } from './field';

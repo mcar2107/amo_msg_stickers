@@ -1,5 +1,5 @@
-import { SET_NAME_RE } from './sources/telegram.types';
 import type { Pack } from './db.types';
+import { SET_NAME_RE } from './sources';
 
 /**
  * Начало ссылки на набор стикеров в Telegram: к нему дописывается имя набора.

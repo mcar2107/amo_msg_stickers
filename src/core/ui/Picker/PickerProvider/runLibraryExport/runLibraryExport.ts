@@ -1,6 +1,6 @@
-import { t } from '../../../../i18n/translate';
-import type { ExportProgress } from '../../../../libraryFile/exportLibrary.types';
-import { errorMessage } from '../errorMessage';
+import { t } from '@core/i18n';
+import type { ExportProgress } from '@core/libraryFile';
+import { errorMessage } from '@ui/PickerProvider/errorMessage';
 
 import type { ExportTarget, LibraryExportRun } from './runLibraryExport.types';
 

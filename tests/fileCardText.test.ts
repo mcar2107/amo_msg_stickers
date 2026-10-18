@@ -1,19 +1,17 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { setLocale } from '../src/core/i18n/translate';
-import type {
-  ManifestPack,
-  ManifestSticker,
-} from '../src/core/libraryFile/manifest.types';
+import { setLocale } from '@core/i18n';
 import type {
   FileCard,
   FileCardPack,
-} from '../src/core/libraryFile/readLibraryFile.types';
+  ManifestPack,
+  ManifestSticker,
+} from '@core/libraryFile';
 import {
   fileCardSummary,
   filePackCount,
   filePackTitle,
-} from '../src/core/ui/Picker/AddView/FileTransfer/ImportCard/fileCardText/fileCardText';
+} from '@ui/AddView/FileTransfer/ImportCard/fileCardText';
 
 const sticker = (id: string): ManifestSticker => {
   return { id, file: `stickers/${id}.gif` };

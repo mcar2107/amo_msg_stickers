@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { downloadBlob, REVOKE_DELAY_MS } from '../src/core/download';
+import { downloadBlob, REVOKE_DELAY_MS } from '@core/download';
 
 /**
  * Ссылка-заглушка: запоминает, что в неё записали, и отмечает клик.

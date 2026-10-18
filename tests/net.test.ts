@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { LocalizedError, setLocale } from '../src/core/i18n/translate';
+import { LocalizedError, setLocale } from '@core/i18n';
 import {
   BYTES_IN_MB,
   ERROR_BODY_MAX_BYTES,
@@ -15,10 +15,9 @@ import {
   readPrefix,
   readResponseLimited,
   tooBigError,
-} from '../src/core/net';
+} from '@core/net';
 
-import { chunkedStream } from './helpers/chunkedStream';
-import { mockResponse } from './helpers/mockResponse';
+import { chunkedStream, mockResponse } from './helpers';
 
 describe('isAllowedUrl', () => {
   it.each([

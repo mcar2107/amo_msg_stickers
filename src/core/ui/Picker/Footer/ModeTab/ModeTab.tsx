@@ -1,8 +1,8 @@
 import type { FunctionComponent as FC, TargetedKeyboardEvent } from 'preact';
 
-import { modePanelId, modeTabId } from '../../ModePanel/modeIds';
-import { moveTabFocus } from '../../moveTabFocus/moveTabFocus';
-import { usePickerView } from '../../usePickerView/usePickerView';
+import { modePanelId, modeTabId } from '@ui/ModePanel';
+import { moveTabFocus } from '@ui/moveTabFocus';
+import { usePickerView } from '@ui/usePickerView';
 
 import type { ModeTabProps } from './ModeTab.types';
 

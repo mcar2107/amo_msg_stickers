@@ -5,14 +5,14 @@ import type {
   TargetedPointerEvent,
 } from 'preact';
 
-import { CellSpinner } from '../CellSpinner/CellSpinner';
-import { CellMenu } from '../Menu/CellMenu/CellMenu';
-import type { CellMenuRemove } from '../Menu/CellMenu/CellMenu.types';
-import { isMenuKey } from '../Menu/menuKey/menuKey';
-import { useContextMenu } from '../Menu/useContextMenu/useContextMenu';
-import { stickerPreviewTarget } from '../Preview/previewTarget/previewTarget';
-import { useCellPreview } from '../useCellPreview/useCellPreview';
-import { useCellSend } from '../useCellSend/useCellSend';
+import { CellSpinner } from '@ui/CellSpinner';
+import type { CellMenuRemove } from '@ui/Menu/CellMenu';
+import { CellMenu } from '@ui/Menu/CellMenu';
+import { isMenuKey } from '@ui/Menu/menuKey';
+import { useContextMenu } from '@ui/Menu/useContextMenu';
+import { stickerPreviewTarget } from '@ui/Preview/previewTarget';
+import { useCellPreview } from '@ui/useCellPreview';
+import { useCellSend } from '@ui/useCellSend';
 
 import type { StickerCellProps } from './StickerCell.types';
 

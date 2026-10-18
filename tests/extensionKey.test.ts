@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import manifest from '../src/extension/manifest.json';
+import manifest from '@extension/manifest.json';
 
 /**
  * ID карточки в Chrome Web Store. Архив из релиза получает его же только с ключом этой карточки: с другим ключом

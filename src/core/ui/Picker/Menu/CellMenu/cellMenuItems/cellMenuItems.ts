@@ -1,4 +1,4 @@
-import type { CellRemoveKind } from '../CellMenu.types';
+import type { CellRemoveKind } from '@ui/Menu/CellMenu';
 
 import type { CellMenuItemId } from './cellMenuItems.types';
 

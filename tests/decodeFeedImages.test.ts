@@ -1,10 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { decodeFeedImages } from '../src/core/ui/Picker/StickersMode/decodeFeedImages/decodeFeedImages';
-import type {
-  FeedImage,
-  FeedImagesElement,
-} from '../src/core/ui/Picker/StickersMode/decodeFeedImages/decodeFeedImages.types';
+import type { FeedImage, FeedImagesElement } from '@ui/StickersMode/decodeFeedImages';
+import { decodeFeedImages } from '@ui/StickersMode/decodeFeedImages';
 
 const CEILING_MS = 150;
 

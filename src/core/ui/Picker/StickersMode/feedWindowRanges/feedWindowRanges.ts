@@ -1,5 +1,5 @@
-import { visibleRows } from '../../stickerLayout/stickerLayout';
-import type { RowRange } from '../../stickerLayout/stickerLayout.types';
+import type { RowRange } from '@ui/stickerLayout';
+import { visibleRows } from '@ui/stickerLayout';
 
 import type { FeedWindowRangesOptions } from './feedWindowRanges.types';
 

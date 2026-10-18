@@ -1,16 +1,15 @@
 import { describe, expect, it } from 'vitest';
 
-import { createPageClient } from '../src/core/pageClient';
+import { createPageClient } from '@core/pageClient';
 import {
   PAGE_FILE_ATTR,
   PAGE_REQUEST_EVENT,
   PAGE_RESPONSE_EVENT,
   PAGE_TARGET_ATTR,
   parsePageRequest,
-} from '../src/shared/pageBridge';
+} from '@shared/pageBridge';
 
-import { FakeDocument, FakeElement } from './helpers/fakeDocument';
-import { makeGif } from './helpers/makeGif';
+import { FakeDocument, FakeElement, makeGif } from './helpers';
 
 const file = new File([makeGif(8, 8)], 'a.amostk.k-sticker.gif', { type: 'image/gif' });
 const dims = { w: 8, h: 8 };

@@ -1,5 +1,5 @@
-import type { PreviewTarget } from '../Preview/PreviewProvider.types';
-import type { PressPreviewMethods } from '../usePressPreview/usePressPreview.types';
+import type { PreviewTarget } from '@ui/Preview';
+import type { PressPreviewMethods } from '@ui/usePressPreview';
 
 /**
  * Параметры хука предпросмотра ячейки.

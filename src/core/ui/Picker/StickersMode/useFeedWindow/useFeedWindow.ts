@@ -1,21 +1,21 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'preact/hooks';
 
-import { elementById } from '../../elementById/elementById';
-import { isFocusLost } from '../../isFocusLost/isFocusLost';
-import { scrollMotion } from '../../scrollMotion/scrollMotion';
-import { sectionTabId } from '../../SectionTabs/sectionTabIds';
-import { buildStickerLayout } from '../../stickerLayout/stickerLayout';
-import type { RowRange } from '../../stickerLayout/stickerLayout.types';
-import { usePickerView } from '../../usePickerView/usePickerView';
-import { useScrollArea } from '../../useScrollArea/useScrollArea';
-import { anchorTop } from '../anchorTop/anchorTop';
-import { decodeFeedImages } from '../decodeFeedImages/decodeFeedImages';
-import { feedActiveSection } from '../feedActiveSection/feedActiveSection';
-import type { FeedSection } from '../feedSections/feedSections.types';
-import { feedWindowRanges } from '../feedWindowRanges/feedWindowRanges';
-import { createScrollLock } from '../scrollLock/scrollLock';
-import { sectionScrollPlan } from '../sectionScrollPlan/sectionScrollPlan';
-import { wheelDeltaPx } from '../wheelDeltaPx/wheelDeltaPx';
+import { elementById } from '@ui/elementById';
+import { isFocusLost } from '@ui/isFocusLost';
+import { scrollMotion } from '@ui/scrollMotion';
+import { sectionTabId } from '@ui/SectionTabs';
+import type { RowRange } from '@ui/stickerLayout';
+import { buildStickerLayout } from '@ui/stickerLayout';
+import { anchorTop } from '@ui/StickersMode/anchorTop';
+import { decodeFeedImages } from '@ui/StickersMode/decodeFeedImages';
+import { feedActiveSection } from '@ui/StickersMode/feedActiveSection';
+import type { FeedSection } from '@ui/StickersMode/feedSections';
+import { feedWindowRanges } from '@ui/StickersMode/feedWindowRanges';
+import { createScrollLock } from '@ui/StickersMode/scrollLock';
+import { sectionScrollPlan } from '@ui/StickersMode/sectionScrollPlan';
+import { wheelDeltaPx } from '@ui/StickersMode/wheelDeltaPx';
+import { usePickerView } from '@ui/usePickerView';
+import { useScrollArea } from '@ui/useScrollArea';
 
 import type { FeedGlide, FeedWindow } from './useFeedWindow.types';
 

@@ -1,6 +1,6 @@
-import type { ButtonAnchor } from '../amoDom.types';
-import type { SendItem } from '../db.types';
-import type { OpenedBy } from '../hoverPopup.types';
+import type { ButtonAnchor } from '@core/amoDom.types';
+import type { SendItem } from '@core/db.types';
+import type { OpenedBy } from '@core/hoverPopup.types';
 
 /**
  * Где и какой высоты встаёт панель при открытии.

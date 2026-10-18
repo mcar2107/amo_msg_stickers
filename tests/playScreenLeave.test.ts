@@ -1,11 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { playScreenLeave } from '../src/core/ui/Picker/Screen/useScreenMotion/playScreenLeave/playScreenLeave';
-import type { ScreenLeaveMotion } from '../src/core/ui/Picker/Screen/useScreenMotion/playScreenLeave/playScreenLeave.types';
+import type { ScreenLeaveMotion } from '@ui/Screen/useScreenMotion/playScreenLeave';
+import { playScreenLeave } from '@ui/Screen/useScreenMotion/playScreenLeave';
 import {
   SCREEN_ENTER_MS,
   SCREEN_LEAVE_MS,
-} from '../src/core/ui/Picker/Screen/useScreenMotion/screenTiming';
+} from '@ui/Screen/useScreenMotion/screenTiming';
 
 /**
  * Анимация появления, конец которой тест завершает сам; `reverse` запоминает скорость на

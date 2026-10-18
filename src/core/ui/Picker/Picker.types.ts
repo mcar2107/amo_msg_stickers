@@ -1,5 +1,5 @@
-import type { PanelPhase } from '../../hoverPopup.types';
-import type { PanelAnchor } from '../createPicker.types';
+import type { PanelPhase } from '@core/hoverPopup.types';
+import type { PanelAnchor } from '@core/ui/createPicker.types';
 
 export type PickerProps = {
   /**

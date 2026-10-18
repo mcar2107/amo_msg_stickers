@@ -1,5 +1,5 @@
-import { t } from '../../../../../../i18n/translate';
-import type { PackCard } from '../../../../PickerProvider/packCardView/packCardView.types';
+import { t } from '@core/i18n';
+import type { PackCard } from '@ui/PickerProvider/packCardView';
 
 /**
  * Карточка с названием пака: превью до импорта или ход импорта.

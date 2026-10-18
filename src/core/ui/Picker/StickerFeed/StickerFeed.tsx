@@ -1,18 +1,15 @@
 import type { FunctionComponent as FC } from 'preact';
 
-import { packLink } from '../../../packLink';
-import { PreviewNavigationContext } from '../Preview/PreviewNavigationContext';
-import { SectionHeader } from '../SectionHeader/SectionHeader';
-import { FEED_PANEL_ID, sectionTabId } from '../SectionTabs/sectionTabIds';
-import type { RowRange, StickerRow } from '../stickerLayout/stickerLayout.types';
-import type {
-  FeedSection,
-  FeedSticker,
-} from '../StickersMode/feedSections/feedSections.types';
+import { packLink } from '@core/packLink';
+import { PreviewNavigationContext } from '@ui/Preview';
+import { SectionHeader } from '@ui/SectionHeader';
+import { FEED_PANEL_ID, sectionTabId } from '@ui/SectionTabs';
+import type { RowRange, StickerRow } from '@ui/stickerLayout';
+import type { FeedSection, FeedSticker } from '@ui/StickersMode/feedSections';
 
-import { FeedRow } from './FeedRow/FeedRow';
-import { useStickerNavigator } from './useStickerNavigator/useStickerNavigator';
+import { FeedRow } from './FeedRow';
 import type { StickerFeedProps } from './StickerFeed.types';
+import { useStickerNavigator } from './useStickerNavigator';
 
 /**
  * Отступы по бокам — у прокручиваемого элемента: ширина его содержимого, по которой считается

@@ -1,14 +1,14 @@
 import type { RefObject } from 'preact';
 import { useCallback } from 'preact/hooks';
 
-import { elementById } from '../../elementById/elementById';
-import { resolveFocusTarget } from '../../removalFocus/removalFocus';
-import type { FocusTarget } from '../../removalFocus/removalFocus.types';
-import { sectionTabId } from '../../SectionTabs/sectionTabIds';
-import { cellId } from '../../StickerFeed/cellId';
-import { useRemovalFocus } from '../../useRemovalFocus/useRemovalFocus';
-import type { RemovalFocus } from '../../useRemovalFocus/useRemovalFocus.types';
-import type { FeedSection } from '../feedSections/feedSections.types';
+import { elementById } from '@ui/elementById';
+import type { FocusTarget } from '@ui/removalFocus';
+import { resolveFocusTarget } from '@ui/removalFocus';
+import { sectionTabId } from '@ui/SectionTabs';
+import { cellId } from '@ui/StickerFeed/cellId';
+import type { FeedSection } from '@ui/StickersMode/feedSections';
+import type { RemovalFocus } from '@ui/useRemovalFocus';
+import { useRemovalFocus } from '@ui/useRemovalFocus';
 
 /**
  * Элемент цели в shadow root пикера. Ячейка могла не попасть в окно ленты — тогда фокус

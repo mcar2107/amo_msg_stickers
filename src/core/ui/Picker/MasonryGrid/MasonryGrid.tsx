@@ -1,21 +1,21 @@
 import type { FunctionComponent as FC, TargetedEvent } from 'preact';
 import { useMemo } from 'preact/hooks';
 
-import type { RemoteGif } from '../../../db.types';
-import { gifCells } from '../keptScrollTop/keptScrollTop';
-import { useKeptScroll } from '../keptScrollTop/useKeptScroll/useKeptScroll';
-import { PreviewNavigationContext } from '../Preview/PreviewNavigationContext';
-import { useFeedEntry } from '../useFeedEntry/useFeedEntry';
+import type { RemoteGif } from '@core/db.types';
+import { gifCells } from '@ui/keptScrollTop';
+import { useKeptScroll } from '@ui/keptScrollTop/useKeptScroll';
+import { PreviewNavigationContext } from '@ui/Preview';
+import { useFeedEntry } from '@ui/useFeedEntry';
 
-import { GridHeader } from './GridHeader/GridHeader';
-import { MasonryCell } from './MasonryCell/MasonryCell';
-import { splitColumns, visibleTiles } from './splitColumns/splitColumns';
-import type { MasonrySection, MasonryTile } from './splitColumns/splitColumns.types';
-import { COLUMN_COUNT, columnWidth, GRID_GAP, tileBox } from './tileBox/tileBox';
-import { useGridWindow } from './useGridWindow/useGridWindow';
-import { useMasonryNavigator } from './useMasonryNavigator/useMasonryNavigator';
 import { gifItemCellId, gifKey } from './gifCellId';
+import { GridHeader } from './GridHeader';
+import { MasonryCell } from './MasonryCell';
 import type { MasonryGridProps } from './MasonryGrid.types';
+import type { MasonrySection, MasonryTile } from './splitColumns';
+import { splitColumns, visibleTiles } from './splitColumns';
+import { COLUMN_COUNT, columnWidth, GRID_GAP, tileBox } from './tileBox';
+import { useGridWindow } from './useGridWindow';
+import { useMasonryNavigator } from './useMasonryNavigator';
 
 /**
  * Отступы по бокам — у прокручиваемого элемента: ширина его содержимого, по которой считается

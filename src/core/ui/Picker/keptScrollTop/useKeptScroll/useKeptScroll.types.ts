@@ -1,7 +1,7 @@
 import type { RefObject } from 'preact';
 
-import type { KeptScroll } from '../createKeptScroll/createKeptScroll.types';
-import type { CellPosition } from '../keptScrollTop.types';
+import type { CellPosition } from '@ui/keptScrollTop';
+import type { KeptScroll } from '@ui/keptScrollTop/createKeptScroll';
 
 export type KeptScrollOptions = {
   /**

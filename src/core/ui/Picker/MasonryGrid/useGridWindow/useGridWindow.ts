@@ -1,7 +1,7 @@
 import { useLayoutEffect, useState } from 'preact/hooks';
 
-import { useScrollArea } from '../../useScrollArea/useScrollArea';
-import { createScrollReset } from '../scrollReset/scrollReset';
+import { createScrollReset } from '@ui/MasonryGrid/scrollReset';
+import { useScrollArea } from '@ui/useScrollArea';
 
 import type { GridWindow } from './useGridWindow.types';
 

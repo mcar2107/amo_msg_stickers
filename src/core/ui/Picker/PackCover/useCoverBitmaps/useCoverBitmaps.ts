@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from 'preact/hooks';
 
-import { createCoverBitmaps } from '../coverBitmaps/coverBitmaps';
-import type { CoverBitmaps } from '../coverBitmaps/coverBitmaps.types';
+import type { CoverBitmaps } from '@ui/PackCover/coverBitmaps';
+import { createCoverBitmaps } from '@ui/PackCover/coverBitmaps';
 
 /**
  * Кэш битмапов обложек на одно открытие попапа. Закрытие попапа закрывает все битмапы: закрытый

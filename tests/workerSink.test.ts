@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import type { FrameSink } from '../src/core/frameSink.types';
-import type { GifWorkerRequest, GifWorkerResponse } from '../src/core/gifWorker.types';
-import type { WorkerPort } from '../src/core/workerSink.types';
-import { createFallbackAwareSink, createWorkerSink } from '../src/core/workerSinkClient';
+import type { FrameSink } from '@core/frameSink.types';
+import type { GifWorkerRequest, GifWorkerResponse } from '@core/gifWorker.types';
+import type { WorkerPort } from '@core/workerSink.types';
+import { createFallbackAwareSink, createWorkerSink } from '@core/workerSinkClient';
 
 const SIZE = 2;
 const DELAY_MS = 40;

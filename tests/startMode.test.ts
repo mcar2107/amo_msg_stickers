@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import type { PageStorage } from '../src/core/pageStorage.types';
-import { MODE_KEY } from '../src/core/pickerMode';
-import { startMode } from '../src/core/ui/Picker/usePickerView/startMode';
+import type { PageStorage } from '@core/pageStorage.types';
+import { MODE_KEY } from '@core/pickerMode';
+import { startMode } from '@ui/usePickerView';
 
 /**
  * Хранилище с одним сохранённым значением режима.

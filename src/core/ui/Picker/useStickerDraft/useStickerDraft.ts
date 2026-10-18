@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useState } from 'preact/hooks';
 
-import { captionDecorator, detectKind, toStickerGif } from '../../../convert';
-import { CUSTOM_PACK_ID, putSticker, uid } from '../../../db';
-import { t } from '../../../i18n/translate';
-import { errorMessage } from '../PickerProvider/errorMessage';
-import { usePicker } from '../PickerProvider/usePicker';
-import { usePickerView } from '../usePickerView/usePickerView';
+import { captionDecorator, detectKind, toStickerGif } from '@core/convert';
+import { CUSTOM_PACK_ID, putSticker, uid } from '@core/db';
+import { t } from '@core/i18n';
+import { usePicker } from '@ui/PickerProvider';
+import { errorMessage } from '@ui/PickerProvider/errorMessage';
+import { usePickerView } from '@ui/usePickerView';
 
 import { isDraftConverting } from './draftConverting';
 import { draftSize } from './draftSize';

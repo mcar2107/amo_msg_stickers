@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { isMenuKey } from '../src/core/ui/Picker/Menu/menuKey/menuKey';
+import { isMenuKey } from '@ui/Menu/menuKey';
 
 const NO_MODIFIERS = { shiftKey: false, ctrlKey: false, altKey: false, metaKey: false };
 

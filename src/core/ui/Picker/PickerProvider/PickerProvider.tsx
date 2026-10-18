@@ -1,10 +1,10 @@
 import type { FunctionComponent as FC } from 'preact';
 
-import { PickerViewContext } from '../usePickerView/PickerViewContext';
+import { PickerViewContext } from '@ui/usePickerView';
 
-import { FavoritesContext } from './useFavorites/FavoritesContext';
 import { PickerContext } from './PickerContext';
 import type { PickerProviderProps } from './PickerProvider.types';
+import { FavoritesContext } from './useFavorites';
 import { usePickerState } from './usePickerState';
 
 export const PickerProvider: FC<PickerProviderProps> = (props) => {

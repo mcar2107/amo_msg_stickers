@@ -1,6 +1,6 @@
 import type { RefObject } from 'preact';
 
-import type { PreviewState } from '../PreviewProvider.types';
+import type { PreviewState } from '@ui/Preview';
 
 /**
  * Параметры хука полёта и фокуса предпросмотра.

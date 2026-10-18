@@ -1,8 +1,8 @@
 import { useState } from 'preact/hooks';
 
-import type { Settings } from '../../../../host.types';
-import { availableFeeds } from '../../../../sources/gifs';
-import type { GifFeed } from '../../../../sources/gifs.types';
+import type { Settings } from '@core/host.types';
+import type { GifFeed } from '@core/sources';
+import { availableFeeds } from '@core/sources';
 
 import type { FeedChoice } from './useFeedChoice.types';
 

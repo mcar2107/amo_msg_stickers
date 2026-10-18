@@ -1,18 +1,18 @@
 import { describe, expect, it } from 'vitest';
 
-import type { SendItem } from '../src/core/db.types';
+import type { SendItem } from '@core/db.types';
 import {
   buildStickerFileName,
   parseStickerFileName,
   sanitizeLabel,
   sendFileName,
-} from '../src/core/fileName';
+} from '@core/fileName';
 import type {
   ParsedStickerFileName,
   StickerFileKind,
   StickerFileNameParams,
   StickerLabelSource,
-} from '../src/core/fileName.types';
+} from '@core/fileName.types';
 
 const SEGMENTER = new Intl.Segmenter(undefined, { granularity: 'grapheme' });
 

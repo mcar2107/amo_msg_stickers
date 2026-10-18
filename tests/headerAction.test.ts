@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { headerAction } from '../src/core/ui/Picker/SectionHeader/headerAction/headerAction';
+import { headerAction } from '@ui/SectionHeader/headerAction';
 
 describe('headerAction', () => {
   it('у недавних — «Очистить»', () => {

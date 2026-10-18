@@ -1,4 +1,4 @@
-import type { OpenedBy } from '../../../../hoverPopup.types';
+import type { OpenedBy } from '@core/hoverPopup.types';
 
 /**
  * Ставить ли фокус в поиск GIF, когда режим «GIF» стал виден. Открытие наведением не уводит

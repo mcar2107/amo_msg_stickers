@@ -1,9 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import {
-  fieldDescribedBy,
-  fieldDescriptionIds,
-} from '../src/core/ui/Picker/Field/fieldDescription/fieldDescription';
+import { fieldDescribedBy, fieldDescriptionIds } from '@ui/Field/fieldDescription';
 
 describe('fieldDescriptionIds', () => {
   it('выводит id описаний из id поля', () => {

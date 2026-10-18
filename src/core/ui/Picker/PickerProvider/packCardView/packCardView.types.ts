@@ -1,4 +1,4 @@
-import type { ImportCount } from '../PickerProvider.types';
+import type { ImportCount } from '@ui/PickerProvider';
 
 /**
  * Название и размер пака для карточки.

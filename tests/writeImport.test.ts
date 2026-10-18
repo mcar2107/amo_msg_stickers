@@ -1,15 +1,11 @@
 import { IDBFactory, IDBObjectStore, IDBRequest } from 'fake-indexeddb';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { Pack, StickerRec } from '../src/core/db.types';
-import type {
-  ImportPlan,
-  ImportPlanPack,
-  ImportPlanSticker,
-} from '../src/core/libraryFile/prepareImport.types';
-import { fileImportFailure } from '../src/core/ui/Picker/PickerProvider/fileImportOutcome/fileImportOutcome';
+import type { Pack, StickerRec } from '@core/db.types';
+import type { ImportPlan, ImportPlanPack, ImportPlanSticker } from '@core/libraryFile';
+import { fileImportFailure } from '@ui/PickerProvider/fileImportOutcome';
 
-type Db = typeof import('../src/core/db');
+type Db = typeof import('@core/db');
 
 /**
  * Запись стикера для сравнения: блоб сравнивается по размеру.
@@ -31,7 +27,7 @@ beforeEach(async () => {
   vi.stubGlobal('indexedDB', new IDBFactory());
   vi.stubGlobal('IDBRequest', IDBRequest);
   vi.resetModules();
-  db = await import('../src/core/db');
+  db = await import('@core/db');
 });
 
 afterEach(() => {

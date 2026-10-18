@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import type { PageStorage } from '../src/core/pageStorage.types';
-import { MODE_KEY, readMode, writeMode } from '../src/core/pickerMode';
+import type { PageStorage } from '@core/pageStorage.types';
+import { MODE_KEY, readMode, writeMode } from '@core/pickerMode';
 
 /**
  * Хранилище на объекте — как `localStorage`, без браузера.

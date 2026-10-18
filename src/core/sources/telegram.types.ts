@@ -1,4 +1,4 @@
-import { isObject } from '../../shared/guards';
+import { isObject } from '@shared/guards';
 
 /**
  * Имя пака: из ссылки t.me/addstickers/<name> и из ответа `getStickerSet`. Идёт в id пака.

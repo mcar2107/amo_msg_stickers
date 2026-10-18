@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { revealScrollTop } from '../src/core/ui/Picker/revealScrollTop/revealScrollTop';
+import { revealScrollTop } from '@ui/revealScrollTop';
 
 describe('revealScrollTop', () => {
   it('ячейка видна целиком — прокрутка не меняется', () => {

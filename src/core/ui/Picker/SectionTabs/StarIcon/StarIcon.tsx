@@ -1,6 +1,6 @@
 import type { FunctionComponent as FC } from 'preact';
 
-import { TabSvg } from '../../TabSvg/TabSvg';
+import { TabSvg } from '@ui/TabSvg';
 
 export const StarIcon: FC = () => {
   return (

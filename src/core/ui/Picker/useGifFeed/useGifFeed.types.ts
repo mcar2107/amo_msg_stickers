@@ -1,5 +1,5 @@
-import type { RemoteGif } from '../../../db.types';
-import type { PickerScreen } from '../usePickerView/usePickerView.types';
+import type { RemoteGif } from '@core/db.types';
+import type { PickerScreen } from '@ui/usePickerView';
 
 /**
  * Какая страница выдачи грузится: первая по запросу или следующая при прокрутке.

@@ -1,10 +1,10 @@
-import { BUILTIN_KLIPY_KEY } from '../builtinKlipyKey';
-import type { RemoteGif } from '../db.types';
-import type { Host, Settings } from '../host.types';
-import type { Locale, MessageKey } from '../i18n/i18n.types';
-import { t } from '../i18n/translate';
-import { httpStatus, isAllowedUrl } from '../net';
-import { MAX_GIF_BYTES } from '../sidePick';
+import { BUILTIN_KLIPY_KEY } from '@core/builtinKlipyKey';
+import type { RemoteGif } from '@core/db.types';
+import type { Host, Settings } from '@core/host.types';
+import type { Locale, MessageKey } from '@core/i18n';
+import { t } from '@core/i18n';
+import { httpStatus, isAllowedUrl } from '@core/net';
+import { MAX_GIF_BYTES } from '@core/sidePick';
 
 import {
   type GifFeed,

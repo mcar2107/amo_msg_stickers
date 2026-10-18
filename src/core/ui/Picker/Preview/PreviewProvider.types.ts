@@ -1,8 +1,8 @@
 import type { ComponentChildren } from 'preact';
 
-import type { PanelPhase } from '../../../hoverPopup.types';
+import type { PanelPhase } from '@core/hoverPopup.types';
 
-import type { PreviewDirection } from './previewDirection/previewDirection.types';
+import type { PreviewDirection } from './previewDirection';
 
 /**
  * Что показывает предпросмотр.

@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { createMainThreadSink } from '../src/core/frameSinkMain';
-import { createGifEncoder } from '../src/core/gifEncoder';
+import { createMainThreadSink } from '@core/frameSinkMain';
+import { createGifEncoder } from '@core/gifEncoder';
 
-import { solidFrame } from './helpers/solidFrame';
+import { solidFrame } from './helpers';
 
 const SIZE = 4;
 

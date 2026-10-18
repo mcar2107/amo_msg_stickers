@@ -1,6 +1,6 @@
-import type { RemoteGif } from '../../../../db.types';
-import type { CellNames } from '../../cellName/cellName.types';
-import type { PreviewTarget } from '../PreviewProvider.types';
+import type { RemoteGif } from '@core/db.types';
+import type { CellNames } from '@ui/cellName';
+import type { PreviewTarget } from '@ui/Preview';
 
 /**
  * Цель предпросмотра стикера. Одна на ячейку и навигатор ленты: предпросмотр, открытый из меню

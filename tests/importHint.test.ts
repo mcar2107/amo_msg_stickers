@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { HINT_SEEN_KEY, readHintSeen, writeHintSeen } from '../src/core/importHint';
-import type { PageStorage } from '../src/core/pageStorage.types';
+import { HINT_SEEN_KEY, readHintSeen, writeHintSeen } from '@core/importHint';
+import type { PageStorage } from '@core/pageStorage.types';
 
 /**
  * Хранилище на объекте — как `localStorage`, без браузера.

@@ -1,4 +1,4 @@
-import type { PreviewTarget } from '../PreviewProvider.types';
+import type { PreviewTarget } from '@ui/Preview';
 
 export type PreviewImageProps = {
   /**

@@ -1,10 +1,10 @@
 import type { FunctionComponent as FC } from 'preact';
 
-import { t } from '../../../../../i18n/translate';
+import { t } from '@core/i18n';
 
-import { fileCardSummary } from './fileCardText/fileCardText';
-import { PackList } from './PackList/PackList';
+import { fileCardSummary } from './fileCardText';
 import type { ImportCardProps } from './ImportCard.types';
+import { PackList } from './PackList';
 
 const SECONDARY_TEXT_CLASS =
   'm-0 text-xs leading-[1.4] text-cadetGray-30 dark:text-gray-70';

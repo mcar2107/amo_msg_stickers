@@ -4,7 +4,7 @@ import type {
   RemoteSendItem,
   SendItem,
   StickerRec,
-} from '../../../../db.types';
+} from '@core/db.types';
 
 export type FavoritesContextValue = {
   /**

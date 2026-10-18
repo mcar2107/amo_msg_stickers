@@ -1,6 +1,6 @@
 import type { FunctionComponent as FC } from 'preact';
 
-import type { GifFeed } from '../../../../sources/gifs.types';
+import type { GifFeed } from '@core/sources';
 
 import type { FeedAttributionProps } from './FeedAttribution.types';
 

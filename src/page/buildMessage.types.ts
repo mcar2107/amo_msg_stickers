@@ -1,4 +1,4 @@
-import type { PageRejectReason } from '../shared/pageBridge.types';
+import type { PageRejectReason } from '@shared/pageBridge.types';
 
 import type { AmoQuotedMessage } from './refersTo.types';
 

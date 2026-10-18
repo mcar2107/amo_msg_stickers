@@ -1,18 +1,16 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import {
-  MANIFEST_FILE,
-  MAX_FILE_STICKERS,
-  MAX_ZIP_ENTRIES,
-} from '../src/core/libraryFile/limits';
-import { crc32 } from '../src/core/zip/crc32';
-import type { ZipDirectory } from '../src/core/zip/zip.types';
-import { findZipRoot, readZipDirectory, readZipEntry } from '../src/core/zip/zipRead';
-import { writeZip } from '../src/core/zip/zipWrite';
+import { MANIFEST_FILE, MAX_FILE_STICKERS, MAX_ZIP_ENTRIES } from '@core/libraryFile';
+import type { ZipDirectory } from '@core/zip';
+import { crc32, findZipRoot, readZipDirectory, readZipEntry, writeZip } from '@core/zip';
 
-import { buildZip } from './helpers/zipBuild';
-import { DITTO_ARCHIVE, FIXTURE_MANIFEST, ZIP_R_ARCHIVE } from './helpers/zipFixtures';
-import { countingDecompression } from './helpers/zipInflateCounter';
+import {
+  buildZip,
+  countingDecompression,
+  DITTO_ARCHIVE,
+  FIXTURE_MANIFEST,
+  ZIP_R_ARCHIVE,
+} from './helpers';
 
 const encoder = new TextEncoder();
 const LIMITS = { maxEntries: 100 };

@@ -1,4 +1,4 @@
-import type { CellPosition } from '../keptScrollTop.types';
+import type { CellPosition } from '@ui/keptScrollTop';
 
 /**
  * Прокручиваемый элемент ленты: метке нужна только его прокрутка.

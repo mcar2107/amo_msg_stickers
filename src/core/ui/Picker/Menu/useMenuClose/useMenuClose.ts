@@ -1,6 +1,6 @@
 import { useContext } from 'preact/hooks';
 
-import { MenuContext } from '../MenuContext';
+import { MenuContext } from '@ui/Menu';
 
 /**
  * Закрытие меню, в котором лежит пункт: фокус возвращается на источник меню.

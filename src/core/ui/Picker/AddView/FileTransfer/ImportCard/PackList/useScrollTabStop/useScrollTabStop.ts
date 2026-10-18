@@ -1,7 +1,7 @@
 import type { RefObject } from 'preact';
 import { useEffect, useState } from 'preact/hooks';
 
-import { useIsScrollable } from '../useIsScrollable/useIsScrollable';
+import { useIsScrollable } from '@ui/AddView/FileTransfer/ImportCard/PackList/useIsScrollable';
 
 /**
  * Стоит ли прокручиваемый элемент в порядке Tab: пока есть что прокручивать или пока он сам в фокусе. Без второго

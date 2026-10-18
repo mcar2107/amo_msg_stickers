@@ -1,15 +1,11 @@
-import type { Pack, StickerRec } from '../db.types';
+import type { Pack, StickerRec } from '@core/db.types';
+import type { ImportPlan, ImportPlanPack, ImportPlanSticker } from '@core/libraryFile';
 
 import type {
   ImportLibrary,
   ImportRecords,
   ImportRecordsOptions,
 } from './importRecords.types';
-import type {
-  ImportPlan,
-  ImportPlanPack,
-  ImportPlanSticker,
-} from './prepareImport.types';
 
 /**
  * Запись нового пака из файла. Обложка всегда задана: та, что в файле, если её стикер записывается, иначе первый

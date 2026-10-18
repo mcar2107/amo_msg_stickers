@@ -1,7 +1,6 @@
-import { readAmoLocale } from './i18n/locale';
-import { setLocale, t } from './i18n/translate';
-import { createPicker } from './ui/createPicker';
-import { stickerIcon } from './ui/icons';
+import { createPicker } from '@core/ui/createPicker';
+import { stickerIcon } from '@core/ui/icons';
+
 import {
   composerOf,
   findComposers,
@@ -19,6 +18,7 @@ import { sendFileName } from './fileName';
 import type { Host } from './host.types';
 import { createHoverPopup } from './hoverPopup';
 import type { OpenedBy } from './hoverPopup.types';
+import { readAmoLocale, setLocale, t } from './i18n';
 import { iconColorClasses } from './iconColor';
 import { MAX_REMOTE_GIF_BYTES } from './net';
 import { createPageClient, fileInputOf } from './pageClient';

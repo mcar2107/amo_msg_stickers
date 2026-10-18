@@ -1,4 +1,4 @@
-import type { GmRequestDetails } from '../../src/userscript/gm.types';
+import type { GmRequestDetails } from '@userscript/gm.types';
 
 /**
  * Поведение мок-менеджера: какие колбэки запроса и в каком порядке он зовёт. Вызывается

@@ -1,11 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import type { RemoteGif } from '../src/core/db.types';
-import {
-  gifCellId,
-  gifItemCellId,
-  gifKey,
-} from '../src/core/ui/Picker/MasonryGrid/gifCellId';
+import type { RemoteGif } from '@core/db.types';
+import { gifCellId, gifItemCellId, gifKey } from '@ui/MasonryGrid/gifCellId';
 
 /**
  * GIF провайдера с номером.

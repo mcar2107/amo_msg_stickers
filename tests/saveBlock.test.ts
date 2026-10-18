@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { saveBlock } from '../src/core/ui/Picker/useStickerDraft/saveBlock';
+import { saveBlock } from '@ui/useStickerDraft';
 
 describe('saveBlock', () => {
   it('без файла — сначала выбрать файл', () => {

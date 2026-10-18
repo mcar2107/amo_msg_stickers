@@ -1,4 +1,4 @@
-import type { GifResult } from '../../../convert.types';
+import type { GifResult } from '@core/convert.types';
 
 /**
  * Готовый стикер черновика и object URL его превью: URL живёт ровно столько, сколько

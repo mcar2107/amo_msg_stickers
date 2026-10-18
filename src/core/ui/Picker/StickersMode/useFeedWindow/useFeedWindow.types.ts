@@ -1,7 +1,7 @@
 import type { RefObject } from 'preact';
 
-import type { RowRange, StickerLayout } from '../../stickerLayout/stickerLayout.types';
-import type { FeedSticker } from '../feedSections/feedSections.types';
+import type { RowRange, StickerLayout } from '@ui/stickerLayout';
+import type { FeedSticker } from '@ui/StickersMode/feedSections';
 
 export type FeedWindow = {
   /**

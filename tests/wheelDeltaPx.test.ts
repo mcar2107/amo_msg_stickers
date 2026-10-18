@@ -1,9 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import {
-  LINE_HEIGHT_PX,
-  wheelDeltaPx,
-} from '../src/core/ui/Picker/StickersMode/wheelDeltaPx/wheelDeltaPx';
+import { LINE_HEIGHT_PX, wheelDeltaPx } from '@ui/StickersMode/wheelDeltaPx';
 
 const PAGE_HEIGHT = 480;
 

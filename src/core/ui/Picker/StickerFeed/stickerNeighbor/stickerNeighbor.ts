@@ -1,6 +1,6 @@
-import type { CellIdOf } from '../../cellIdOf/cellIdOf.types';
-import type { PreviewDirection } from '../../Preview/previewDirection/previewDirection.types';
-import type { StickerRow } from '../../stickerLayout/stickerLayout.types';
+import type { CellIdOf } from '@ui/cellIdOf';
+import type { PreviewDirection } from '@ui/Preview/previewDirection';
+import type { StickerRow } from '@ui/stickerLayout';
 
 import type { StickerNeighbor } from './stickerNeighbor.types';
 

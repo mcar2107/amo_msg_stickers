@@ -1,9 +1,9 @@
 import type { RefObject } from 'preact';
 import { useEffect, useRef } from 'preact/hooks';
 
-import { elementById } from '../../../elementById/elementById';
-import { isFocusLost } from '../../../isFocusLost/isFocusLost';
-import { segmentTabId } from '../../segmentIds/segmentIds';
+import { segmentTabId } from '@ui/AddView/segmentIds';
+import { elementById } from '@ui/elementById';
+import { isFocusLost } from '@ui/isFocusLost';
 
 /**
  * Фокус после импорта файла, который оставил экран открытым: добавлять оказалось нечего, файл не прошёл проверку или

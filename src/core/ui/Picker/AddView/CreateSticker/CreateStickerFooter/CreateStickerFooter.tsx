@@ -1,13 +1,10 @@
 import type { FunctionComponent as FC } from 'preact';
 
-import type { MessageKey } from '../../../../../i18n/i18n.types';
-import { t } from '../../../../../i18n/translate';
-import { Button } from '../../../Button/Button';
-import type {
-  DraftSize,
-  SaveBlock,
-} from '../../../useStickerDraft/useStickerDraft.types';
-import { segmentFormId } from '../../segmentIds/segmentIds';
+import type { MessageKey } from '@core/i18n';
+import { t } from '@core/i18n';
+import { segmentFormId } from '@ui/AddView/segmentIds';
+import { Button } from '@ui/Button';
+import type { DraftSize, SaveBlock } from '@ui/useStickerDraft';
 
 import type { CreateStickerFooterProps } from './CreateStickerFooter.types';
 

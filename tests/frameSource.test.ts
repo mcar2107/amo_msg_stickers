@@ -1,19 +1,19 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { openFrameSource } from '../src/core/frameSource';
-import { openImageSource } from '../src/core/frameSourceImage';
-import { openTgsSource } from '../src/core/frameSourceTgs';
-import { openVideoSource } from '../src/core/frameSourceVideo';
+import { openFrameSource } from '@core/frameSource';
+import { openImageSource } from '@core/frameSourceImage';
+import { openTgsSource } from '@core/frameSourceTgs';
+import { openVideoSource } from '@core/frameSourceVideo';
 
-vi.mock('../src/core/frameSourceVideo', () => {
+vi.mock('@core/frameSourceVideo', () => {
   return { openVideoSource: vi.fn() };
 });
 
-vi.mock('../src/core/frameSourceTgs', () => {
+vi.mock('@core/frameSourceTgs', () => {
   return { openTgsSource: vi.fn() };
 });
 
-vi.mock('../src/core/frameSourceImage', () => {
+vi.mock('@core/frameSourceImage', () => {
   return { openImageSource: vi.fn() };
 });
 

@@ -1,11 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { DEFAULT_SETTINGS } from '../src/core/host';
-import { setLocale } from '../src/core/i18n/translate';
-import { BYTES_IN_MB as MB, httpError } from '../src/core/net';
-import { availableFeeds, checkGifKey, fetchGifs } from '../src/core/sources/gifs';
+import { DEFAULT_SETTINGS } from '@core/host';
+import { setLocale } from '@core/i18n';
+import { BYTES_IN_MB as MB, httpError } from '@core/net';
+import { availableFeeds, checkGifKey, fetchGifs } from '@core/sources';
 
-import { fakeHost } from './helpers/fakeHost';
+import { fakeHost } from './helpers';
 
 /**
  * Встроенный ключ KLIPY сборки: по умолчанию пуст, как в сборке без секрета, тест ставит
@@ -15,7 +15,7 @@ const builtin = vi.hoisted(() => {
   return { key: '' };
 });
 
-vi.mock('../src/core/builtinKlipyKey', () => {
+vi.mock('@core/builtinKlipyKey', () => {
   return {
     get BUILTIN_KLIPY_KEY() {
       return builtin.key;

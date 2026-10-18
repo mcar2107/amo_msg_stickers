@@ -2,14 +2,11 @@ import { cva } from 'class-variance-authority';
 import type { FunctionComponent as FC } from 'preact';
 import { useState } from 'preact/hooks';
 
-import { TextInput } from '../TextInput/TextInput';
+import { TextInput } from '@ui/TextInput';
 
-import {
-  fieldDescribedBy,
-  fieldDescriptionIds,
-} from './fieldDescription/fieldDescription';
-import { RevealButton } from './RevealButton/RevealButton';
 import type { FieldProps } from './Field.types';
+import { fieldDescribedBy, fieldDescriptionIds } from './fieldDescription';
+import { RevealButton } from './RevealButton';
 
 const DESCRIPTION_CLASS = 'm-0 text-xs leading-[1.4]';
 

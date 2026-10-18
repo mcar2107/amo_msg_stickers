@@ -1,22 +1,21 @@
 import type { FunctionComponent as FC } from 'preact';
 
-import type { MessageKey } from '../../../i18n/i18n.types';
-import { t } from '../../../i18n/translate';
-import { usePicker } from '../PickerProvider/usePicker';
-import { Screen } from '../Screen/Screen';
-import { ADD_SEGMENTS } from '../usePickerView/addSegment';
-import { usePickerView } from '../usePickerView/usePickerView';
-import type { AddSegment } from '../usePickerView/usePickerView.types';
-import { useStickerDraft } from '../useStickerDraft/useStickerDraft';
-import { useTelegramImport } from '../useTelegramImport/useTelegramImport';
+import type { MessageKey } from '@core/i18n';
+import { t } from '@core/i18n';
+import { usePicker } from '@ui/PickerProvider';
+import { Screen } from '@ui/Screen';
+import type { AddSegment } from '@ui/usePickerView';
+import { ADD_SEGMENTS, usePickerView } from '@ui/usePickerView';
+import { useStickerDraft } from '@ui/useStickerDraft';
+import { useTelegramImport } from '@ui/useTelegramImport';
 
-import { CreateSticker } from './CreateSticker/CreateSticker';
-import { CreateStickerFooter } from './CreateSticker/CreateStickerFooter/CreateStickerFooter';
-import { FileTransfer } from './FileTransfer/FileTransfer';
-import { ImportFooter } from './ImportFooter/ImportFooter';
-import { SegmentForm } from './SegmentForm/SegmentForm';
-import { SegmentTab } from './SegmentTab/SegmentTab';
-import { TelegramImport } from './TelegramImport/TelegramImport';
+import { CreateStickerFooter } from './CreateSticker/CreateStickerFooter';
+import { CreateSticker } from './CreateSticker';
+import { FileTransfer } from './FileTransfer';
+import { ImportFooter } from './ImportFooter';
+import { SegmentForm } from './SegmentForm';
+import { SegmentTab } from './SegmentTab';
+import { TelegramImport } from './TelegramImport';
 
 /**
  * Подписи вкладок сегментов.

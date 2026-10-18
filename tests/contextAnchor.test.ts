@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { contextAnchor } from '../src/core/ui/Picker/Menu/contextAnchor/contextAnchor';
+import { contextAnchor } from '@ui/Menu/contextAnchor';
 
 const CELL = { left: 100, top: 200, right: 164, bottom: 264 };
 

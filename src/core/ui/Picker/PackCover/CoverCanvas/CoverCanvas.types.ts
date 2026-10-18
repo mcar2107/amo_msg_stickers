@@ -1,5 +1,5 @@
-import type { StickerRec } from '../../../../db.types';
-import type { CoverBitmaps } from '../coverBitmaps/coverBitmaps.types';
+import type { StickerRec } from '@core/db.types';
+import type { CoverBitmaps } from '@ui/PackCover/coverBitmaps';
 
 export type CoverCanvasProps = {
   /**

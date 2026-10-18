@@ -1,9 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import {
-  previewAttributes,
-  shouldReturnFocus,
-} from '../src/core/ui/Picker/Preview/previewA11y/previewA11y';
+import { previewAttributes, shouldReturnFocus } from '@ui/Preview/previewA11y';
 
 describe('previewAttributes', () => {
   it('закреплённый предпросмотр — диалог с именем и без aria-hidden', () => {

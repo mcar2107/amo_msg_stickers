@@ -1,4 +1,4 @@
-import type { ExportProgress } from '../../../../libraryFile/exportLibrary.types';
+import type { ExportProgress } from '@core/libraryFile';
 
 /**
  * Что нужно тексту рядом с кнопкой выгрузки библиотеки.

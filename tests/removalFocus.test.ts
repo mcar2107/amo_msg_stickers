@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
+import type { FocusSection } from '@ui/removalFocus';
 import {
   cellRemovalTargets,
   favoriteToggleTargets,
   resolveFocusTarget,
   sectionRemovalTargets,
-} from '../src/core/ui/Picker/removalFocus/removalFocus';
-import type { FocusSection } from '../src/core/ui/Picker/removalFocus/removalFocus.types';
+} from '@ui/removalFocus';
 
 /**
  * Раздел с ячейками по ключам.

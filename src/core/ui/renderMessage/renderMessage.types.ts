@@ -1,6 +1,6 @@
 import type { ComponentChild } from 'preact';
 
-import type { MessageKey, MessageParams } from '../../i18n/i18n.types';
+import type { MessageKey, MessageParams } from '@core/i18n';
 
 /**
  * Узлы подстановок строки словаря: имена — ровно подстановки строки `key`.
