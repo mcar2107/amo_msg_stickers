@@ -1,5 +1,10 @@
 # amo stickers
 
+[![Пользователи Chrome Web Store](https://img.shields.io/chrome-web-store/users/abjnjphijggkkdbbmkldhibgepgdcgip?label=users)](https://chromewebstore.google.com/detail/amo-stickers/abjnjphijggkkdbbmkldhibgepgdcgip)
+[![Версия в Chrome Web Store](https://img.shields.io/chrome-web-store/v/abjnjphijggkkdbbmkldhibgepgdcgip)](https://chromewebstore.google.com/detail/amo-stickers/abjnjphijggkkdbbmkldhibgepgdcgip)
+[![Рейтинг в Chrome Web Store](https://img.shields.io/chrome-web-store/rating/abjnjphijggkkdbbmkldhibgepgdcgip)](https://chromewebstore.google.com/detail/amo-stickers/abjnjphijggkkdbbmkldhibgepgdcgip)
+[![Скачивания релизов](https://img.shields.io/github/downloads/mcar2107/amo_msg_stickers/total)](https://github.com/mcar2107/amo_msg_stickers/releases)
+
 Стикеры и GIF для мессенджера amo в браузере: кнопка стикеров в строке ввода рядом с кнопкой эмодзи, отправка одним
 кликом.
 
