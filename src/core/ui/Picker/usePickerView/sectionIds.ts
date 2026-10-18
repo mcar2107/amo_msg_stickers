@@ -3,3 +3,9 @@
  * совпадёт: id паков — `custom` и `tg:<имя>`.
  */
 export const RECENT_SECTION_ID = 'recent';
+
+/**
+ * Раздел избранных стикеров в ленте — первый, выше недавних. С id паков не совпадёт по той же
+ * причине, что `recent`.
+ */
+export const FAVORITE_SECTION_ID = 'favorite';

@@ -14,4 +14,8 @@ describe('headerAction', () => {
   it('у импортированного пака — меню «…»', () => {
     expect(headerAction('tg:cats')).toBe('menu');
   });
+
+  it('у «Избранного» действий нет: элемент убирается только пунктом меню ячейки', () => {
+    expect(headerAction('favorite')).toBeNull();
+  });
 });

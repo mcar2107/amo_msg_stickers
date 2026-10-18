@@ -56,3 +56,17 @@ right now — what to do depends on your draft.
 The new version was unpacked into a different folder, and the browser installed it as a new extension. Enter the keys
 and the token again and from then on update in the same folder — [“Updating”](./update#archive). Stickers and packs are
 safe: they are stored on the amo site.
+
+## Errors after updating amo stickers {#after-update}
+
+A new version of amo stickers upgrades the sticker storage on the amo site, and amo tabs with the old and the new
+version can’t use it at the same time.
+
+- **“Reload your other amo tabs: they run an older version of amo stickers”** — another amo tab still runs the version
+  from before the update, and the new one can’t open the storage. Reload or close the other amo tabs and open the panel
+  again: this tab doesn’t need a reload.
+- **“Reload the tab: amo stickers has been updated”** — amo stickers was updated in another tab, and this one runs
+  the older version. Reload this tab.
+- **A technical database error in English** — for example,
+  `The requested version (1) is less than the existing version (2)` — in an amo tab opened before amo stickers was
+  updated: amo stickers was updated while the tab was open. Reload this tab.

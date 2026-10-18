@@ -27,5 +27,5 @@ export const useGridWindow = (resetKey: number): GridWindow => {
     if (element && scrollReset.apply(element)) syncScroll();
   }, [resetKey, scrollReset, scrollRef, syncScroll]);
 
-  return { scrollRef, width, viewport, scrollTop, trackScroll };
+  return { scrollRef, width, viewport, scrollTop, trackScroll, syncScroll };
 };

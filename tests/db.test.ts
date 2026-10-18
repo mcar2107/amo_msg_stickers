@@ -1,12 +1,17 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  favoriteRecord,
+  favoritesNewestFirst,
   groupStickers,
+  itemKey,
   recentKindOf,
   recentOfKind,
   recentOverflow,
+  transactionError,
 } from '../src/core/db';
-import type { RecentRec, StickerRec } from '../src/core/db.types';
+import type { FavoriteRec, RecentRec, StickerRec } from '../src/core/db.types';
+import { LocalizedError, t } from '../src/core/i18n/translate';
 
 /**
  * Запись недавнего стикера из пака.
@@ -191,5 +196,69 @@ describe('groupStickers', () => {
   it('пустая библиотека — пустая группировка, пака без стикеров в ней нет', () => {
     expect(groupStickers([]).size).toBe(0);
     expect(groupStickers([stickerRec('a', 'tg:a', 1)]).has('custom')).toBe(false);
+  });
+});
+
+describe('itemKey', () => {
+  it('стикер — `l:<id>`, GIF — `r:<источник>:<id>`, как у записей недавних', () => {
+    expect(itemKey(sticker('a', 1).item)).toBe('l:a');
+    expect(itemKey(gif('g', 1).item)).toBe('r:giphy:g');
+  });
+});
+
+describe('favoriteRecord', () => {
+  it('стикер — со снимком записи и ключом недавних', () => {
+    const snapshot = stickerRec('a', 'tg:a', 1);
+
+    expect(favoriteRecord(sticker('a', 1).item, snapshot, 5)).toEqual({
+      key: 'l:a',
+      ts: 5,
+      item: { kind: 'local', stickerId: 'a' },
+      sticker: snapshot,
+    });
+  });
+
+  it('GIF — без снимка, ключ недавних', () => {
+    const { item } = gif('g', 1);
+
+    expect(favoriteRecord(item, undefined, 7)).toEqual({ key: 'r:giphy:g', ts: 7, item });
+  });
+
+  it('стикер без снимка — ошибка: записи нечем показать стикер удалённого пака', () => {
+    expect(() => {
+      return favoriteRecord(sticker('a', 1).item, undefined, 1);
+    }).toThrow();
+  });
+});
+
+describe('favoritesNewestFirst', () => {
+  it('записи в порядке хранилища — от новых к старым, исходный список не меняется', () => {
+    const records: FavoriteRec[] = [
+      favoriteRecord(gif('g1', 1).item, undefined, 10),
+      favoriteRecord(sticker('s1', 1).item, stickerRec('s1', 'custom', 1), 30),
+      favoriteRecord(gif('g2', 1).item, undefined, 20),
+    ];
+
+    expect(
+      favoritesNewestFirst(records).map(({ key }) => {
+        return key;
+      })
+    ).toEqual(['l:s1', 'r:giphy:g2', 'r:giphy:g1']);
+    expect(records[0]?.key).toBe('r:giphy:g1');
+  });
+});
+
+describe('transactionError', () => {
+  it('прерывание без ошибки транзакции — ошибка словаря, а не `null`', () => {
+    const error = transactionError(null);
+
+    expect(error).toBeInstanceOf(LocalizedError);
+    expect(error.message).toBe(t('error.db.aborted'));
+  });
+
+  it('ошибка транзакции отдаётся как есть', () => {
+    const cause = new DOMException('Quota exceeded', 'QuotaExceededError');
+
+    expect(transactionError(cause)).toBe(cause);
   });
 });

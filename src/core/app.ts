@@ -12,7 +12,7 @@ import {
 } from './amoDom';
 import type { ButtonMarkup, Composer } from './amoDom.types';
 import { toStickerGif } from './convert';
-import { getSticker, pushRecent } from './db';
+import { getFavoriteSticker, getSticker, pushRecent } from './db';
 import type { SendItem } from './db.types';
 import { sendFileName } from './fileName';
 import type { Host } from './host.types';
@@ -75,7 +75,13 @@ export const start = (host: Host) => {
   const toFile = async (item: SendItem) => {
     switch (item.kind) {
       case 'local': {
-        const sticker = await getSticker(item.stickerId);
+        /**
+         * Снимок избранного — запасной источник: стикер, чей пак удалён, остаётся в «Избранном»
+         * и отправляется оттуда с той же меткой имени файла, что и из пака.
+         */
+        const sticker =
+          (await getSticker(item.stickerId)) ||
+          (await getFavoriteSticker(item.stickerId));
 
         if (!sticker) throw new SendError(t('error.send.stickerDeleted'));
 

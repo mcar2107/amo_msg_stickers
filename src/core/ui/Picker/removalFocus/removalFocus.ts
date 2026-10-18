@@ -64,6 +64,28 @@ export const cellRemovalTargets = (
 };
 
 /**
+ * Цели фокуса после правки избранного из меню ячейки. Цель ставится на каждую правку, а не только на уход
+ * ячейки: ряды ленты ключуются номером, и раздел «Избранное», выросший, появившийся или исчезнувший выше,
+ * пересоздаёт кнопку оставшейся ячейки — фокус, возвращённый меню на источник, упал бы в `body`.
+ *
+ * @param sections — разделы ленты до правки
+ * @param sectionId — раздел ячейки
+ * @param key — ключ ячейки
+ * @param isLeaving — ячейка уходит из раздела: убрана из избранного или добавлена туда из недавних
+ * @returns цели фокуса: та же ячейка, если она остаётся, иначе — как после удаления ячейки
+ */
+export const favoriteToggleTargets = (
+  sections: readonly FocusSection[],
+  sectionId: string,
+  key: string,
+  isLeaving: boolean
+): FocusTarget[] => {
+  if (isLeaving) return cellRemovalTargets(sections, sectionId, key);
+
+  return [{ kind: 'cell', sectionId, key }];
+};
+
+/**
  * Цели фокуса после удаления раздела целиком: вкладка соседнего раздела.
  *
  * @param sections — разделы ленты до удаления

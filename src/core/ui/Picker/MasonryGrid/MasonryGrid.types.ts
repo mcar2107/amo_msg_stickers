@@ -1,4 +1,6 @@
 import type { RemoteGif } from '../../../db.types';
+import type { KeptScroll } from '../keptScrollTop/createKeptScroll/createKeptScroll.types';
+import type { FavoriteToggle } from '../PickerProvider/useFavorites/useFavorites.types';
 
 /**
  * Раздел ленты GIF.
@@ -25,11 +27,16 @@ export type GifSection = {
   skeletons: number;
 
   /**
-   * Раздел недавних GIF: в заголовке «Очистить», у ячеек — меню «Убрать из недавних». Найденные
-   * GIF не хранятся, и убирать их неоткуда.
+   * Вид раздела. У недавних в заголовке «Очистить», у ячеек — меню «Убрать из недавних». Найденные
+   * GIF не хранятся, и убирать их неоткуда, а избранную GIF убирает пункт избранного.
    */
-  isRecent: boolean;
+  kind: GifSectionKind;
 };
+
+/**
+ * Вид раздела ленты GIF: избранное, недавние или выдача источника.
+ */
+type GifSectionKind = 'favorite' | 'recent' | 'feed';
 
 export type MasonryGridProps = {
   /**
@@ -43,6 +50,12 @@ export type MasonryGridProps = {
   resetKey: number;
 
   /**
+   * Удержание места ленты на время правки избранного: метку ставит и снимает режим, а прокрутку
+   * для новой раскладки ставит лента.
+   */
+  keptScroll: KeptScroll;
+
+  /**
    * Ленту прокрутили: по положению прокручиваемого элемента решается подгрузка страницы.
    */
   onScroll: (element: HTMLElement) => void;
@@ -51,6 +64,11 @@ export type MasonryGridProps = {
    * Колбэк на выбор «Убрать из недавних» в меню ячейки раздела недавних.
    */
   onRecentRemove: (gif: RemoteGif) => void;
+
+  /**
+   * Колбэк на выбор пункта избранного в меню ячейки любого раздела.
+   */
+  onFavoriteToggle: (toggle: FavoriteToggle) => void;
 
   /**
    * Колбэк на подтверждённую очистку недавних GIF из заголовка их раздела.

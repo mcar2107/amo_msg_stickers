@@ -54,7 +54,7 @@ export const useStickerNavigator = (
 
       const { row, item } = neighbor;
       const { sectionId, top, height } = row;
-      const { sticker, name } = item;
+      const { sticker, urlKey, name } = item;
       const button = revealFeedCell(
         scrollRef.current,
         feedCellId(sectionId, item),
@@ -66,7 +66,7 @@ export const useStickerNavigator = (
 
       return {
         target: stickerPreviewTarget(
-          objectUrl(sticker.id, sticker.blob),
+          objectUrl(urlKey, sticker.blob),
           sticker.emoji,
           name
         ),

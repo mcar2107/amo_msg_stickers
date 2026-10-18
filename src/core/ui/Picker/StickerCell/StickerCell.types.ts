@@ -2,7 +2,34 @@ import type { SendItem } from '../../../db.types';
 import type { CellNames } from '../cellName/cellName.types';
 import type { CellRemoveKind } from '../Menu/CellMenu/CellMenu.types';
 
-export type StickerCellProps = {
+/**
+ * Удаление в меню ячейки: `removeKind` и `onRemove` задаются только вместе. У ячейки «Избранного» удаления нет.
+ */
+export type StickerCellRemove =
+  | {
+      /**
+       * Что убирает пункт контекстного меню: стикер из библиотеки или элемент из недавних.
+       */
+      removeKind: CellRemoveKind;
+
+      /**
+       * Колбэк на выбор пункта контекстного меню — элемент ячейки убирается.
+       */
+      onRemove: (item: SendItem) => void;
+    }
+  | {
+      /**
+       * Удаления нет: нет и вида удаления.
+       */
+      removeKind?: undefined;
+
+      /**
+       * Удаления нет: нет и колбэка.
+       */
+      onRemove?: undefined;
+    };
+
+export type StickerCellProps = StickerCellRemove & {
   /**
    * id кнопки ячейки — по нему ячейку находит фокус после удаления соседней.
    */
@@ -15,8 +42,8 @@ export type StickerCellProps = {
 
   /**
    * Пак раздела ячейки: успешная отправка отмечает его использованным, и при следующем
-   * открытии попапа он поднимается в порядке паков. undefined — ячейка «Недавних»:
-   * отправка оттуда порядок паков не меняет.
+   * открытии попапа он поднимается в порядке паков. undefined — ячейка «Избранного» или
+   * «Недавних»: отправка оттуда порядок паков не меняет.
    */
   packId?: string | undefined;
 
@@ -36,12 +63,8 @@ export type StickerCellProps = {
   name: CellNames;
 
   /**
-   * Что убирает пункт контекстного меню: стикер из библиотеки или элемент из недавних.
+   * Колбэк на выбор пункта избранного в контекстном меню: элемент ячейки добавляется в избранное
+   * или убирается из него.
    */
-  removeKind: CellRemoveKind;
-
-  /**
-   * Колбэк на выбор пункта контекстного меню — элемент ячейки убирается.
-   */
-  onRemove: (item: SendItem) => void;
+  onFavoriteToggle: () => void;
 };

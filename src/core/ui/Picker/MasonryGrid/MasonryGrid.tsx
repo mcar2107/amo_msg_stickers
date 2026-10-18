@@ -2,6 +2,8 @@ import type { FunctionComponent as FC, TargetedEvent } from 'preact';
 import { useMemo } from 'preact/hooks';
 
 import type { RemoteGif } from '../../../db.types';
+import { gifCells } from '../keptScrollTop/keptScrollTop';
+import { useKeptScroll } from '../keptScrollTop/useKeptScroll/useKeptScroll';
 import { PreviewNavigationContext } from '../Preview/PreviewNavigationContext';
 import { useFeedEntry } from '../useFeedEntry/useFeedEntry';
 
@@ -35,8 +37,18 @@ const SKELETON_CLASS = 'absolute rounded-lg bg-cadetGray-30/[.12] dark:bg-white-
  * стрелками переходит к соседним плиткам по раскладке.
  */
 export const MasonryGrid: FC<MasonryGridProps> = (props) => {
-  const { sections, resetKey, children, onScroll, onRecentRemove, onRecentClear } = props;
-  const { scrollRef, width, viewport, scrollTop, trackScroll } = useGridWindow(resetKey);
+  const {
+    sections,
+    resetKey,
+    keptScroll,
+    children,
+    onScroll,
+    onRecentRemove,
+    onFavoriteToggle,
+    onRecentClear,
+  } = props;
+  const { scrollRef, width, viewport, scrollTop, trackScroll, syncScroll } =
+    useGridWindow(resetKey);
   const column = columnWidth(width);
 
   useFeedEntry(scrollRef);
@@ -53,10 +65,20 @@ export const MasonryGrid: FC<MasonryGridProps> = (props) => {
     return splitColumns(masonry, { count: COLUMN_COUNT, width: column, gap: GRID_GAP });
   }, [sections, column]);
 
+  const cells = useMemo(() => {
+    return layout ? gifCells(layout.tiles) : null;
+  }, [layout]);
+
+  useKeptScroll({ kept: keptScroll, scrollRef, cells, syncScroll });
+
   const navigate = useMasonryNavigator(layout?.tiles || null, scrollRef);
   const tiles = layout ? visibleTiles(layout.tiles, scrollTop, viewport, viewport) : [];
-  const recentId = sections.find(({ isRecent }) => {
-    return isRecent;
+  /**
+   * Убрать и очистить можно только недавние: избранную GIF убирает пункт избранного, а выдача не
+   * хранится.
+   */
+  const recentId = sections.find(({ kind }) => {
+    return kind === 'recent';
   })?.id;
 
   const handleGridScroll = (event: TargetedEvent<HTMLDivElement>) => {
@@ -81,6 +103,14 @@ export const MasonryGrid: FC<MasonryGridProps> = (props) => {
         const key = gifKey(item);
         const isRecent = sectionId === recentId;
 
+        const handleFavoriteToggle = () => {
+          onFavoriteToggle({
+            sectionId,
+            cellKey: key,
+            item: { kind: 'remote', gif: item },
+          });
+        };
+
         return (
           <MasonryCell
             key={`${sectionId}:${key}`}
@@ -88,6 +118,7 @@ export const MasonryGrid: FC<MasonryGridProps> = (props) => {
             gif={item}
             box={tileBox(tile, column)}
             onRemove={isRecent ? handleRecentRemove : undefined}
+            onFavoriteToggle={handleFavoriteToggle}
           />
         );
       }

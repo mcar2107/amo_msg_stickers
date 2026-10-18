@@ -41,31 +41,54 @@ const countOf = (count: number) => {
   });
 };
 
+/**
+ * Подсчёт избранных стикеров для случаев, где избранного нет.
+ */
+const NO_FAVORITES = async () => {
+  return 0;
+};
+
 describe('startMode', () => {
   it('сохранённый режим открывается без подсчёта стикеров', async () => {
     const count = countOf(0);
 
-    await expect(startMode(storedMode('stickers'), count)).resolves.toBe('stickers');
-    await expect(startMode(storedMode('gifs'), countOf(5))).resolves.toBe('gifs');
+    await expect(startMode(storedMode('stickers'), count, NO_FAVORITES)).resolves.toBe(
+      'stickers'
+    );
+    await expect(startMode(storedMode('gifs'), countOf(5), NO_FAVORITES)).resolves.toBe(
+      'gifs'
+    );
     expect(count).not.toHaveBeenCalled();
   });
 
   it('без сохранённого режима и без стикеров — «GIF»', async () => {
-    await expect(startMode(storedMode(null), countOf(0))).resolves.toBe('gifs');
+    await expect(startMode(storedMode(null), countOf(0), NO_FAVORITES)).resolves.toBe(
+      'gifs'
+    );
   });
 
   it('без сохранённого режима, но со стикерами — «Стикеры»', async () => {
-    await expect(startMode(storedMode(null), countOf(1))).resolves.toBe('stickers');
+    await expect(startMode(storedMode(null), countOf(1), NO_FAVORITES)).resolves.toBe(
+      'stickers'
+    );
   });
 
   it('мусор в ключе — режим по библиотеке', async () => {
-    await expect(startMode(storedMode('recent'), countOf(3))).resolves.toBe('stickers');
-    await expect(startMode(storedMode(''), countOf(0))).resolves.toBe('gifs');
+    await expect(startMode(storedMode('recent'), countOf(3), NO_FAVORITES)).resolves.toBe(
+      'stickers'
+    );
+    await expect(startMode(storedMode(''), countOf(0), NO_FAVORITES)).resolves.toBe(
+      'gifs'
+    );
   });
 
   it('хранилище бросает — режим по библиотеке', async () => {
-    await expect(startMode(THROWING_STORAGE, countOf(2))).resolves.toBe('stickers');
-    await expect(startMode(THROWING_STORAGE, countOf(0))).resolves.toBe('gifs');
+    await expect(startMode(THROWING_STORAGE, countOf(2), NO_FAVORITES)).resolves.toBe(
+      'stickers'
+    );
+    await expect(startMode(THROWING_STORAGE, countOf(0), NO_FAVORITES)).resolves.toBe(
+      'gifs'
+    );
   });
 
   it('библиотека недоступна — «GIF»', async () => {
@@ -73,6 +96,39 @@ describe('startMode', () => {
       throw new Error('IndexedDB недоступна');
     });
 
-    await expect(startMode(storedMode(null), count)).resolves.toBe('gifs');
+    await expect(startMode(storedMode(null), count, NO_FAVORITES)).resolves.toBe('gifs');
+  });
+
+  it('без сохранённого режима, библиотека пуста, но есть избранный стикер — «Стикеры»', async () => {
+    await expect(startMode(storedMode(null), countOf(0), countOf(1))).resolves.toBe(
+      'stickers'
+    );
+  });
+
+  it('стикеры в библиотеке — избранное не считается', async () => {
+    const favorites = countOf(0);
+
+    await expect(startMode(storedMode(null), countOf(2), favorites)).resolves.toBe(
+      'stickers'
+    );
+    expect(favorites).not.toHaveBeenCalled();
+  });
+
+  it('подсчёт библиотеки бросает, избранный стикер есть — «Стикеры»', async () => {
+    const count = vi.fn(async () => {
+      throw new Error('IndexedDB недоступна');
+    });
+
+    await expect(startMode(storedMode(null), count, countOf(1))).resolves.toBe(
+      'stickers'
+    );
+  });
+
+  it('оба подсчёта бросают — «GIF»', async () => {
+    const count = vi.fn(async () => {
+      throw new Error('IndexedDB недоступна');
+    });
+
+    await expect(startMode(storedMode(null), count, count)).resolves.toBe('gifs');
   });
 });

@@ -1,56 +1,196 @@
-import { t } from './i18n/translate';
-import type {
-  Pack,
-  RecentKind,
-  RecentRec,
-  SendItem,
-  StickerRec,
-  StickersByPack,
+import { LocalizedError, t } from './i18n/translate';
+import {
+  type FavoriteRec,
+  isStickerFavorite,
+  type Pack,
+  type RecentKind,
+  type RecentRec,
+  type SendItem,
+  type StickerRec,
+  type StickersByPack,
 } from './db.types';
 
 export const CUSTOM_PACK_ID = 'custom';
 const RECENT_LIMIT = 40;
 
 const DB_NAME = 'amo-stickers';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 const STORE = {
   packs: 'packs',
   stickers: 'stickers',
   recent: 'recent',
+  favorites: 'favorites',
 } as const;
 
 type StoreName = (typeof STORE)[keyof typeof STORE];
 
 const PACK_ID_INDEX = 'packId';
 
-let dbPromise: Promise<IDBDatabase> | null = null;
+/**
+ * Начало ключа стикера библиотеки у недавних и избранного.
+ */
+const LOCAL_KEY_PREFIX = 'l:';
 
-const openDb = (): Promise<IDBDatabase> => {
-  if (dbPromise) return dbPromise;
-  dbPromise = new Promise((resolve, reject) => {
-    const req = indexedDB.open(DB_NAME, DB_VERSION);
+/**
+ * Состояние открытия базы на вкладку. Запрос `indexedDB.open` один: запросы к базе стоят в общей очереди, и повтор
+ * за заблокированным висел бы без событий.
+ */
+type OpenState =
+  | {
+      /**
+       * Запроса нет: следующий вызов создаёт его
+       */
+      status: 'idle';
+    }
+  | {
+      /**
+       * Запрос идёт: вызовы ждут его исхода
+       */
+      status: 'pending';
 
+      /**
+       * Исход запроса
+       */
+      promise: Promise<IDBDatabase>;
+    }
+  | {
+      /**
+       * Запрос ждёт, пока вкладка прежней версии отпустит базу: вызовы сразу отклоняются, а его `success` позже
+       * откроет базу без нового запроса
+       */
+      status: 'blocked';
+    }
+  | {
+      /**
+       * Соединение открыто
+       */
+      status: 'open';
+
+      /**
+       * Соединение
+       */
+      db: IDBDatabase;
+    };
+
+let openState: OpenState = { status: 'idle' };
+
+/**
+ * Хранилища создаются по отсутствию, а не по прежней версии: одна ветка служит и новой базе, и обновлению с любой
+ * прежней, и записи уже лежащих хранилищ не трогаются.
+ *
+ * @param db — база в транзакции обновления версии
+ */
+const createStores = (db: IDBDatabase) => {
+  const { objectStoreNames } = db;
+
+  if (!objectStoreNames.contains(STORE.packs)) {
+    db.createObjectStore(STORE.packs, { keyPath: 'id' });
+  }
+
+  if (!objectStoreNames.contains(STORE.stickers)) {
+    db.createObjectStore(STORE.stickers, { keyPath: 'id' }).createIndex(
+      PACK_ID_INDEX,
+      'packId'
+    );
+  }
+
+  if (!objectStoreNames.contains(STORE.recent)) {
+    db.createObjectStore(STORE.recent, { keyPath: 'key' });
+  }
+
+  if (!objectStoreNames.contains(STORE.favorites)) {
+    db.createObjectStore(STORE.favorites, { keyPath: 'key' });
+  }
+};
+
+/**
+ * @param error — ошибка запроса открытия
+ * @returns `VersionError` (базу уже обновила более новая версия из другой вкладки) — ошибка с просьбой перезагрузить
+ * вкладку, иначе ошибка как есть
+ */
+const openError = (error: DOMException | null): Error => {
+  if (error?.name === 'VersionError') return new LocalizedError('error.db.outdated');
+
+  return error || new Error('IndexedDB open failed');
+};
+
+/**
+ * @returns исход нового запроса открытия
+ */
+const requestDb = (): Promise<IDBDatabase> => {
+  const req = indexedDB.open(DB_NAME, DB_VERSION);
+
+  return new Promise((resolve, reject) => {
     req.onupgradeneeded = () => {
-      const db = req.result;
+      createStores(req.result);
+    };
 
-      db.createObjectStore(STORE.packs, { keyPath: 'id' });
-      const stickers = db.createObjectStore(STORE.stickers, { keyPath: 'id' });
-
-      stickers.createIndex(PACK_ID_INDEX, 'packId');
-      db.createObjectStore(STORE.recent, { keyPath: 'key' });
+    req.onblocked = () => {
+      openState = { status: 'blocked' };
+      reject(new LocalizedError('error.db.blocked'));
     };
 
     req.onsuccess = () => {
-      return resolve(req.result);
+      const db = req.result;
+
+      /**
+       * Более новая версия просит базу: соединение отпускается, чтобы не мешать её обновлению, а следующее открытие
+       * этой вкладки получит `VersionError` и попросит перезагрузить вкладку.
+       */
+      db.onversionchange = () => {
+        db.close();
+
+        if (openState.status === 'open' && openState.db === db) {
+          openState = { status: 'idle' };
+        }
+      };
+
+      openState = { status: 'open', db };
+      resolve(db);
     };
 
     req.onerror = () => {
-      return reject(req.error);
+      openState = { status: 'idle' };
+      reject(openError(req.error));
     };
   });
+};
 
-  return dbPromise;
+/**
+ * Одно соединение на вкладку.
+ *
+ * @returns соединение; отклоняется `error.db.blocked`, пока вкладка прежней версии держит базу, — на каждом вызове,
+ * без нового запроса, — и `error.db.outdated`, если базу уже обновила более новая версия
+ */
+export const openDb = async (): Promise<IDBDatabase> => {
+  switch (openState.status) {
+    case 'idle': {
+      const promise = requestDb();
+
+      openState = { status: 'pending', promise };
+
+      return promise;
+    }
+
+    case 'pending': {
+      return openState.promise;
+    }
+
+    case 'blocked': {
+      throw new LocalizedError('error.db.blocked');
+    }
+
+    case 'open': {
+      return openState.db;
+    }
+
+    default: {
+      const unknownState: never = openState;
+
+      throw new Error(`Unknown open state: ${JSON.stringify(unknownState)}`);
+    }
+  }
 };
 
 /**
@@ -74,11 +214,22 @@ const promisify = <T>(req: IDBRequest): Promise<T> => {
 };
 
 /**
+ * Причина отказа транзакции. Прерванная транзакция может не нести ошибки (`tx.error` — `null`), и строка статуса
+ * показала бы «null»: тогда причина — ошибка словаря на языке интерфейса.
+ *
+ * @param error — ошибка транзакции
+ * @returns ошибка для отклонения промиса
+ */
+export const transactionError = (error: DOMException | null): Error => {
+  return error || new LocalizedError('error.db.aborted');
+};
+
+/**
  * Ждёт `abort` наравне с `error`: транзакция, прерванная без ошибки запроса (сбой коммита по квоте), иначе оставила
  * бы промис неразрешённым навсегда.
  *
  * @param tx — транзакция IndexedDB
- * @returns завершение транзакции; отклоняется ошибкой транзакции при сбое или прерывании
+ * @returns завершение транзакции; отклоняется `transactionError` при сбое или прерывании
  */
 const txDone = (tx: IDBTransaction): Promise<void> => {
   return new Promise((resolve, reject) => {
@@ -87,11 +238,11 @@ const txDone = (tx: IDBTransaction): Promise<void> => {
     };
 
     tx.onerror = () => {
-      return reject(tx.error);
+      return reject(transactionError(tx.error));
     };
 
     tx.onabort = () => {
-      return reject(tx.error);
+      return reject(transactionError(tx.error));
     };
   });
 };
@@ -264,10 +415,16 @@ export const deleteSticker = async (id: string) => {
   await promisify((await store(STORE.stickers, 'readwrite')).delete(id));
 };
 
-const recentKey = (item: SendItem): string => {
+/**
+ * Один ключ на элемент у недавних и избранного: «в избранном ли» узнаётся у любой ячейки по её элементу.
+ *
+ * @param item — элемент
+ * @returns `l:<id стикера>` у стикера библиотеки, `r:<источник>:<id>` у GIF из поиска
+ */
+export const itemKey = (item: SendItem): string => {
   switch (item.kind) {
     case 'local': {
-      return `l:${item.stickerId}`;
+      return `${LOCAL_KEY_PREFIX}${item.stickerId}`;
     }
 
     case 'remote': {
@@ -351,7 +508,7 @@ const deleteRecentKeys = async (keys: string[]) => {
 
 export const pushRecent = async (item: SendItem) => {
   const recent = await store(STORE.recent, 'readwrite');
-  const rec: RecentRec = { key: recentKey(item), ts: Date.now(), item };
+  const rec: RecentRec = { key: itemKey(item), ts: Date.now(), item };
 
   await promisify(recent.put(rec));
   const all = await promisify<RecentRec[]>(recent.getAll());
@@ -378,5 +535,118 @@ export const clearRecent = async (kind: RecentKind) => {
 };
 
 export const deleteRecent = async (item: SendItem) => {
-  await promisify((await store(STORE.recent, 'readwrite')).delete(recentKey(item)));
+  await promisify((await store(STORE.recent, 'readwrite')).delete(itemKey(item)));
+};
+
+/**
+ * @param item — элемент
+ * @param sticker — снимок записи стикера; обязателен у стикера библиотеки
+ * @param ts — время добавления (мс)
+ * @returns запись избранного
+ */
+export const favoriteRecord = (
+  item: SendItem,
+  sticker: StickerRec | undefined,
+  ts: number
+): FavoriteRec => {
+  const key = itemKey(item);
+
+  switch (item.kind) {
+    case 'local': {
+      if (!sticker) throw new Error(`Favorite sticker without snapshot: ${key}`);
+
+      return { key, ts, item, sticker };
+    }
+
+    case 'remote': {
+      return { key, ts, item };
+    }
+
+    default: {
+      const unknownItem: never = item;
+
+      throw new Error(`Unknown send item: ${JSON.stringify(unknownItem)}`);
+    }
+  }
+};
+
+/**
+ * @param records — записи избранного в любом порядке
+ * @returns новый список от новых к старым
+ */
+export const favoritesNewestFirst = (records: FavoriteRec[]): FavoriteRec[] => {
+  return [...records].sort((a, b) => {
+    return b.ts - a.ts;
+  });
+};
+
+export const listFavorites = async (): Promise<FavoriteRec[]> => {
+  return favoritesNewestFirst(
+    await promisify<FavoriteRec[]>((await store(STORE.favorites)).getAll())
+  );
+};
+
+/**
+ * Запись по ключу: повторное добавление, выбранное по устаревшему состоянию из другой вкладки, не дублирует элемент.
+ *
+ * Промис ждёт коммита транзакции, а не успеха запроса: сорванный коммит иначе показал бы «Добавлено в избранное».
+ *
+ * @param item — элемент
+ * @param sticker — снимок записи стикера; обязателен у стикера библиотеки
+ * @returns записанная запись — та же, что увидит следующее чтение; отклоняется при сбое или прерывании транзакции
+ */
+export const putFavorite = async (
+  item: SendItem,
+  sticker?: StickerRec
+): Promise<FavoriteRec> => {
+  const rec = favoriteRecord(item, sticker, Date.now());
+  const db = await openDb();
+  const tx = db.transaction(STORE.favorites, 'readwrite');
+
+  tx.objectStore(STORE.favorites).put(rec);
+  await txDone(tx);
+
+  return rec;
+};
+
+/**
+ * Удаление по ключу: элемента, уже убранного в другой вкладке, нет — промис выполняется без ошибки.
+ *
+ * @param item — элемент
+ * @returns завершение записи; отклоняется при сбое или прерывании транзакции
+ */
+export const deleteFavorite = async (item: SendItem) => {
+  const db = await openDb();
+  const tx = db.transaction(STORE.favorites, 'readwrite');
+
+  tx.objectStore(STORE.favorites).delete(itemKey(item));
+  await txDone(tx);
+};
+
+/**
+ * @param stickerId — id стикера библиотеки
+ * @returns снимок записи избранного стикера; стикер не в избранном — undefined
+ */
+export const getFavoriteSticker = async (
+  stickerId: string
+): Promise<StickerRec | undefined> => {
+  const rec = await promisify<FavoriteRec | undefined>(
+    (await store(STORE.favorites)).get(itemKey({ kind: 'local', stickerId }))
+  );
+
+  return rec && isStickerFavorite(rec) ? rec.sticker : undefined;
+};
+
+/**
+ * Считает по диапазону ключей, а не чтением записей: снимки стикеров не достаются из базы ради числа.
+ *
+ * @returns число избранных стикеров библиотеки, без GIF
+ */
+export const countFavoriteStickers = async (): Promise<number> => {
+  /**
+   * `;` — следующий за `:` символ: диапазон берёт все ключи, начинающиеся с префикса.
+   */
+  const range = IDBKeyRange.bound(LOCAL_KEY_PREFIX, 'l;', false, true);
+
+  return promisify<number>((await store(STORE.favorites)).count(range));
 };

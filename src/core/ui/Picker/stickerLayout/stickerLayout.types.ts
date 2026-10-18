@@ -3,7 +3,8 @@
  */
 export type StickerSection<T> = {
   /**
-   * Идентификатор раздела: `pack.id` пака (`custom`, `tg:<имя>`), `'recent'` — недавние стикеры.
+   * Идентификатор раздела: `pack.id` пака (`custom`, `tg:<имя>`), `'recent'` — недавние стикеры,
+   * `'favorite'` — избранные.
    */
   id: string;
 

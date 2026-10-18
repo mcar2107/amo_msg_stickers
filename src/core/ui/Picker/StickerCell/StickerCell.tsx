@@ -7,6 +7,7 @@ import type {
 
 import { CellSpinner } from '../CellSpinner/CellSpinner';
 import { CellMenu } from '../Menu/CellMenu/CellMenu';
+import type { CellMenuRemove } from '../Menu/CellMenu/CellMenu.types';
 import { isMenuKey } from '../Menu/menuKey/menuKey';
 import { useContextMenu } from '../Menu/useContextMenu/useContextMenu';
 import { stickerPreviewTarget } from '../Preview/previewTarget/previewTarget';
@@ -30,7 +31,7 @@ const CELL_CLASS = [
 
 /**
  * Ячейка стикера: отправка нажатием, предпросмотр — удержанием кнопки мыши или пунктом
- * контекстного меню, удаление — пунктом контекстного меню.
+ * контекстного меню, правка избранного и удаление — пунктами контекстного меню.
  *
  * Меню стоит рядом с кнопкой, а не внутри: кнопка внутри кнопки — невалидный HTML. В сетке
  * ряда оно места не занимает — у него `position: fixed`.
@@ -39,7 +40,8 @@ const CELL_CLASS = [
  * отправляют стикер — меню открывают только правый клик, клавиша меню и `Shift+F10`.
  */
 export const StickerCell: FC<StickerCellProps> = (props) => {
-  const { id, item, packId, url, emoji, name, removeKind, onRemove } = props;
+  const { id, item, packId, url, emoji, name, removeKind, onRemove, onFavoriteToggle } =
+    props;
   const target = stickerPreviewTarget(url, emoji, name);
   const { isBusy, sendItem } = useCellSend(item, packId);
   const { opening, open, close } = useContextMenu();
@@ -98,8 +100,19 @@ export const StickerCell: FC<StickerCellProps> = (props) => {
   };
 
   const handleItemRemove = () => {
-    onRemove(item);
+    onRemove?.(item);
   };
+
+  const handleFavoriteToggle = () => {
+    onFavoriteToggle();
+  };
+
+  /**
+   * У ячейки «Избранного» удаления нет: `kind` и колбэк идут в меню только вместе.
+   */
+  const removal: CellMenuRemove = removeKind
+    ? { kind: removeKind, onRemove: handleItemRemove }
+    : {};
 
   return (
     <>
@@ -137,11 +150,12 @@ export const StickerCell: FC<StickerCellProps> = (props) => {
         <CellMenu
           key={opening.seq}
           label={name.menu}
-          kind={removeKind}
+          favoriteItem={item}
           opening={opening}
           onClose={handleMenuClose}
           onPreview={handleMenuPreview}
-          onRemove={handleItemRemove}
+          onFavoriteToggle={handleFavoriteToggle}
+          {...removal}
         />
       )}
     </>

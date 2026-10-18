@@ -22,7 +22,7 @@ export type SectionMotion = 'smooth' | 'instant';
  */
 export type SectionAnchor = {
   /**
-   * Раздел: id пака (`custom`, `tg:<имя>`) или `recent` — недавние стикеры.
+   * Раздел: id пака (`custom`, `tg:<имя>`), `recent` — недавние стикеры или `favorite` — избранные.
    */
   sectionId: string;
 

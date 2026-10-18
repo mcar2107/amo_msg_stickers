@@ -14,15 +14,17 @@ everything the extension stores stays in your browser, and nothing goes to t
   doesn’t provide its own storage — in the amo site storage (`localStorage`). It is available to scripts on the amo
   page.
 
-**Stickers and history** — in the amo site storage (IndexedDB and `localStorage`) with any installation method:
+**Stickers, favorites and history** — in the amo site storage (IndexedDB and `localStorage`) with any installation
+method:
 
 - imported Telegram packs and your own stickers — ready GIFs and their captions;
 - when a sticker was last sent from each pack — packs are ordered by it;
 - recent stickers and recent GIFs — up to 40 of each kind; for GIFs — a link to the file and the title;
+- favorite stickers and GIFs — for a sticker, a copy of its GIF; for a GIF, a link to the file and the title;
 - the selected panel mode — “Stickers” or “GIFs”.
 
-Stickers and history are deleted together with the amo site data in the browser settings. Keys and the token in the
-extension or manager storage are deleted together with the extension or the script, and in the amo site storage —
+Stickers, favorites and history are deleted together with the amo site data in the browser settings. Keys and the token
+in the extension or manager storage are deleted together with the extension or the script, and in the amo site storage —
 together with its data.
 
 ## What is sent and where

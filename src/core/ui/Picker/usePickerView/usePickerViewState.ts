@@ -1,6 +1,6 @@
 import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'preact/hooks';
 
-import { countStickers } from '../../../db';
+import { countFavoriteStickers, countStickers } from '../../../db';
 import { PAGE_STORAGE } from '../../../pageStorage';
 import { writeMode } from '../../../pickerMode';
 import type { PickerMode } from '../../../pickerMode.types';
@@ -20,7 +20,7 @@ import type {
  * стикеров. Методы стабильны между
  * рендерами и сбрасывают статус: он держится до следующего действия пользователя.
  *
- * Режим первого открытия на странице — сохранённый, без него — по библиотеке. Выбор,
+ * Режим первого открытия на странице — сохранённый, без него — по библиотеке и избранному. Выбор,
  * сделанный пользователем до ответа библиотеки, не перебивается.
  *
  * @param isOpen — виден ли пикер
@@ -54,7 +54,11 @@ export const usePickerViewState = (
     hasStartedRef.current = true;
 
     const start = async () => {
-      const nextMode = await startMode(PAGE_STORAGE, countStickers);
+      const nextMode = await startMode(
+        PAGE_STORAGE,
+        countStickers,
+        countFavoriteStickers
+      );
 
       if (!hasChosenRef.current) setModeState(nextMode);
     };
