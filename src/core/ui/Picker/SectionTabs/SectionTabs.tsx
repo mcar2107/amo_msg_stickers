@@ -1,15 +1,11 @@
-import type { FunctionComponent as FC, VNode } from 'preact';
+import type { FunctionComponent as FC } from 'preact';
 
 import { t } from '../../../i18n/translate';
-import { PackCover } from '../PackCover/PackCover';
-import type { FeedSection } from '../StickersMode/feedSections/feedSections.types';
-import { FAVORITE_SECTION_ID } from '../usePickerView/sectionIds';
 import { usePickerView } from '../usePickerView/usePickerView';
 
 import { AddButton } from './AddButton/AddButton';
-import { ClockIcon } from './ClockIcon/ClockIcon';
 import { SectionTab } from './SectionTab/SectionTab';
-import { StarIcon } from './StarIcon/StarIcon';
+import { TabIcon } from './TabIcon/TabIcon';
 import { useCenterTab } from './useCenterTab/useCenterTab';
 import { FEED_PANEL_ID, sectionTabId } from './sectionTabIds';
 import type { SectionTabsProps } from './SectionTabs.types';
@@ -49,22 +45,6 @@ const INDICATOR_CLASS = [
   'after:bg-blue-50 dark:after:bg-beige-70',
   'motion-safe:transition-[transform,width] motion-safe:duration-lg',
 ].join(' ');
-
-/**
- * Значок вкладки: обложка у раздела пака, у раздела без пака — по id раздела: звезда у
- * «Избранного», часы у «Недавних».
- *
- * @param section — раздел вкладки
- * @param bitmaps — кэш битмапов обложек
- * @returns содержимое вкладки
- */
-const tabIcon = (section: FeedSection, bitmaps: SectionTabsProps['bitmaps']): VNode => {
-  const { id, pack, items } = section;
-
-  if (pack) return <PackCover pack={pack} items={items} bitmaps={bitmaps} />;
-
-  return id === FAVORITE_SECTION_ID ? <StarIcon /> : <ClockIcon />;
-};
 
 /**
  * Строка над лентой стикеров: полоса вкладок разделов («Избранное», «Недавние», паки в порядке
@@ -115,7 +95,7 @@ export const SectionTabs: FC<SectionTabsProps> = (props) => {
               isFocusable={hasActive ? isSelected : index === 0}
               onSelect={handleSectionSelect}
             >
-              {tabIcon(section, bitmaps)}
+              <TabIcon section={section} bitmaps={bitmaps} />
             </SectionTab>
           );
         })}
