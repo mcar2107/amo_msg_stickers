@@ -43,8 +43,9 @@ Packs are reordered the next time the panel opens, not under your cursor.
 
 ## How to move stickers to another computer
 
-Export the library to a file and load it in the new browser — [“Moving your library”](./setup/transfer). The same file
-is a backup: packs and custom stickers are stored in the browser and are lost when the amo site data is cleared.
+Export the library to a file — “Settings” → “Library” → “Export library” — and load it in the new browser —
+[“Moving your library”](./setup/transfer). The same file is a backup: packs and custom stickers are stored in the browser
+and are lost when the amo site data is cleared.
 
 ## GIF search stopped working
 

@@ -8,18 +8,21 @@ import { usePicker } from '../../../PickerProvider/usePicker';
 import type { FileDropZoneProps } from './FileDropZone.types';
 
 /**
- * Вид — как у зоны своего стикера, но ниже: превью у файла выгрузки нет, а место сегмента занимают карточка и
- * выгрузка. Цвета обычной и подсвеченной зоны — взаимоисключающие наборы, длительность — под `motion-safe:`, как у
+ * Вид и высота — как у зоны своего стикера: высота одна с карточкой и без, поэтому выбор файла не сдвигает выгрузку
+ * под зоной. Цвета обычной и подсвеченной зоны — взаимоисключающие наборы, длительность — под `motion-safe:`, как у
  * перехода.
  */
 const zoneVariants = cva(
   [
-    'flex shrink-0 flex-col items-center justify-center gap-1.5 rounded-lgx border-[1.5px] border-dashed p-3',
-    'text-center text-xs',
+    'flex h-31 shrink-0 flex-col rounded-lgx border-[1.5px] border-dashed text-xs',
     'motion-safe:transition-[color,background-color,border-color] motion-safe:duration-base',
   ].join(' '),
   {
     variants: {
+      hasCard: {
+        true: 'p-1.5',
+        false: 'items-center justify-center gap-1.5 p-3 text-center',
+      },
       isDragOver: {
         true: 'border-blue-50 bg-blue-50/[.06] text-blue-50 dark:border-beige-70 dark:bg-beige-70/[.06] dark:text-beige-70',
         false:
@@ -33,13 +36,38 @@ const zoneVariants = cva(
  * Кнопка выбора — нейтральная, а не основная `Button`: кольцо фокуса панели на акцентной заливке не видно, и
  * главная кнопка экрана — «Импорт» в футере.
  */
-const CHOOSE_BUTTON_CLASS = [
-  'h-8 shrink-0 cursor-pointer rounded-lg px-3.5 font-primary text-xsm font-semibold leading-[normal]',
-  'bg-cadetGray-30/[.12] text-cadetGray-10 enabled:hover:bg-cadetGray-30/[.2]',
-  'dark:bg-white-0/[.08] dark:text-gray-90 dark:enabled:hover:bg-white-0/[.14]',
-  'disabled:cursor-default disabled:opacity-50',
-  'motion-safe:transition-[background-color] motion-safe:duration-base',
+const chooseButtonVariants = cva(
+  [
+    'shrink-0 cursor-pointer rounded-lg font-primary font-semibold leading-[normal]',
+    'bg-cadetGray-30/[.12] text-cadetGray-10 enabled:hover:bg-cadetGray-30/[.2]',
+    'dark:bg-white-0/[.08] dark:text-gray-90 dark:enabled:hover:bg-white-0/[.14]',
+    'disabled:cursor-default disabled:opacity-50',
+    'motion-safe:transition-[background-color] motion-safe:duration-base',
+  ].join(' '),
+  {
+    variants: {
+      /**
+       * Замена при карточке — второстепенное действие: маленькая плашка в углу, карточка главнее.
+       */
+      hasCard: {
+        true: 'h-6 px-2 text-xs',
+        false: 'h-8 px-3.5 text-xsm',
+      },
+    },
+  }
+);
+
+/**
+ * Подложка карточки занимает всю зону; появление — как у карточки пака Telegram: переход из `@starting-style` при
+ * монтировании, при уменьшении движения подложка стоит сразу.
+ */
+const SURFACE_CLASS = [
+  'flex min-h-0 flex-1 flex-col gap-1 rounded-lg bg-cadetGray-30/[.06] py-1.5 pl-2.5 pr-1.5 dark:bg-white-0/[.04]',
+  'motion-safe:transition-opacity motion-safe:duration-base [@starting-style]:opacity-0',
 ].join(' ');
+
+const FILE_NAME_CLASS =
+  'm-0 min-w-0 flex-1 truncate text-xsm font-semibold leading-[1.4] text-cadetGray-10 dark:text-gray-90';
 
 const UPLOAD_ICON_PATH = [
   'M12 3.5c.3 0 .5.1.7.3l4 4a.9.9 0 1 1-1.3 1.3l-2.5-2.5V15a.9.9 0 1 1-1.8 0V6.6L8.6 9.1a.9.9',
@@ -48,14 +76,17 @@ const UPLOAD_ICON_PATH = [
 ].join('');
 
 /**
- * Зона загрузки файла выгрузки: перетаскивание принимает вся зона, диалог открывает кнопка. Имя выбранного файла
- * показывает карточка под зоной, поэтому зона после выбора та же, только кнопка — «Заменить файл».
+ * Зона загрузки файла выгрузки: перетаскивание принимает вся зона, диалог открывает кнопка. Пока карточки нет — файла
+ * нет или он не прочитался — иконка, текст и «Выбрать файл» («Заменить файл», если файл выбран). С карточкой (слот
+ * `card`) она занимает всю зону: имя файла и маленькая «Заменить файл» — строкой сверху, кнопка в правом углу, а имя
+ * обрезается перед ней. Высота зоны одна в обоих видах, и сегмент не прокручивается от выбора файла.
  *
  * Нативное поле файла скрыто: его кнопка и «Файл не выбран» — на языке браузера и попали бы в дерево доступности.
  * Диалог показывает только `.amostickers` и `.zip` — файл выгрузки, пересжатый архиватором, остаётся zip.
  */
 export const FileDropZone: FC<FileDropZoneProps> = (props) => {
-  const { hasFile, isDisabled, onPick } = props;
+  const { fileName, card, isDisabled, onPick } = props;
+  const hasCard = Boolean(fileName && card);
   const { setHold } = usePicker();
   const [isDragOver, setIsDragOver] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -117,31 +148,49 @@ export const FileDropZone: FC<FileDropZoneProps> = (props) => {
     if (!isDisabled) onPick(event.dataTransfer?.files[0]);
   };
 
+  const chooseButton = (
+    <button
+      type="button"
+      disabled={isDisabled}
+      className={chooseButtonVariants({ hasCard })}
+      onClick={handleChooseClick}
+    >
+      {t(fileName ? 'add.file.replaceFile' : 'add.file.chooseFile')}
+    </button>
+  );
+
   return (
     <div
-      className={zoneVariants({ isDragOver })}
+      className={zoneVariants({ hasCard, isDragOver })}
       onDragOver={handleZoneDragOver}
       onDragLeave={handleZoneDragLeave}
       onDrop={handleZoneDrop}
     >
-      <svg
-        viewBox="0 0 24 24"
-        aria-hidden="true"
-        className="size-5 shrink-0 fill-current"
-      >
-        <path d={UPLOAD_ICON_PATH} />
-      </svg>
+      {hasCard ? (
+        <div className={SURFACE_CLASS}>
+          <div className="flex shrink-0 items-center gap-2">
+            <p className={FILE_NAME_CLASS}>{fileName}</p>
 
-      <p className="m-0 leading-[1.4]">{t('add.file.dropHint')}</p>
+            {chooseButton}
+          </div>
 
-      <button
-        type="button"
-        disabled={isDisabled}
-        className={CHOOSE_BUTTON_CLASS}
-        onClick={handleChooseClick}
-      >
-        {t(hasFile ? 'add.file.replaceFile' : 'add.file.chooseFile')}
-      </button>
+          {card}
+        </div>
+      ) : (
+        <>
+          <svg
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+            className="size-5 shrink-0 fill-current"
+          >
+            <path d={UPLOAD_ICON_PATH} />
+          </svg>
+
+          <p className="m-0 leading-[1.4]">{t('add.file.dropHint')}</p>
+
+          {chooseButton}
+        </>
+      )}
 
       <input
         ref={inputRef}

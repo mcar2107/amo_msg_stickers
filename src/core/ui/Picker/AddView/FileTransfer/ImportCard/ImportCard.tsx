@@ -10,12 +10,15 @@ import {
 import type { ImportCardProps } from './ImportCard.types';
 
 /**
- * Фон и появление — как у карточки пака Telegram: переход из `@starting-style` при монтировании, при уменьшении
- * движения карточка стоит сразу.
+ * Список паков прокручивается сам и сжимается первым: итог или ход под ним остаются на виду в зоне постоянной высоты.
+ * Фокус с клавиатуры прокручиваемому списку даёт браузер — область прокрутки без фокусируемых потомков встаёт в
+ * порядок Tab, только пока её есть куда прокручивать, — а кольцо то же, что у кнопок панели. Кольцо рисуется внутри
+ * границы, поэтому у списка свой отступ, снятый отрицательным полем: кольцо ложится вокруг строк, а не по буквам.
  */
-const CARD_CLASS = [
-  'flex flex-col gap-1.5 rounded-lg bg-cadetGray-30/[.06] px-2.5 py-2 dark:bg-white-0/[.04]',
-  'motion-safe:transition-opacity motion-safe:duration-base [@starting-style]:opacity-0',
+const LIST_CLASS = [
+  'feed-scroll -m-1 flex min-h-0 list-none flex-col gap-0.5 overflow-y-auto p-1',
+  'focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-blue-50',
+  'dark:focus-visible:outline-beige-70',
 ].join(' ');
 
 const SECONDARY_TEXT_CLASS =
@@ -32,18 +35,18 @@ const BAR_CLASS = [
 ].join(' ');
 
 /**
- * Карточка «что добавится» под зоной загрузки: имя файла, паки файла с тем, что импорт с каждым сделает, и итог; во
- * время импорта на месте итога — его ход.
+ * Карточка «что добавится» в зоне загрузки, под именем файла: паки файла с тем, что импорт с каждым сделает, и итог;
+ * во время импорта на месте итога — его ход.
  *
- * Названия паков обрезаются многоточием: длинное название не должно сдвигать счётчик. Список не ограничен по высоте —
- * его прокручивает тело экрана, а «Импорт» остаётся в футере на виду.
+ * Названия паков обрезаются многоточием: длинное название не должно сдвигать счётчик. Паки показаны все: список, который
+ * не помещается в зону, прокручивается внутри карточки, а тело экрана — нет.
  *
  * Счётчик «N/M» проверки скринридер читает значением полосы (`aria-valuetext`), а сам текст от него скрыт — иначе
  * прочитал бы его дважды. Ширина полосы — единственное inline-свойство: она меняется на каждый стикер. Запись хода
  * не сообщает — она идёт одной транзакцией, — поэтому на её время только «Запись…».
  */
 export const ImportCard: FC<ImportCardProps> = (props) => {
-  const { fileName, card, stage, progress } = props;
+  const { card, stage, progress } = props;
 
   const renderFooter = () => {
     if (!card) return null;
@@ -51,7 +54,7 @@ export const ImportCard: FC<ImportCardProps> = (props) => {
     switch (stage) {
       case null: {
         return (
-          <p className={`${SECONDARY_TEXT_CLASS} font-semibold`}>
+          <p className={`${SECONDARY_TEXT_CLASS} shrink-0 font-semibold`}>
             {fileCardSummary(card)}
           </p>
         );
@@ -65,7 +68,7 @@ export const ImportCard: FC<ImportCardProps> = (props) => {
 
         return (
           <>
-            <div className="flex items-baseline justify-between gap-2">
+            <div className="flex shrink-0 items-baseline justify-between gap-2">
               <p className={SECONDARY_TEXT_CLASS}>{t('add.file.checking')}</p>
 
               <p
@@ -82,7 +85,7 @@ export const ImportCard: FC<ImportCardProps> = (props) => {
               aria-valuemax={100}
               aria-valuenow={Math.round(percent)}
               aria-valuetext={count}
-              className={TRACK_CLASS}
+              className={`${TRACK_CLASS} shrink-0`}
             >
               <div className={BAR_CLASS} style={{ width: `${percent}%` }} />
             </div>
@@ -91,7 +94,9 @@ export const ImportCard: FC<ImportCardProps> = (props) => {
       }
 
       case 'writing': {
-        return <p className={SECONDARY_TEXT_CLASS}>{t('add.file.writing')}</p>;
+        return (
+          <p className={`${SECONDARY_TEXT_CLASS} shrink-0`}>{t('add.file.writing')}</p>
+        );
       }
 
       default: {
@@ -103,23 +108,17 @@ export const ImportCard: FC<ImportCardProps> = (props) => {
   };
 
   return (
-    <div aria-busy={card ? undefined : 'true'} className={CARD_CLASS}>
-      <p
-        className={`m-0 min-w-0 truncate text-xsm font-semibold leading-[1.4] ${PRIMARY_TEXT_CLASS}`}
-      >
-        {fileName}
-      </p>
-
+    <div
+      aria-busy={card ? undefined : 'true'}
+      className="flex min-h-0 flex-1 flex-col gap-1"
+    >
       {card ? (
-        <ul
-          aria-label={t('add.file.packs')}
-          className="m-0 flex list-none flex-col gap-0.5 p-0"
-        >
+        <ul aria-label={t('add.file.packs')} className={LIST_CLASS}>
           {card.packs.map((cardPack) => {
             return (
               <li
                 key={cardPack.pack.id}
-                className="flex items-baseline justify-between gap-2"
+                className="flex shrink-0 items-baseline justify-between gap-2"
               >
                 <span
                   className={`min-w-0 truncate text-xs leading-[1.4] ${PRIMARY_TEXT_CLASS}`}

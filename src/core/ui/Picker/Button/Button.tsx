@@ -50,6 +50,7 @@ export const buttonVariants = cva(
 export const Button: FC<ButtonProps> = (props) => {
   const {
     variant,
+    id,
     type = 'button',
     form,
     isDisabled,
@@ -76,6 +77,7 @@ export const Button: FC<ButtonProps> = (props) => {
 
   return (
     <button
+      id={id}
       type={type}
       form={form}
       disabled={isDisabled && !isFocusDisabled}

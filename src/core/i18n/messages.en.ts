@@ -53,15 +53,17 @@ export const EN: Messages = {
   'add.file.checking': 'Checking stickers…',
   'add.file.progress': '{done}/{total}',
   'add.file.writing': 'Saving…',
-  'add.file.exportTitle': 'Export to file',
-  'add.file.export': 'Export library',
-  'add.file.exportHint':
-    'All packs and custom stickers in one .amostickers file — load it in another browser or send it to a colleague.',
-  'add.file.exportEmpty': 'Nothing to export: your library has no stickers',
-  'add.file.exportProgress': 'Exporting: {done}/{total}',
+  'add.file.toExport': 'Export library',
   'settings.title': 'Settings',
   'settings.group.gif': 'GIFs',
   'settings.group.telegram': 'Telegram',
+  'settings.group.library': 'Library',
+  'settings.library.hint':
+    'All packs and custom stickers in one .amostickers file — load it in another browser or send it to a colleague.',
+  'settings.library.export': 'Export library',
+  'settings.library.empty': 'Nothing to export: your library has no stickers',
+  'settings.library.progress': 'Exporting: {done}/{total}',
+  'settings.library.import': 'Load from file',
   'settings.gif.oneKey': 'One of the two keys is enough to search GIFs. {docs}',
   'settings.gif.builtinNote':
     'KLIPY search works without a key, and a GIPHY key adds GIPHY sources. {docs}',

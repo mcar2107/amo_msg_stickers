@@ -4,11 +4,6 @@ import type { FileImportStage } from '../../../PickerProvider/PickerProvider.typ
 
 export type ImportCardProps = {
   /**
-   * Имя выбранного файла.
-   */
-  fileName: string;
-
-  /**
    * Сверка файла с библиотекой; `null` — файл ещё читается.
    */
   card: FileCard | null;

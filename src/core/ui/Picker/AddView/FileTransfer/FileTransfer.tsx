@@ -1,18 +1,23 @@
 import type { FunctionComponent as FC } from 'preact';
 
 import { t } from '../../../../i18n/translate';
+import { LinkButton } from '../../LinkButton/LinkButton';
 import { usePicker } from '../../PickerProvider/usePicker';
+import { usePickerView } from '../../usePickerView/usePickerView';
 
 import { FileDropZone } from './FileDropZone/FileDropZone';
 import { ImportCard } from './ImportCard/ImportCard';
-import { LibraryExport } from './LibraryExport/LibraryExport';
 
 /**
- * Панель сегмента «Файл»: загрузка файла выгрузки — зона, карточка «что добавится» и ошибка — и выгрузка всей
- * библиотеки. Фрагмент, а не обёртка: группы ложатся в форму сегмента с её отступами. Файл, карточку и ход импорта
- * держит провайдер — они переживают смену сегмента и уход с экрана, — а «Импорт» стоит в футере экрана.
+ * Панель сегмента «Файл»: загрузка файла выгрузки — зона с карточкой «что добавится» на её месте и ошибка. Файл,
+ * карточку и ход импорта держит провайдер — они переживают смену сегмента и уход с экрана, — а «Импорт» стоит в футере
+ * экрана.
  *
- * Ошибка чтения стоит без карточки — читать нечего; ошибка записи — под карточкой: файл остаётся, и импорт можно
+ * Выгрузка библиотеки живёт в «Настройках», а сюда ведёт ссылка в строке заголовка: её ищут рядом с загрузкой, а
+ * отдельная группа выгрузки не дала бы сегменту поместиться в панель без прокрутки. Ссылка открывает «Настройки» с
+ * фокусом на «Выгрузить библиотеку».
+ *
+ * Ошибка чтения стоит без карточки — читать нечего; ошибка записи — под зоной с карточкой: файл остаётся, и импорт можно
  * повторить.
  */
 export const FileTransfer: FC = () => {
@@ -28,34 +33,42 @@ export const FileTransfer: FC = () => {
       pickFile,
     },
   } = usePicker();
+  const { openScreen } = usePickerView();
 
   const handleZonePick = (file: File | undefined) => {
     pickFile(file);
   };
 
+  const handleExportLinkClick = () => {
+    openScreen('settings', { focus: 'libraryExport' });
+  };
+
   return (
-    <>
-      <div className="flex flex-col gap-2">
-        <h3 className="mt-1.5 text-xsm font-bold">{t('add.file.importTitle')}</h3>
+    <div className="flex flex-col gap-2">
+      <div className="mt-1.5 flex items-baseline justify-between gap-2">
+        <h3 className="m-0 min-w-0 truncate text-xsm font-bold">
+          {t('add.file.importTitle')}
+        </h3>
 
-        <FileDropZone
-          hasFile={Boolean(fileName)}
-          isDisabled={isImporting}
-          onPick={handleZonePick}
-        />
-
-        {fileName && (card || isReading) && (
-          <ImportCard fileName={fileName} card={card} stage={stage} progress={progress} />
-        )}
-
-        {error && (
-          <p role="alert" className="m-0 text-xs leading-[1.4] text-red-30">
-            {error}
-          </p>
-        )}
+        <LinkButton onClick={handleExportLinkClick}>{t('add.file.toExport')}</LinkButton>
       </div>
 
-      <LibraryExport />
-    </>
+      <FileDropZone
+        fileName={fileName}
+        card={
+          card || isReading ? (
+            <ImportCard card={card} stage={stage} progress={progress} />
+          ) : null
+        }
+        isDisabled={isImporting}
+        onPick={handleZonePick}
+      />
+
+      {error && (
+        <p role="alert" className="m-0 text-xs leading-[1.4] text-red-30">
+          {error}
+        </p>
+      )}
+    </div>
   );
 };

@@ -51,15 +51,17 @@ export const RU = {
   'add.file.checking': 'Проверка стикеров…',
   'add.file.progress': '{done}/{total}',
   'add.file.writing': 'Запись…',
-  'add.file.exportTitle': 'Выгрузка в файл',
-  'add.file.export': 'Выгрузить библиотеку',
-  'add.file.exportHint':
-    'Все паки и свои стикеры одним файлом .amostickers — его можно загрузить в другом браузере или отправить коллеге.',
-  'add.file.exportEmpty': 'Выгружать нечего: в библиотеке нет стикеров',
-  'add.file.exportProgress': 'Выгрузка: {done}/{total}',
+  'add.file.toExport': 'Выгрузить библиотеку',
   'settings.title': 'Настройки',
   'settings.group.gif': 'GIF',
   'settings.group.telegram': 'Telegram',
+  'settings.group.library': 'Библиотека',
+  'settings.library.hint':
+    'Все паки и свои стикеры одним файлом .amostickers — его можно загрузить в другом браузере или отправить коллеге.',
+  'settings.library.export': 'Выгрузить библиотеку',
+  'settings.library.empty': 'Выгружать нечего: в библиотеке нет стикеров',
+  'settings.library.progress': 'Выгрузка: {done}/{total}',
+  'settings.library.import': 'Загрузить из файла',
   'settings.gif.oneKey': 'Для поиска GIF хватит одного ключа из двух. {docs}',
   'settings.gif.builtinNote':
     'Поиск KLIPY работает без ключа, а ключ GIPHY добавит источники GIPHY. {docs}',

@@ -51,7 +51,7 @@ const tooBigError = (isLibrary: boolean) => {
  * @returns ошибка
  */
 const emptyError = (isLibrary: boolean) => {
-  if (isLibrary) return new Error(t('add.file.exportEmpty'));
+  if (isLibrary) return new Error(t('settings.library.empty'));
 
   return new Error(t('error.libraryFile.packExportEmpty'));
 };

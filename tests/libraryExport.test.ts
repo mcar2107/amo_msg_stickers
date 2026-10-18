@@ -345,7 +345,9 @@ describe('exportLibrary — библиотека', () => {
   });
 
   it('пустая библиотека — ошибка, а не файл', async () => {
-    await expect(exportLibrary({ now: NOW })).rejects.toThrow(t('add.file.exportEmpty'));
+    await expect(exportLibrary({ now: NOW })).rejects.toThrow(
+      t('settings.library.empty')
+    );
   });
 
   it('больше 10 000 стикеров — ошибка с советом выгружать по пакам', async () => {

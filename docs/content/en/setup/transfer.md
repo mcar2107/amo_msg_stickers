@@ -10,9 +10,10 @@ of your library: export it from time to time, and after clearing you can loa
 
 ## 1. Export the library {#export}
 
-In the “Stickers” mode, click “+” → “File” → “Export library”.
+Open “Settings” — the icon at the bottom right of the panel — and click “Export library” in the “Library” group.
+The “Export library” link on the “File” tab of the “Add stickers” screen leads there too.
 
-<!-- скрин: img/setup/file-segment.png — the “Add stickers” screen, the “File” tab: the “Load from file” group with the drop zone and the “Choose file” button, below it the “Export to file” group with the “Export library” button -->
+<!-- скрин: img/setup/settings-library.png — “Settings” scrolled down: the “Library” group with the description, the “Export library” button and the “Load from file” link under it -->
 
 The browser downloads an `amo-stickers-<date>.amostickers` file — as a regular download, to your downloads folder.
 It has all packs and custom stickers. The export progress is shown next to the button, and at the end — “Library
@@ -20,15 +21,15 @@ exported, stickers: N”. While the library has no stickers, the button is u
 
 ## 2. Load the file in the new place {#import}
 
-[Install amo stickers](../install/) in the new browser, open amo and click “+” → “File”. Click “Choose file” or drop
-the file onto the zone. A `.zip` will do too — if the file was renamed or unpacked and packed again with an archiver.
+[Install amo stickers](../install/) in the new browser, open amo and click “+” → “File” — or the “Load from file” link
+under the export button in “Settings”. Click “Choose file” or drop the file onto the zone. A `.zip` will do too — if the file was renamed or unpacked and packed again with an archiver.
 
-<!-- скрин: img/setup/file-import.png — the “File” tab with a file chosen: the “Packs in the file” card with the packs and the “New packs: N, stickers: M” total, the “Import” button in the footer -->
+<!-- скрин: img/setup/file-import.png — the “File” tab with a file chosen: in place of the zone — the card with the file name, “Replace file” in the corner, the packs and the “New packs: N, stickers: M” total, the “Import” button in the footer -->
 
-The card under the zone shows the packs in the file: how many stickers a new pack has and how many will be added
-to a pack you already have. Click “Import”. First the stickers are checked — “Cancel” stops it, then “Saving…” — this
-can’t be interrupted. At the end — “Stickers added: N”, and the feed scrolls to the first section that got new
-stickers.
+The card takes the place of the zone and shows the packs in the file: how many stickers a new pack has and how many will
+be added to a pack you already have. A long list of packs scrolls inside the card, and “Replace file” in its corner
+picks another file. Click “Import”. First the stickers are checked — “Cancel” stops it, then “Saving…” — this can’t
+be interrupted. At the end — “Stickers added: N”, and the feed scrolls to the first section that got new stickers.
 
 You can leave the screen — the chosen file and the card stay, and the import progress moves to the bottom of the panel.
 

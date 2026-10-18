@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'preact/hooks';
 
-import { countStickers } from '../../../../../../db';
-import { usePicker } from '../../../../PickerProvider/usePicker';
+import { countStickers } from '../../../../../db';
+import { usePicker } from '../../../PickerProvider/usePicker';
 
 /**
  * Число стикеров библиотеки для «Выгрузить библиотеку»: без стикеров выгружать нечего. Пересчитывается на монтирование
