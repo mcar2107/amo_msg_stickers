@@ -205,5 +205,5 @@ export const RU = {
   'error.db.blocked':
     'Обновите другие вкладки amo: в них открыта прежняя версия amo stickers',
   'error.db.outdated': 'Перезагрузите вкладку: amo stickers обновился',
-  'error.db.aborted': 'Запись прервана',
+  'error.db.aborted': 'Запись в хранилище браузера прервана',
 } as const satisfies Record<string, string>;
