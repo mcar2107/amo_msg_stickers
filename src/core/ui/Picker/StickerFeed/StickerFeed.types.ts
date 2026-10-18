@@ -1,5 +1,6 @@
 import type { RefObject } from 'preact';
 
+import type { FavoriteToggle } from '../PickerProvider/useFavorites/useFavorites.types';
 import type { RowRange, StickerLayout } from '../stickerLayout/stickerLayout.types';
 import type {
   FeedSection,
@@ -42,6 +43,11 @@ export type StickerFeedProps = {
    * Колбэк на удаление элемента ячейки раздела.
    */
   onCellDelete: (sectionId: string, cell: FeedSticker) => void;
+
+  /**
+   * Колбэк на выбор пункта избранного в меню ячейки любого раздела.
+   */
+  onFavoriteToggle: (toggle: FavoriteToggle) => void;
 
   /**
    * Колбэк на подтверждённое удаление пака из заголовка его раздела.

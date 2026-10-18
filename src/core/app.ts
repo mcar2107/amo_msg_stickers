@@ -7,17 +7,19 @@ import {
   findComposers,
   injectMessageStyle,
   isDarkTheme,
+  isEditing,
   syncMessageStyle,
   watchSystemTheme,
 } from './amoDom';
 import type { ButtonMarkup, Composer } from './amoDom.types';
 import { toStickerGif } from './convert';
-import { getSticker, pushRecent } from './db';
+import { getFavoriteSticker, getSticker, pushRecent } from './db';
 import type { SendItem } from './db.types';
 import { sendFileName } from './fileName';
 import type { Host } from './host.types';
 import { createHoverPopup } from './hoverPopup';
 import type { OpenedBy } from './hoverPopup.types';
+import { iconColorClasses } from './iconColor';
 import { MAX_REMOTE_GIF_BYTES } from './net';
 import { createPageClient, fileInputOf } from './pageClient';
 import { isPageEscape } from './pageEscape';
@@ -53,21 +55,43 @@ export const start = (host: Host) => {
   const buttonMarkups = new WeakMap<HTMLElement, ButtonMarkup>();
 
   /**
-   * Классы цвета иконки в закрытом и открытом состоянии — свои у разметки поля: они заменяют
-   * друг друга, а не дополняют (`ButtonMarkup`).
+   * Цвет иконки — классами разметки поля по состоянию: попап открыт у этой кнопки, иначе
+   * редактирование или покой. Пишутся только недостающие и лишние классы: пересчёт идёт на каждом
+   * кадре поиска полей, и запись тех же классов зря трогала бы стиль страницы.
    *
-   * @param button — обёртка кнопки стикеров; null — попап ни у какой кнопки не открыт
-   * @param isOpen — открыт ли попап у этой кнопки
+   * @param button — обёртка кнопки стикеров
+   * @param isEditingNow — идёт ли редактирование сообщения в поле этой кнопки
    */
-  const setIconOpen = (button: HTMLElement | null, isOpen: boolean) => {
-    const markup = button && buttonMarkups.get(button);
-    const icon = button?.querySelector('svg');
+  const paintIcon = (button: HTMLElement, isEditingNow: boolean) => {
+    const markup = buttonMarkups.get(button);
+    const icon = button.querySelector('svg');
 
     if (!icon || !markup) return;
-    const { idleClasses, openClasses } = markup;
+    const { add, remove } = iconColorClasses(markup, {
+      isOpen: button === activeButton,
+      isEditing: isEditingNow,
+    });
 
-    icon.classList.remove(...(isOpen ? idleClasses : openClasses));
-    icon.classList.add(...(isOpen ? openClasses : idleClasses));
+    for (const name of remove) {
+      if (icon.classList.contains(name)) icon.classList.remove(name);
+    }
+
+    for (const name of add) {
+      if (!icon.classList.contains(name)) icon.classList.add(name);
+    }
+  };
+
+  /**
+   * Редактирование читается в момент вызова: поле кнопки к закрытию попапа может уже исчезнуть, и
+   * тогда цвет — покоя.
+   *
+   * @param button — обёртка кнопки стикеров
+   * @returns true — в поле этой кнопки идёт редактирование
+   */
+  const isButtonEditing = (button: HTMLElement) => {
+    const composer = composerOf(button);
+
+    return Boolean(composer && isEditing(composer));
   };
 
   const pageClient = createPageClient(document, fileInputOf);
@@ -75,7 +99,13 @@ export const start = (host: Host) => {
   const toFile = async (item: SendItem) => {
     switch (item.kind) {
       case 'local': {
-        const sticker = await getSticker(item.stickerId);
+        /**
+         * Снимок избранного — запасной источник: стикер, чей пак удалён, остаётся в «Избранном»
+         * и отправляется оттуда с той же меткой имени файла, что и из пака.
+         */
+        const sticker =
+          (await getSticker(item.stickerId)) ||
+          (await getFavoriteSticker(item.stickerId));
 
         if (!sticker) throw new SendError(t('error.send.stickerDeleted'));
 
@@ -123,8 +153,10 @@ export const start = (host: Host) => {
      * узнаёт об этом здесь, иначе он считал бы попап открытым.
      */
     onClose: () => {
-      setIconOpen(activeButton, false);
+      const button = activeButton;
+
       activeButton = null;
+      if (button) paintIcon(button, isButtonEditing(button));
       hoverPopup.dismiss();
     },
     onHoldRelease: () => {
@@ -153,7 +185,7 @@ export const start = (host: Host) => {
      * переход уходящей панели, и возврат курсора во время ухода мигнул бы ею.
      */
     if (picker.element.parentElement !== button) button.append(picker.element);
-    setIconOpen(button, true);
+    paintIcon(button, isButtonEditing(button));
     syncTheme();
     const markup = buttonMarkups.get(button);
 
@@ -227,15 +259,26 @@ export const start = (host: Host) => {
     });
     wrap.append(inner);
     emojiWrap.after(wrap);
+
+    return wrap;
   };
 
   const scan = () => {
     let hasMounted = false;
 
     for (const composer of findComposers()) {
-      if (composer.row.querySelector(`:scope > [${MARK}]`)) continue;
-      mount(composer);
-      hasMounted = true;
+      let wrap = composer.row.querySelector<HTMLElement>(`:scope > [${MARK}]`);
+
+      if (!wrap) {
+        wrap = mount(composer);
+        hasMounted = true;
+      }
+
+      /**
+       * Вход в редактирование и выход из него меняют узлы строки поля, и поиск полей идёт на этом
+       * кадре: цвет иконки следует за иконкой эмодзи без своего наблюдателя кнопки отмены правки.
+       */
+      paintIcon(wrap, isEditing(composer));
     }
 
     /**

@@ -1,9 +1,14 @@
-import type { RemoteGif } from '../../../../db.types';
+import type { FavoriteRec, RemoteGif } from '../../../../db.types';
 import type { FeedLoading } from '../../useGifFeed/useGifFeed.types';
 
 export type GifSectionsInput = {
   /**
-   * Недавно отправленные GIF, свежие первыми.
+   * Записи избранного от новых к старым; записи стикеров пропускаются.
+   */
+  favorites: FavoriteRec[];
+
+  /**
+   * Недавно отправленные GIF, свежие первыми, в том числе избранные.
    */
   recent: RemoteGif[];
 
@@ -26,4 +31,16 @@ export type GifSectionsInput = {
    * Какая страница выдачи грузится; `null` — ничего не грузится.
    */
   loading: FeedLoading | null;
+};
+
+export type FavoriteGifs = {
+  /**
+   * Избранные GIF от новых к старым.
+   */
+  gifs: RemoteGif[];
+
+  /**
+   * Ключи записей избранных GIF: по ним недавние пропускают то, что уже стоит в избранном.
+   */
+  keys: Set<string>;
 };

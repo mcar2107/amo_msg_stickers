@@ -9,6 +9,7 @@ import { orderPacks, packSnapshot } from '../../../packOrder';
 import { useObjectUrls } from '../useObjectUrls/useObjectUrls';
 import { usePickerViewState } from '../usePickerView/usePickerViewState';
 
+import { useFavorites } from './useFavorites/useFavorites';
 import { errorMessage } from './errorMessage';
 import type {
   ImportSource,
@@ -142,6 +143,7 @@ export const usePickerState = (options: PickerStateOptions): PickerStateValue =>
     [onSend, onClose, showStatus, showError, clearStatus]
   );
 
+  const favorites = useFavorites({ showStatus, showError });
   const view = usePickerViewState(isOpen, clearStatus);
   const { screen, addSegment, scrollToSection } = view;
   const importLock = useRef<ImportSource | null>(null);
@@ -224,5 +226,6 @@ export const usePickerState = (options: PickerStateOptions): PickerStateValue =>
       setHold,
     },
     view,
+    favorites,
   };
 };

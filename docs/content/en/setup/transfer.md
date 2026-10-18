@@ -42,7 +42,7 @@ You can leave the screen — the chosen file and the card stay, and the i
 - **Loading the same file again** doesn’t create duplicates: the card says “Everything in this file is already in your
   library”.
 - **Captions and emoji** are kept, and a pack from Telegram keeps its “Copy link”.
-- **Recent** doesn’t change. Where new packs go — in the [FAQ](../faq#pack-order).
+- **Recent and favorites** don’t change. Where new packs go — in the [FAQ](../faq#pack-order).
 - **Canceling, an error or a lack of space** leave the library as it was.
 
 ## Share a pack {#share-pack}
@@ -56,8 +56,8 @@ and a pack that has been deleted from Telegram.
 ## What’s in the file {#contents}
 
 Stickers, their emoji and captions, pack names and Telegram set names. A whole library export also has when each pack
-was added and when a sticker was last sent from it: in the new place, packs line up in the same order. GIF keys, the
-bot token, recent items and settings aren’t in the file, so it’s safe to forward. More — in
+was added and when a sticker was last sent from it: in the new place, packs line up in the same order. GIF keys, the bot
+token, recent items, favorites and settings aren’t in the file, so it’s safe to forward. More — in
 the [privacy policy](../privacy#export-file).
 
 ## If it didn’t work {#errors}

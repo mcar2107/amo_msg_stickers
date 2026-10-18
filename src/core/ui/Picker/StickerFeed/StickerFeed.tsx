@@ -34,6 +34,7 @@ export const StickerFeed: FC<StickerFeedProps> = (props) => {
     scrollRef,
     onScroll,
     onCellDelete,
+    onFavoriteToggle,
     onPackDelete,
     onRecentClear,
   } = props;
@@ -90,6 +91,7 @@ export const StickerFeed: FC<StickerFeedProps> = (props) => {
               row={row}
               hint={hint}
               onCellDelete={handleCellDelete}
+              onFavoriteToggle={onFavoriteToggle}
             />
           );
         }

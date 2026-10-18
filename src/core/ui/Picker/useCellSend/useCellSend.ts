@@ -12,7 +12,7 @@ import type { CellSend } from './useCellSend.types';
  *
  * @param item — что отправляет ячейка
  * @param packId — пак раздела, из которого отправляют: успешная отправка поднимает его в
- *   порядке паков; undefined — раздел не пака («Недавние», GIF)
+ *   порядке паков; undefined — раздел не пака («Избранное», «Недавние», GIF)
  * @returns занятость ячейки и отправка
  */
 export const useCellSend = (item: SendItem, packId?: string): CellSend => {

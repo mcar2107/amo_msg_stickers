@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   cellRemovalTargets,
+  favoriteToggleTargets,
   resolveFocusTarget,
   sectionRemovalTargets,
 } from '../src/core/ui/Picker/removalFocus/removalFocus';
@@ -115,5 +116,63 @@ describe('resolveFocusTarget', () => {
 
   it('ни одной цели не осталось — null', () => {
     expect(resolveFocusTarget([{ kind: 'tab', sectionId: 'gone' }], BEFORE)).toBeNull();
+  });
+});
+
+describe('favoriteToggleTargets', () => {
+  const FEED = [
+    section('favorite', ['l:f1', 'l:f2', 'l:f3']),
+    section('recent', ['l:r1', 'l:r2', 'l:r3', 'l:r4', 'l:r5']),
+    section('tg:cats', ['x', 'y']),
+  ];
+
+  it('убранный из «Избранного» — соседняя ячейка, которая встала на его место', () => {
+    const targets = favoriteToggleTargets(FEED, 'favorite', 'l:f2', true);
+    const after = [section('favorite', ['l:f1', 'l:f3']), ...FEED.slice(1)];
+
+    expect(resolveFocusTarget(targets, after)).toEqual({
+      kind: 'cell',
+      sectionId: 'favorite',
+      key: 'l:f3',
+    });
+  });
+
+  it('последний избранный — «Избранное» исчезло, вкладка «Недавних»', () => {
+    const before = [section('favorite', ['l:f1']), ...FEED.slice(1)];
+    const targets = favoriteToggleTargets(before, 'favorite', 'l:f1', true);
+
+    expect(resolveFocusTarget(targets, FEED.slice(1))).toEqual({
+      kind: 'tab',
+      sectionId: 'recent',
+    });
+  });
+
+  it('добавленный из недавних — ячейка, которая стала третьей в «Недавних»', () => {
+    const targets = favoriteToggleTargets(FEED, 'recent', 'l:r3', true);
+    const after = [
+      section('favorite', ['l:r3', 'l:f1', 'l:f2', 'l:f3']),
+      section('recent', ['l:r1', 'l:r2', 'l:r4', 'l:r5']),
+      FEED[2] || section('tg:cats', []),
+    ];
+
+    expect(resolveFocusTarget(targets, after)).toEqual({
+      kind: 'cell',
+      sectionId: 'recent',
+      key: 'l:r4',
+    });
+  });
+
+  it('ячейка пака остаётся — фокус на неё же, хотя выше появилось «Избранное»', () => {
+    const before = FEED.slice(1);
+    const targets = favoriteToggleTargets(before, 'tg:cats', 'y', false);
+
+    expect(targets).toEqual([{ kind: 'cell', sectionId: 'tg:cats', key: 'y' }]);
+    expect(
+      resolveFocusTarget(targets, [section('favorite', ['l:y']), ...before])
+    ).toEqual({
+      kind: 'cell',
+      sectionId: 'tg:cats',
+      key: 'y',
+    });
   });
 });

@@ -766,6 +766,12 @@
           ><input type="checkbox" id="slow-clear" /> медленное снятие ответа</label
         >
       </div>
+      <div class="group" id="edit-tools">
+        <span class="group-title">Поле</span>
+        <label class="toggle"
+          ><input type="checkbox" id="editing" /> редактирование</label
+        >
+      </div>
       <div class="group" id="worker-tools" hidden>
         <span class="group-title">Worker-версия</span>
         <label class="toggle">
@@ -1360,6 +1366,30 @@
       document.getElementById('theme').onclick = () =>
         document.documentElement.classList.toggle('dark');
 
+      /**
+       * Редактирование, как у amo: отмена правки видна, иконка эмодзи в тёмной теме светлеет, в
+       * поле — текст правки, а скрепки вложений в строке поля нет. Скрепку стенд не рисует — её
+       * место держит пустая заглушка: ядро узнаёт о правке по смене узлов строки, а не по
+       * атрибутам отмены правки, и выход из правки при пустом поле тоже должен её менять.
+       */
+      const cancelEdit = legacyRoot.querySelector('[aria-label="cancel edit"]');
+      const emojiIcon = composeRow.querySelector(':scope > .z-100 svg');
+      const attachStub = document.createElement('span');
+      attachStub.hidden = true;
+      composeRow.prepend(attachStub);
+      document.getElementById('editing').onchange = (e) => {
+        const isOn = e.target.checked;
+        if (isOn) attachStub.remove();
+        else composeRow.prepend(attachStub);
+        cancelEdit.classList.toggle('opacity-100', isOn);
+        cancelEdit.classList.toggle('opacity-0', !isOn);
+        if (isStableMarkup) cancelEdit.toggleAttribute('data-visible', isOn);
+        emojiIcon.classList.toggle('dark:fill-gray-70', !isOn);
+        emojiIcon.classList.toggle('dark:fill-gray-40', isOn);
+        editable.textContent = isOn ? 'Редактируемое сообщение' : '';
+        syncSend();
+      };
+
       // --- язык amo: пикер читает его при старте из того же ключа, что и amo, поэтому смена — с перезагрузкой ---
       const LOCALE_KEY = 'i18nextLng';
       const localeSelect = document.getElementById('locale');
@@ -1383,17 +1413,31 @@
       const PACKS = 20;
       const STICKERS = 120;
 
+      /**
+       * Версия и хранилища — как у `openDb` пикера: запрос прежней версии к обновлённой базе упал бы `VersionError`,
+       * а хранилища создаются по отсутствию, как в `createStores`.
+       */
       const openLibrary = () =>
         new Promise((resolve, reject) => {
-          const req = indexedDB.open('amo-stickers', 1);
+          const req = indexedDB.open('amo-stickers', 2);
           req.onupgradeneeded = () => {
             const db = req.result;
-            db.createObjectStore('packs', { keyPath: 'id' });
-            db.createObjectStore('stickers', { keyPath: 'id' }).createIndex(
-              'packId',
-              'packId'
-            );
-            db.createObjectStore('recent', { keyPath: 'key' });
+            const names = db.objectStoreNames;
+            if (!names.contains('packs')) {
+              db.createObjectStore('packs', { keyPath: 'id' });
+            }
+            if (!names.contains('stickers')) {
+              db.createObjectStore('stickers', { keyPath: 'id' }).createIndex(
+                'packId',
+                'packId'
+              );
+            }
+            if (!names.contains('recent')) {
+              db.createObjectStore('recent', { keyPath: 'key' });
+            }
+            if (!names.contains('favorites')) {
+              db.createObjectStore('favorites', { keyPath: 'key' });
+            }
           };
           req.onsuccess = () => resolve(req.result);
           req.onerror = () => reject(req.error);
@@ -1746,6 +1790,7 @@
         $('worker-tools').hidden = false;
         for (const node of [
           $('theme'),
+          $('edit-tools'),
           $('queue').closest('label'),
           $('reply-missing').closest('label'),
           $('slow-clear').closest('label'),

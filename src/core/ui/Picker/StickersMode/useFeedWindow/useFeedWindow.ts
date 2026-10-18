@@ -271,5 +271,5 @@ export const useFeedWindow = (
     trackScroll();
   }, [lock, trackScroll]);
 
-  return { scrollRef, layout, ranges, activeId, trackScroll: handleScroll };
+  return { scrollRef, layout, ranges, activeId, trackScroll: handleScroll, syncScroll };
 };

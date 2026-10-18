@@ -3,16 +3,27 @@ import type { FunctionComponent as FC } from 'preact';
 import { Menu } from '../Menu';
 
 import { cellMenuItems } from './cellMenuItems/cellMenuItems';
+import { FavoriteItem } from './FavoriteItem/FavoriteItem';
 import { PreviewItem } from './PreviewItem/PreviewItem';
 import { RemoveItem } from './RemoveItem/RemoveItem';
 import type { CellMenuProps } from './CellMenu.types';
 
 /**
- * Контекстное меню ячейки стикера или GIF: «Предпросмотр» первым, затем удаление, если оно у
- * ячейки есть. Удаление живёт только здесь: кнопки удаления на ячейках заслоняли бы сетку.
+ * Контекстное меню ячейки стикера или GIF: «Предпросмотр» первым, пункт избранного вторым, затем
+ * удаление, если оно у ячейки есть. Удаление живёт только здесь: кнопки удаления на ячейках
+ * заслоняли бы сетку.
  */
 export const CellMenu: FC<CellMenuProps> = (props) => {
-  const { label, kind, opening, onClose, onPreview, onRemove } = props;
+  const {
+    label,
+    kind,
+    favoriteItem,
+    opening,
+    onClose,
+    onPreview,
+    onFavoriteToggle,
+    onRemove,
+  } = props;
   const { anchor, source } = opening;
 
   return (
@@ -21,6 +32,12 @@ export const CellMenu: FC<CellMenuProps> = (props) => {
         switch (item) {
           case 'preview': {
             return <PreviewItem key={item} onPreview={onPreview} />;
+          }
+
+          case 'favorite': {
+            return (
+              <FavoriteItem key={item} item={favoriteItem} onToggle={onFavoriteToggle} />
+            );
           }
 
           case 'remove': {

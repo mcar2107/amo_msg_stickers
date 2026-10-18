@@ -19,4 +19,9 @@ describe('headerAction', () => {
     expect(headerAction('tg:cats', true)).toBe('menu');
     expect(headerAction('tg:cats', false)).toBe('menu');
   });
+
+  it('у «Избранного» действий нет: элемент убирается только пунктом меню ячейки', () => {
+    expect(headerAction('favorite', true)).toBeNull();
+    expect(headerAction('favorite', false)).toBeNull();
+  });
 });

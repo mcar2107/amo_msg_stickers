@@ -14,15 +14,17 @@ everything the extension stores stays in your browser, and nothing goes to t
   doesn’t provide its own storage — in the amo site storage (`localStorage`). It is available to scripts on the amo
   page.
 
-**Stickers and history** — in the amo site storage (IndexedDB and `localStorage`) with any installation method:
+**Stickers, favorites and history** — in the amo site storage (IndexedDB and `localStorage`) with any installation
+method:
 
 - imported Telegram packs and your own stickers — ready GIFs and their captions;
 - when a sticker was last sent from each pack — packs are ordered by it;
 - recent stickers and recent GIFs — up to 40 of each kind; for GIFs — a link to the file and the title;
+- favorite stickers and GIFs — for a sticker, a copy of its GIF; for a GIF, a link to the file and the title;
 - the selected panel mode — “Stickers” or “GIFs”.
 
-Stickers and history are deleted together with the amo site data in the browser settings. Keys and the token in the
-extension or manager storage are deleted together with the extension or the script, and in the amo site storage —
+Stickers, favorites and history are deleted together with the amo site data in the browser settings. Keys and the token
+in the extension or manager storage are deleted together with the extension or the script, and in the amo site storage —
 together with its data.
 
 ## Export file {#export-file}
@@ -32,7 +34,7 @@ as a regular browser download. amo stickers doesn’t send it anywhere — o
 
 The file has stickers (ready GIFs), their emoji and captions, pack names and Telegram set names. A whole library export
 also has when each pack was added and when a sticker was last sent from it; a single pack export doesn’t. GIF keys, the
-bot token, recent items and settings aren’t in the file: whoever you give the file to sees only its contents.
+bot token, recent items, favorites and settings aren’t in the file: whoever you give the file to sees only its contents.
 
 ## What is sent and where
 

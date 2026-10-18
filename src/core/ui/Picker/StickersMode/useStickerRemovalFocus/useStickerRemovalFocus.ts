@@ -7,7 +7,7 @@ import type { FocusTarget } from '../../removalFocus/removalFocus.types';
 import { sectionTabId } from '../../SectionTabs/sectionTabIds';
 import { cellId } from '../../StickerFeed/cellId';
 import { useRemovalFocus } from '../../useRemovalFocus/useRemovalFocus';
-import type { ExpectRemoval } from '../../useRemovalFocus/useRemovalFocus.types';
+import type { RemovalFocus } from '../../useRemovalFocus/useRemovalFocus.types';
 import type { FeedSection } from '../feedSections/feedSections.types';
 
 /**
@@ -49,13 +49,15 @@ const targetElement = (
  * @param sections — разделы ленты; `null` — библиотека ещё не прочитана
  * @param scrollRef — прокручиваемый элемент ленты: от него ищется shadow root пикера
  * @param isOpen — открыт ли пикер
- * @returns запоминание целей фокуса перед удалением
+ * @param favorites — избранное, из которого собраны разделы: правку избранного фокус ждёт по нему
+ * @returns запоминание целей фокуса перед удалением и правкой избранного и их снятие
  */
 export const useStickerRemovalFocus = (
   sections: FeedSection[] | null,
   scrollRef: RefObject<HTMLElement>,
-  isOpen: boolean
-): ExpectRemoval => {
+  isOpen: boolean,
+  favorites: unknown
+): RemovalFocus => {
   const focusElement = useCallback(
     (targets: FocusTarget[], feed: FeedSection[]) => {
       const scroller = scrollRef.current;
@@ -68,5 +70,5 @@ export const useStickerRemovalFocus = (
     [scrollRef]
   );
 
-  return useRemovalFocus(sections, isOpen, focusElement);
+  return useRemovalFocus(sections, isOpen, focusElement, favorites);
 };

@@ -1,9 +1,9 @@
-import type { Pack, SendItem } from '../../../../db.types';
+import type { Pack, RecentRec, SendItem, StickersByPack } from '../../../../db.types';
 import type { FeedSection } from '../feedSections/feedSections.types';
 
 export type FeedSections = {
   /**
-   * Разделы ленты в порядке показа; `null` — библиотека ещё не прочитана.
+   * Разделы ленты в порядке показа; `null` — библиотека или избранное ещё не прочитаны.
    */
   sections: FeedSection[] | null;
 
@@ -40,9 +40,14 @@ export type FeedSections = {
  */
 export type FeedRead = {
   /**
-   * Разделы ленты в порядке показа.
+   * Стикеры библиотеки по пакам.
    */
-  sections: FeedSection[];
+  byPack: StickersByPack;
+
+  /**
+   * Записи недавних стикеров, от новых к старым.
+   */
+  recent: RecentRec[];
 
   /**
    * Список паков, для которого прочитаны разделы.
