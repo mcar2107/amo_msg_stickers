@@ -28,3 +28,8 @@
 Стабильная: стикер уходит, data-file-name с меткой.
 Worker-версия: стикер уходит ядром страницы (без no-core/запасного пути), строка помечена data-amo-stickers-kind="sticker", --amostk-w на коробке.
 Ошибок в консоли нет (кроме 404 favicon стенда).
+
+### Итог
+
+Гейт pnpm lint && pnpm test && pnpm build — ok. openspec validate --strict — ok (skip_specs).
+Закрыто 12/12. Вопросов к пользователю нет. Долг G1 — в записи группы.
