@@ -34,6 +34,10 @@ const SEGMENT_TITLES: Record<AddSegment, MessageKey> = {
  * Хуки форм вызываются здесь, а не в панелях: главная кнопка футера зависит от выбранного сегмента и состояния его
  * формы. Панели смонтированы все, поэтому введённая ссылка и черновик стикера переживают смену сегмента. Закрытие
  * экрана сбрасывает черновик, а ссылку, ошибку её поля и выбранный файл держит провайдер — до успешного импорта.
+ *
+ * Тело сегмента «Файл» делит высоту экрана (`shouldFitBody`): зона с карточкой растёт до свободного места, а дальше
+ * прокручивается список паков внутри неё. Формы «Telegram» и «Свой стикер» в такое тело не сжимаются — у них длинное
+ * содержимое прокручивается вместе с телом.
  */
 export const AddView: FC = () => {
   const { addSegment } = usePickerView();
@@ -148,11 +152,15 @@ export const AddView: FC = () => {
   };
 
   return (
-    <Screen title={t('add.title')} footer={renderFooter()}>
+    <Screen
+      title={t('add.title')}
+      footer={renderFooter()}
+      shouldFitBody={addSegment === 'file'}
+    >
       <div
         role="tablist"
         aria-label={t('add.segments')}
-        className="mb-2 flex items-center gap-0.5"
+        className="mb-2 flex shrink-0 items-center gap-0.5"
       >
         {ADD_SEGMENTS.map((segment) => {
           return (

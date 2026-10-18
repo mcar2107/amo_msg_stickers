@@ -19,6 +19,10 @@ import { ImportCard } from './ImportCard/ImportCard';
  *
  * Ошибка чтения стоит без карточки — читать нечего; ошибка записи — под зоной с карточкой: файл остаётся, и импорт можно
  * повторить.
+ *
+ * Сжимается только зона: заголовок и ошибка держат свою высоту, и зона с карточкой растёт по содержимому до места, что
+ * осталось от них, вкладок и строки статуса в теле экрана, — дальше прокручивается список паков внутри неё, а тело
+ * экрана — нет.
  */
 export const FileTransfer: FC = () => {
   const {
@@ -44,8 +48,8 @@ export const FileTransfer: FC = () => {
   };
 
   return (
-    <div className="flex flex-col gap-2">
-      <div className="mt-1.5 flex items-baseline justify-between gap-2">
+    <div className="flex min-h-0 flex-col gap-2">
+      <div className="mt-1.5 flex shrink-0 items-baseline justify-between gap-2">
         <h3 className="m-0 min-w-0 truncate text-xsm font-bold">
           {t('add.file.importTitle')}
         </h3>
@@ -65,7 +69,7 @@ export const FileTransfer: FC = () => {
       />
 
       {error && (
-        <p role="alert" className="m-0 text-xs leading-[1.4] text-red-30">
+        <p role="alert" className="m-0 shrink-0 text-xs leading-[1.4] text-red-30">
           {error}
         </p>
       )}

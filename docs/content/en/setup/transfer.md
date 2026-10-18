@@ -22,7 +22,8 @@ exported, stickers: N”. While the library has no stickers, the button is u
 ## 2. Load the file in the new place {#import}
 
 [Install amo stickers](../install/) in the new browser, open amo and click “+” → “File” — or the “Load from file” link
-under the export button in “Settings”. Click “Choose file” or drop the file onto the zone. A `.zip` will do too — if the file was renamed or unpacked and packed again with an archiver.
+under the export button in “Settings”. Click “Choose file” or drop the file onto the zone. A `.zip` will do too —
+if the file was renamed or unpacked and packed again with an archiver.
 
 <!-- скрин: img/setup/file-import.png — the “File” tab with a file chosen: in place of the zone — the card with the file name, “Replace file” in the corner, the packs and the “New packs: N, stickers: M” total, the “Import” button in the footer -->
 
