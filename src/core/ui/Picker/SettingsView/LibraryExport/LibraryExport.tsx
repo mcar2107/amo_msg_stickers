@@ -1,14 +1,14 @@
 import type { FunctionComponent as FC } from 'preact';
 
-import { t } from '../../../../i18n/translate';
-import { Button } from '../../Button/Button';
-import { LinkButton } from '../../LinkButton/LinkButton';
-import { usePicker } from '../../PickerProvider/usePicker';
-import { SCREEN_FOCUS_ID } from '../../usePickerView/screenFocus';
-import { usePickerView } from '../../usePickerView/usePickerView';
+import { t } from '@core/i18n';
+import { Button } from '@ui/Button';
+import { LinkButton } from '@ui/LinkButton';
+import { usePicker } from '@ui/PickerProvider';
+import { SCREEN_FOCUS_ID } from '@ui/usePickerView';
+import { usePickerView } from '@ui/usePickerView';
 
-import { useStickerCount } from './useStickerCount/useStickerCount';
 import type { LibraryNoteState } from './LibraryExport.types';
+import { useStickerCount } from './useStickerCount';
 
 const GROUP_ID = 'settings-group-library';
 const NOTE_ID = 'settings-library-export-note';

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { createScrollReset } from '../src/core/ui/Picker/MasonryGrid/scrollReset/scrollReset';
-import type { ResetBox } from '../src/core/ui/Picker/MasonryGrid/scrollReset/scrollReset.types';
+import type { ResetBox } from '@ui/MasonryGrid/scrollReset';
+import { createScrollReset } from '@ui/MasonryGrid/scrollReset';
 
 /**
  * Элемент, которому тест меняет ширину: показ скрытой ленты.

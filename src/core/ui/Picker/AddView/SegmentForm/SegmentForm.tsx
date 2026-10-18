@@ -1,7 +1,7 @@
 import { cva } from 'class-variance-authority';
 import type { FunctionComponent as FC, TargetedSubmitEvent } from 'preact';
 
-import { segmentFormId, segmentTabId } from '../segmentIds/segmentIds';
+import { segmentFormId, segmentTabId } from '@ui/AddView/segmentIds';
 
 import type { SegmentFormProps } from './SegmentForm.types';
 

@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
-import type { Pack } from '../src/core/db.types';
+import type { Pack } from '@core/db.types';
+import type { PreviewEntry } from '@ui/PickerProvider/packCardView';
 import {
   packCard,
   previewView,
   shouldRequestPreview,
-} from '../src/core/ui/Picker/PickerProvider/packCardView/packCardView';
-import type { PreviewEntry } from '../src/core/ui/Picker/PickerProvider/packCardView/packCardView.types';
+} from '@ui/PickerProvider/packCardView';
 
 const READY: PreviewEntry = {
   name: 'cats',

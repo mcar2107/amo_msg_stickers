@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { parseBranchIssue, planMove } from '../scripts/boardMove';
-import type { BoardTarget, ProjectItemNode } from '../scripts/boardMove.types';
+import { parseBranchIssue, planMove } from '@scripts/boardMove';
+import type { BoardTarget, ProjectItemNode } from '@scripts/boardMove.types';
 
 const TARGET: BoardTarget = { owner: 'mcar2107', number: 1 };
 

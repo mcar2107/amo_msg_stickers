@@ -7,7 +7,7 @@ import {
   flyTransform,
   PREVIEW_FLY_MS,
   PREVIEW_LEAVE_MS,
-} from '../src/core/ui/Picker/Preview/previewMotion/previewMotion';
+} from '@ui/Preview/previewMotion';
 
 describe('flyTransform', () => {
   it('ячейка 50×50 в левом верхнем углу → квадрат 400×400 по центру окна', () => {

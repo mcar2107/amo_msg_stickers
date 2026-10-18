@@ -7,12 +7,12 @@ import {
   deleteSticker,
   listAllStickers,
   listRecent,
-} from '../../../../db';
-import type { SendItem } from '../../../../db.types';
-import { errorMessage } from '../../PickerProvider/errorMessage';
-import { useFavoritesContext } from '../../PickerProvider/useFavorites/useFavoritesContext';
-import { usePicker } from '../../PickerProvider/usePicker';
-import { feedSections } from '../feedSections/feedSections';
+} from '@core/db';
+import type { SendItem } from '@core/db.types';
+import { usePicker } from '@ui/PickerProvider';
+import { errorMessage } from '@ui/PickerProvider/errorMessage';
+import { useFavoritesContext } from '@ui/PickerProvider/useFavorites';
+import { feedSections } from '@ui/StickersMode/feedSections';
 
 import type { FeedRead, FeedSections } from './useFeedSections.types';
 

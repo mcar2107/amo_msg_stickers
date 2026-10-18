@@ -1,11 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import {
-  activeSection,
-  buildStickerLayout,
-  visibleRows,
-} from '../src/core/ui/Picker/stickerLayout/stickerLayout';
-import type { StickerSection } from '../src/core/ui/Picker/stickerLayout/stickerLayout.types';
+import type { StickerSection } from '@ui/stickerLayout';
+import { activeSection, buildStickerLayout, visibleRows } from '@ui/stickerLayout';
 
 /**
  * Раздел с `count` стикерами-номерами.

@@ -1,5 +1,5 @@
-import type { HostNetwork } from '../core/host.types';
-import { fetchChecked, readJson, readResponseLimited } from '../core/net';
+import type { HostNetwork } from '@core/host.types';
+import { fetchChecked, readJson, readResponseLimited } from '@core/net';
 
 /**
  * Сеть userscript прямым `fetch` со страницы — режим без сетевого API менеджера. Запросы

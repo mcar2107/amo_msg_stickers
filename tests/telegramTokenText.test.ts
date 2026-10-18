@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { telegramTokenText } from '../src/core/ui/Picker/SettingsView/telegramTokenText/telegramTokenText';
+import { telegramTokenText } from '@ui/SettingsView/telegramTokenText';
 
 describe('telegramTokenText', () => {
   it('со встроенным токеном — свой необязателен', () => {

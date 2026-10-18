@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
-import { buildMessage } from '../src/page/buildMessage';
-import type { AmoStickerMessage } from '../src/page/buildMessage.types';
+import { buildMessage } from '@page/buildMessage';
+import type { AmoStickerMessage } from '@page/buildMessage.types';
 
-import { makeGif } from './helpers/makeGif';
+import { makeGif } from './helpers';
 
 const NOW = Date.UTC(2026, 8, 28, 14, 51, 14, 181);
 const FILE_NAME = '😀.amostk.k-sticker.gif';

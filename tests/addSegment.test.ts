@@ -1,10 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import {
-  ADD_SEGMENTS,
-  DEFAULT_ADD_SEGMENT,
-  resolveAddSegment,
-} from '../src/core/ui/Picker/usePickerView/addSegment';
+import { ADD_SEGMENTS, DEFAULT_ADD_SEGMENT, resolveAddSegment } from '@ui/usePickerView';
 
 describe('resolveAddSegment', () => {
   it('без выбора на странице открывается «Telegram»', () => {

@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
-import { COMPOSER_BUTTON } from '../src/core/amoDomStable';
-import { workerMarkup } from '../src/core/amoDomWorker';
-import { iconColorClasses } from '../src/core/iconColor';
+import { COMPOSER_BUTTON } from '@core/amoDomStable';
+import { workerMarkup } from '@core/amoDomWorker';
+import { iconColorClasses } from '@core/iconColor';
 
 describe('iconColorClasses', () => {
   it('покой — классы покоя, открытого и редактирования сняты', () => {

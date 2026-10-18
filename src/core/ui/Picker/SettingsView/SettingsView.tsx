@@ -1,20 +1,20 @@
 import type { FunctionComponent as FC, TargetedSubmitEvent } from 'preact';
 
-import { BUILTIN_KLIPY_KEY } from '../../../builtinKlipyKey';
-import { BUILTIN_TELEGRAM_TOKEN } from '../../../builtinToken';
-import { getLocale, t } from '../../../i18n/translate';
-import { USER_DOCS_PAGE, userDocsUrl } from '../../../userDocs';
-import { renderMessage } from '../../renderMessage/renderMessage';
-import { ExternalLink } from '../ExternalLink/ExternalLink';
-import { Field } from '../Field/Field';
-import { Screen } from '../Screen/Screen';
+import { BUILTIN_KLIPY_KEY } from '@core/builtinKlipyKey';
+import { BUILTIN_TELEGRAM_TOKEN } from '@core/builtinToken';
+import { getLocale, t } from '@core/i18n';
+import { renderMessage } from '@core/ui/renderMessage';
+import { USER_DOCS_PAGE, userDocsUrl } from '@core/userDocs';
+import { ExternalLink } from '@ui/ExternalLink';
+import { Field } from '@ui/Field';
+import { Screen } from '@ui/Screen';
 
-import { fieldCheckText } from './fieldCheckText/fieldCheckText';
-import { fieldCheckTone } from './fieldCheckTone/fieldCheckTone';
-import { klipyKeyText } from './klipyKeyText/klipyKeyText';
-import { LibraryExport } from './LibraryExport/LibraryExport';
-import { telegramTokenText } from './telegramTokenText/telegramTokenText';
-import { useSettingsDraft } from './useSettingsDraft/useSettingsDraft';
+import { fieldCheckText } from './fieldCheckText';
+import { fieldCheckTone } from './fieldCheckTone';
+import { klipyKeyText } from './klipyKeyText';
+import { LibraryExport } from './LibraryExport';
+import { telegramTokenText } from './telegramTokenText';
+import { useSettingsDraft } from './useSettingsDraft';
 
 /**
  * Встроенные токен и ключ KLIPY сборки не меняются до перезагрузки страницы — ключи словаря

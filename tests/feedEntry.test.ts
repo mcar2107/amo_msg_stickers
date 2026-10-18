@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { entryIndex } from '../src/core/ui/Picker/feedEntry/feedEntry';
-import type { EntryBox } from '../src/core/ui/Picker/feedEntry/feedEntry.types';
+import type { EntryBox } from '@ui/feedEntry';
+import { entryIndex } from '@ui/feedEntry';
 
 /**
  * Видимая область ленты: от 1000 до 1300 px.

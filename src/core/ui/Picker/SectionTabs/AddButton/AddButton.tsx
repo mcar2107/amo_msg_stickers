@@ -1,8 +1,8 @@
 import type { FunctionComponent as FC } from 'preact';
 
-import { t } from '../../../../i18n/translate';
-import { PlusIcon } from '../../PlusIcon/PlusIcon';
-import { usePickerView } from '../../usePickerView/usePickerView';
+import { t } from '@core/i18n';
+import { PlusIcon } from '@ui/PlusIcon';
+import { usePickerView } from '@ui/usePickerView';
 
 /**
  * Вид — как у вкладки полосы, без выбранного состояния: кнопка стоит в одной строке с вкладками.

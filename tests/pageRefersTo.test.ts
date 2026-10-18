@@ -1,12 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import type { AmoStickerMessage } from '../src/page/buildMessage.types';
-import {
-  attachReply,
-  draughtReplyIdOf,
-  quotedMessageOf,
-  replyKey,
-} from '../src/page/refersTo';
+import type { AmoStickerMessage } from '@page/buildMessage.types';
+import { attachReply, draughtReplyIdOf, quotedMessageOf, replyKey } from '@page/refersTo';
 
 const CHAT_ID = 'chat-1';
 const REPLY_ID = 'msg-1';

@@ -1,6 +1,6 @@
 import type { FunctionComponent as FC } from 'preact';
 
-import { useCoverCanvas } from '../useCoverCanvas/useCoverCanvas';
+import { useCoverCanvas } from '@ui/PackCover/useCoverCanvas';
 
 import type { CoverCanvasProps } from './CoverCanvas.types';
 

@@ -1,5 +1,5 @@
-import type { Pack, RecentRec, SendItem, StickersByPack } from '../../../../db.types';
-import type { FeedSection } from '../feedSections/feedSections.types';
+import type { Pack, RecentRec, SendItem, StickersByPack } from '@core/db.types';
+import type { FeedSection } from '@ui/StickersMode/feedSections';
 
 export type FeedSections = {
   /**

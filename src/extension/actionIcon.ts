@@ -1,4 +1,4 @@
-import { isObject } from '../shared/guards';
+import { isObject } from '@shared/guards';
 
 import type { IconThemeMessage } from './messages.types';
 

@@ -1,4 +1,4 @@
-import { usePicker } from '../PickerProvider/usePicker';
+import { usePicker } from '@ui/PickerProvider';
 
 import type { TelegramImportState } from './useTelegramImport.types';
 

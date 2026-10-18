@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { previewDirection } from '../src/core/ui/Picker/Preview/previewDirection/previewDirection';
+import { previewDirection } from '@ui/Preview/previewDirection';
 
 describe('previewDirection', () => {
   it.each([

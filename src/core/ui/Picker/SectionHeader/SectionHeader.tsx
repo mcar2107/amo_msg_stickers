@@ -1,8 +1,8 @@
 import type { FunctionComponent as FC } from 'preact';
 
-import { ClearRecentButton } from './ClearRecentButton/ClearRecentButton';
-import { headerAction } from './headerAction/headerAction';
-import { PackMenuButton } from './PackMenuButton/PackMenuButton';
+import { ClearRecentButton } from './ClearRecentButton';
+import { headerAction } from './headerAction';
+import { PackMenuButton } from './PackMenuButton';
 import type { SectionHeaderProps } from './SectionHeader.types';
 
 const HEADER_CLASS = 'absolute inset-x-0 flex items-center gap-1 pl-1';

@@ -1,12 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import type { PressStart } from '@ui/pressGesture';
 import {
   createPressGesture,
   HOLD_DELAY_MS,
   HOLD_SLOP_PX,
   shouldSwapPreview,
-} from '../src/core/ui/Picker/pressGesture/pressGesture';
-import type { PressStart } from '../src/core/ui/Picker/pressGesture/pressGesture.types';
+} from '@ui/pressGesture';
 
 /**
  * Основная кнопка мыши в точке (100, 100).

@@ -1,28 +1,22 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import type { Pack } from '../src/core/db.types';
-import { EN } from '../src/core/i18n/messages.en';
-import { setLocale, t } from '../src/core/i18n/translate';
-import type { ImportWritten } from '../src/core/libraryFile/importRecords.types';
-import { FORMAT_NAME } from '../src/core/libraryFile/limits';
-import type { ImportPlan } from '../src/core/libraryFile/prepareImport.types';
-import type {
-  FileCard,
-  LibraryFile,
-} from '../src/core/libraryFile/readLibraryFile.types';
+import type { Pack } from '@core/db.types';
+import { EN } from '@core/i18n';
+import { setLocale, t } from '@core/i18n';
+import type { ImportPlan } from '@core/libraryFile';
+import type { FileCard, LibraryFile } from '@core/libraryFile';
+import { FORMAT_NAME } from '@core/libraryFile';
+import type { ImportWritten } from '@core/libraryFile/importRecords';
 import {
   fileImportFailure,
   fileImportStatus,
   finishFileImport,
   firstAddedSection,
-} from '../src/core/ui/Picker/PickerProvider/fileImportOutcome/fileImportOutcome';
-import type { ImportErrorTarget } from '../src/core/ui/Picker/PickerProvider/finishImport/finishImport.types';
-import { runFileImport } from '../src/core/ui/Picker/PickerProvider/runFileImport/runFileImport';
-import type { FileImportRun } from '../src/core/ui/Picker/PickerProvider/runFileImport/runFileImport.types';
-import type {
-  SectionMotion,
-  SectionScrollOptions,
-} from '../src/core/ui/Picker/usePickerView/usePickerView.types';
+} from '@ui/PickerProvider/fileImportOutcome';
+import type { ImportErrorTarget } from '@ui/PickerProvider/finishImport';
+import type { FileImportRun } from '@ui/PickerProvider/runFileImport';
+import { runFileImport } from '@ui/PickerProvider/runFileImport';
+import type { SectionMotion, SectionScrollOptions } from '@ui/usePickerView';
 
 /**
  * Паки в порядке ленты: «Мои стикеры» первыми, затем паки Telegram по использованию.

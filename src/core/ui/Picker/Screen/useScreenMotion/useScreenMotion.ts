@@ -1,9 +1,9 @@
 import { useLayoutEffect, useRef } from 'preact/hooks';
 
-import { isMotionReduced } from '../../scrollMotion/scrollMotion';
-import { usePickerView } from '../../usePickerView/usePickerView';
+import { isMotionReduced } from '@ui/scrollMotion';
+import { usePickerView } from '@ui/usePickerView';
 
-import { playScreenLeave } from './playScreenLeave/playScreenLeave';
+import { playScreenLeave } from './playScreenLeave';
 import { SCREEN_ENTER_MS } from './screenTiming';
 import type { ScreenMotion } from './useScreenMotion.types';
 

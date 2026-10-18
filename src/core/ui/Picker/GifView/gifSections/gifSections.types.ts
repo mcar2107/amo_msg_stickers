@@ -1,5 +1,5 @@
-import type { FavoriteRec, RemoteGif } from '../../../../db.types';
-import type { FeedLoading } from '../../useGifFeed/useGifFeed.types';
+import type { FavoriteRec, RemoteGif } from '@core/db.types';
+import type { FeedLoading } from '@ui/useGifFeed';
 
 export type GifSectionsInput = {
   /**

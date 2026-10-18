@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { createScrollMemory } from '../src/core/ui/Picker/ModePanel/scrollMemory';
-import type { ScrollBox } from '../src/core/ui/Picker/ModePanel/scrollMemory.types';
+import type { ScrollBox } from '@ui/ModePanel/scrollMemory';
+import { createScrollMemory } from '@ui/ModePanel/scrollMemory';
 
 /**
  * Прокручиваемый элемент без браузера.

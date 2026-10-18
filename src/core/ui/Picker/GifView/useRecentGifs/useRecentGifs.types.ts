@@ -1,4 +1,4 @@
-import type { RemoteGif } from '../../../../db.types';
+import type { RemoteGif } from '@core/db.types';
 
 export type RecentGifs = {
   /**

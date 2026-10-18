@@ -1,6 +1,6 @@
-import type { FavoriteToggle } from '../../PickerProvider/useFavorites/useFavorites.types';
-import type { StickerRow } from '../../stickerLayout/stickerLayout.types';
-import type { FeedSticker } from '../../StickersMode/feedSections/feedSections.types';
+import type { FavoriteToggle } from '@ui/PickerProvider/useFavorites';
+import type { StickerRow } from '@ui/stickerLayout';
+import type { FeedSticker } from '@ui/StickersMode/feedSections';
 
 export type FeedRowProps = {
   /**

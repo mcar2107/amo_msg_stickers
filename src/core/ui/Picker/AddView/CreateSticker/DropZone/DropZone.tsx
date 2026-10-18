@@ -2,8 +2,8 @@ import { cva } from 'class-variance-authority';
 import type { FunctionComponent as FC, TargetedDragEvent, TargetedEvent } from 'preact';
 import { useRef, useState } from 'preact/hooks';
 
-import { t } from '../../../../../i18n/translate';
-import { usePicker } from '../../../PickerProvider/usePicker';
+import { t } from '@core/i18n';
+import { usePicker } from '@ui/PickerProvider';
 
 import type { DropZoneProps } from './DropZone.types';
 

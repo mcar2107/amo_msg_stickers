@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import type { RemoteGif } from '../src/core/db.types';
-import { setLocale } from '../src/core/i18n/translate';
-import { gifCellName, stickerCellName } from '../src/core/ui/Picker/cellName/cellName';
+import type { RemoteGif } from '@core/db.types';
+import { setLocale } from '@core/i18n';
+import { gifCellName, stickerCellName } from '@ui/cellName';
 
 /**
  * GIF из поиска с заданным названием.

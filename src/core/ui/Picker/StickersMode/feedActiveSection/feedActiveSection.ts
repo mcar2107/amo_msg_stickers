@@ -1,5 +1,5 @@
-import { activeSection } from '../../stickerLayout/stickerLayout';
-import type { StickerLayout } from '../../stickerLayout/stickerLayout.types';
+import type { StickerLayout } from '@ui/stickerLayout';
+import { activeSection } from '@ui/stickerLayout';
 
 /**
  * Недолёт `scrollTop` до конца ленты, при котором она уже прокручена до конца: браузер округляет

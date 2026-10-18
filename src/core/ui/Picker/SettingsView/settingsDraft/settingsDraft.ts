@@ -1,4 +1,4 @@
-import type { Settings } from '../../../../host.types';
+import type { Settings } from '@core/host.types';
 
 import type { CheckPlan } from './settingsDraft.types';
 

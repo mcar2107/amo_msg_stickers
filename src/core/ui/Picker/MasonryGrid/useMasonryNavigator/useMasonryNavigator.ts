@@ -1,14 +1,14 @@
 import type { RefObject } from 'preact';
 import { useCallback, useRef } from 'preact/hooks';
 
-import type { RemoteGif } from '../../../../db.types';
-import { gifCellName } from '../../cellName/cellName';
-import type { PreviewNavigator } from '../../Preview/PreviewProvider.types';
-import { gifPreviewTarget } from '../../Preview/previewTarget/previewTarget';
-import { revealFeedCell } from '../../revealFeedCell/revealFeedCell';
-import { gifItemCellId } from '../gifCellId';
-import { masonryNeighbor } from '../masonryNeighbor/masonryNeighbor';
-import type { MasonryTile } from '../splitColumns/splitColumns.types';
+import type { RemoteGif } from '@core/db.types';
+import { gifCellName } from '@ui/cellName';
+import { gifItemCellId } from '@ui/MasonryGrid/gifCellId';
+import { masonryNeighbor } from '@ui/MasonryGrid/masonryNeighbor';
+import type { MasonryTile } from '@ui/MasonryGrid/splitColumns';
+import type { PreviewNavigator } from '@ui/Preview';
+import { gifPreviewTarget } from '@ui/Preview/previewTarget';
+import { revealFeedCell } from '@ui/revealFeedCell';
 
 /**
  * Навигатор ленты GIF для закреплённого предпросмотра: соседняя плитка по раскладке, прокрутка

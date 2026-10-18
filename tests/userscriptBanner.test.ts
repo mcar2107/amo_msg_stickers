@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
+import { ALLOWED_DOMAINS, ALLOWED_HOSTS } from '@core/net';
+
 import buildSource from '../build.mjs?raw';
-import { ALLOWED_DOMAINS, ALLOWED_HOSTS } from '../src/core/net';
 
 /**
  * Хост директивы `@connect` в строке заголовка userscript внутри `build.mjs`.

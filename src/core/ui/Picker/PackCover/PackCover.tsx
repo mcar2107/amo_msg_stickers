@@ -1,12 +1,12 @@
 import type { FunctionComponent as FC } from 'preact';
 
-import { CUSTOM_PACK_ID } from '../../../db';
-import { packTitle } from '../../../packTitle';
+import { CUSTOM_PACK_ID } from '@core/db';
+import { packTitle } from '@core/packTitle';
 
-import { CoverCanvas } from './CoverCanvas/CoverCanvas';
-import { coverLetters } from './coverLetters/coverLetters';
-import { SmileIcon } from './SmileIcon/SmileIcon';
+import { CoverCanvas } from './CoverCanvas';
+import { coverLetters } from './coverLetters';
 import type { PackCoverProps } from './PackCover.types';
+import { SmileIcon } from './SmileIcon';
 
 /**
  * Обложка вкладки пака — статичный первый кадр стикера-обложки пака, а если её нет в паке —

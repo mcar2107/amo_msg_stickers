@@ -1,4 +1,4 @@
-import type { TgStickerSet } from '../../../../sources/telegram.types';
+import type { TgStickerSet } from '@core/sources';
 
 import type { PackPreview } from './packPreview.types';
 

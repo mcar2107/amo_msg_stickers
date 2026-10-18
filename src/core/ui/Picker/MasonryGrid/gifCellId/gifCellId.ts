@@ -1,4 +1,4 @@
-import type { RemoteGif } from '../../../db.types';
+import type { RemoteGif } from '@core/db.types';
 
 /**
  * Ключ GIF в разделе ленты: id уникален только у своего провайдера.

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { menuPosition } from '../src/core/ui/Picker/Menu/menuPosition/menuPosition';
+import { menuPosition } from '@ui/Menu/menuPosition';
 
 const PANEL = { left: 100, top: 100, right: 452, bottom: 500 };
 const SIZE = { width: 160, height: 80 };

@@ -1,10 +1,10 @@
-import type { Pack } from '../../../../db.types';
-import type { ImportWritten } from '../../../../libraryFile/importRecords.types';
+import type { Pack } from '@core/db.types';
+import type { ImportWritten } from '@core/libraryFile/importRecords';
 import type {
   PickerScreen,
   SectionMotion,
   SectionScrollOptions,
-} from '../../usePickerView/usePickerView.types';
+} from '@ui/usePickerView';
 
 /**
  * Шаг импорта файла, на котором он упал: `library` — чтение состояния библиотеки, `file` — проверка стикеров

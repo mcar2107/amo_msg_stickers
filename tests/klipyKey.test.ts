@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { readKlipyKey } from '../scripts/klipyKey';
+import { readKlipyKey } from '@scripts/klipyKey';
 
 describe('readKlipyKey', () => {
   it.each([undefined, '', '  \n'])('без значения («%s») — пустая строка', (value) => {

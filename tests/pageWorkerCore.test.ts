@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { catchCore } from '../src/page/workerCore';
-import type { CoreHost } from '../src/page/workerCore.types';
+import { catchCore } from '@page/workerCore';
+import type { CoreHost } from '@page/workerCore.types';
 
-import { CALL_LOADED, FakeWorker } from './helpers/fakeWorker';
+import { CALL_LOADED, FakeWorker } from './helpers';
 
 /**
  * @param onReport — слушатель докладов агента; по умолчанию копит их в `reports`

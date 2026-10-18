@@ -1,13 +1,13 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import type { ComposeMarkup, SendComposer } from '../src/core/amoDom.types';
-import { legacyMarkup } from '../src/core/amoDomLegacy';
-import { stableMarkup } from '../src/core/amoDomStable';
-import { setLocale } from '../src/core/i18n/translate';
-import type { PageClient, PageSendResult } from '../src/core/pageClient.types';
-import { SendError, sendFile, toCheckedGifFile, toGifFile } from '../src/core/sender';
+import type { ComposeMarkup, SendComposer } from '@core/amoDom.types';
+import { legacyMarkup } from '@core/amoDomLegacy';
+import { stableMarkup } from '@core/amoDomStable';
+import { setLocale } from '@core/i18n';
+import type { PageClient, PageSendResult } from '@core/pageClient.types';
+import { SendError, sendFile, toCheckedGifFile, toGifFile } from '@core/sender';
 
-import { makeGif } from './helpers/makeGif';
+import { makeGif } from './helpers';
 
 const GIF_NAME = 'cat.amostk.k-gif.gif';
 

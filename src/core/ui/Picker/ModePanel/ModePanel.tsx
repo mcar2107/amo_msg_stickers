@@ -1,9 +1,9 @@
 import { cva } from 'class-variance-authority';
 import type { FunctionComponent as FC, TargetedEvent } from 'preact';
 
-import { useScrollRestore } from './useScrollRestore/useScrollRestore';
 import { modePanelId, modeTabId } from './modeIds';
 import type { ModePanelProps } from './ModePanel.types';
+import { useScrollRestore } from './useScrollRestore';
 
 /**
  * Появление — переход из `@starting-style`: панель не размонтируется, а переход срабатывает

@@ -1,10 +1,10 @@
 import type { RefObject } from 'preact';
 import { useEffect, useRef } from 'preact/hooks';
 
-import { isTextField } from '../../isTextField/isTextField';
-import { SCREEN_FOCUS_ID } from '../../usePickerView/screenFocus';
-import { usePickerView } from '../../usePickerView/usePickerView';
-import type { ScreenFocus } from '../../usePickerView/usePickerView.types';
+import { isTextField } from '@ui/isTextField';
+import type { ScreenFocus } from '@ui/usePickerView';
+import { SCREEN_FOCUS_ID } from '@ui/usePickerView';
+import { usePickerView } from '@ui/usePickerView';
 
 import { focusScrollTop } from './focusScrollTop';
 

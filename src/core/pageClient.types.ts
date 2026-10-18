@@ -1,4 +1,4 @@
-import type { PageDims, PageRejectReason } from '../shared/pageBridge.types';
+import type { PageDims, PageRejectReason } from '@shared/pageBridge.types';
 
 /**
  * Итог команды агенту: amo принял стикер в очередь или агент недоступен.

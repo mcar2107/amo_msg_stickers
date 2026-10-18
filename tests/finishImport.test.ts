@@ -1,14 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { setLocale } from '../src/core/i18n/translate';
-import {
-  finishImport,
-  importErrorTarget,
-} from '../src/core/ui/Picker/PickerProvider/finishImport/finishImport';
-import type {
-  SectionMotion,
-  SectionScrollOptions,
-} from '../src/core/ui/Picker/usePickerView/usePickerView.types';
+import { setLocale } from '@core/i18n';
+import { finishImport, importErrorTarget } from '@ui/PickerProvider/finishImport';
+import type { SectionMotion, SectionScrollOptions } from '@ui/usePickerView';
 
 const PACK = { id: 'tg:cats', title: 'Коты' };
 

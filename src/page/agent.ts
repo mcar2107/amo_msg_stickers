@@ -5,8 +5,8 @@ import {
   PAGE_TARGET_ATTR,
   parsePageRequest,
   toPageEvent,
-} from '../shared/pageBridge';
-import type { PageRejectReason, PageResponse } from '../shared/pageBridge.types';
+} from '@shared/pageBridge';
+import type { PageRejectReason, PageResponse } from '@shared/pageBridge.types';
 
 import type {
   AgentDocument,

@@ -1,4 +1,4 @@
-import type { PreviewMode } from '../PreviewProvider.types';
+import type { PreviewMode } from '@ui/Preview';
 
 import type {
   PreviewAttributes,

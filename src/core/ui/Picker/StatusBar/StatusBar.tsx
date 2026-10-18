@@ -1,11 +1,11 @@
 import { cva } from 'class-variance-authority';
 import type { FunctionComponent as FC } from 'preact';
 
-import { usePicker } from '../PickerProvider/usePicker';
-import { SCREEN_FOOTER_HEIGHT_PX } from '../Screen/screenFooter';
+import { usePicker } from '@ui/PickerProvider';
+import { SCREEN_FOOTER_HEIGHT_PX } from '@ui/Screen';
 
-import { useHeightReport } from './useHeightReport/useHeightReport';
 import type { StatusBarProps } from './StatusBar.types';
+import { useHeightReport } from './useHeightReport';
 
 const statusVariants = cva(
   [

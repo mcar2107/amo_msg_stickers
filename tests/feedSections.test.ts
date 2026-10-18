@@ -6,10 +6,10 @@ import type {
   RecentRec,
   StickerRec,
   StickersByPack,
-} from '../src/core/db.types';
-import { setLocale } from '../src/core/i18n/translate';
-import { feedSections } from '../src/core/ui/Picker/StickersMode/feedSections/feedSections';
-import type { FeedSection } from '../src/core/ui/Picker/StickersMode/feedSections/feedSections.types';
+} from '@core/db.types';
+import { setLocale } from '@core/i18n';
+import type { FeedSection } from '@ui/StickersMode/feedSections';
+import { feedSections } from '@ui/StickersMode/feedSections';
 
 /**
  * Пак с заданным id и названием.

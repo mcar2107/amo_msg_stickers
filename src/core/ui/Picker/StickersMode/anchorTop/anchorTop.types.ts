@@ -1,5 +1,5 @@
-import type { StickerLayout } from '../../stickerLayout/stickerLayout.types';
-import type { SectionAnchor } from '../../usePickerView/usePickerView.types';
+import type { StickerLayout } from '@ui/stickerLayout';
+import type { SectionAnchor } from '@ui/usePickerView';
 
 export type AnchorTopOptions<T> = {
   /**

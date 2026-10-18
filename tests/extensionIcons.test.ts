@@ -1,12 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
-import buildSource from '../build.mjs?raw';
 import {
   ACTION_ICON_PATHS,
   actionIconPaths,
   isIconThemeMessage,
-} from '../src/extension/actionIcon';
-import manifest from '../src/extension/manifest.json';
+} from '@extension/actionIcon';
+import manifest from '@extension/manifest.json';
+
+import buildSource from '../build.mjs?raw';
 
 /**
  * Иконка userscript в `build.mjs`: data URI из файла иконки расширения.

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { centerScrollLeft } from '../src/core/ui/Picker/SectionTabs/centerScrollLeft/centerScrollLeft';
+import { centerScrollLeft } from '@ui/SectionTabs/centerScrollLeft';
 
 const STRIP = { width: 200, scrollWidth: 600 };
 

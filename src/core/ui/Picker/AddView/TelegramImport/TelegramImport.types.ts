@@ -1,4 +1,4 @@
-import type { PackCard } from '../../PickerProvider/packCardView/packCardView.types';
+import type { PackCard } from '@ui/PickerProvider/packCardView';
 
 export type TelegramImportProps = {
   /**

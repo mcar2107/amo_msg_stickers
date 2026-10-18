@@ -1,16 +1,13 @@
-import type { Pack } from '../../../../db.types';
-import type { ImportWritten } from '../../../../libraryFile/importRecords.types';
+import type { Pack } from '@core/db.types';
 import type {
   FileImportProgress,
   ImportPlan,
   PrepareImportOptions,
-} from '../../../../libraryFile/prepareImport.types';
-import type {
-  FileCard,
-  LibraryFile,
-} from '../../../../libraryFile/readLibraryFile.types';
-import type { FileImportFailure } from '../fileImportOutcome/fileImportOutcome.types';
-import type { ImportErrorTarget } from '../finishImport/finishImport.types';
+} from '@core/libraryFile';
+import type { FileCard, LibraryFile } from '@core/libraryFile';
+import type { ImportWritten } from '@core/libraryFile/importRecords';
+import type { FileImportFailure } from '@ui/PickerProvider/fileImportOutcome';
+import type { ImportErrorTarget } from '@ui/PickerProvider/finishImport';
 
 export type FileImportRun = {
   /**

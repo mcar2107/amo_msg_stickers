@@ -6,7 +6,7 @@ import {
   parsePageRequest,
   parsePageResponse,
   toPageEvent,
-} from '../src/shared/pageBridge';
+} from '@shared/pageBridge';
 
 const eventWith = (detail: unknown) => {
   return new CustomEvent(PAGE_REQUEST_EVENT, { detail });

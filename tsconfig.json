@@ -20,7 +20,19 @@
     "verbatimModuleSyntax": true,
 
     "jsx": "react-jsx",
-    "jsxImportSource": "preact"
+    "jsxImportSource": "preact",
+
+    "paths": {
+      "@core/*": ["./src/core/*"],
+      "@ui": ["./src/core/ui/Picker/index"],
+      "@ui/*": ["./src/core/ui/Picker/*"],
+      "@shared/*": ["./src/shared/*"],
+      "@page/*": ["./src/page/*"],
+      "@extension/*": ["./src/extension/*"],
+      "@userscript/*": ["./src/userscript/*"],
+      "@scripts/*": ["./scripts/*"],
+      "@tests/*": ["./tests/*"]
+    }
   },
   "include": ["src", "scripts", "tests", "vitest.config.ts", "tailwind.config.ts"]
 }

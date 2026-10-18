@@ -5,8 +5,8 @@ import {
   PAGE_TARGET_ATTR,
   parsePageResponse,
   toPageEvent,
-} from '../shared/pageBridge';
-import type { PageDims, PageResponse } from '../shared/pageBridge.types';
+} from '@shared/pageBridge';
+import type { PageDims, PageResponse } from '@shared/pageBridge.types';
 
 import { uid } from './db';
 import type {

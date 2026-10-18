@@ -4,7 +4,7 @@ import {
   coverBitmapKey,
   coverSize,
   createCoverBitmaps,
-} from '../src/core/ui/Picker/PackCover/coverBitmaps/coverBitmaps';
+} from '@ui/PackCover/coverBitmaps';
 
 /**
  * Поддельный битмап: считает закрытия.

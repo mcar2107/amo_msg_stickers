@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { feedFailureView } from '../src/core/ui/Picker/useGifFeed/feedFailureView';
+import { feedFailureView } from '@ui/useGifFeed';
 
 describe('feedFailureView', () => {
   it('ошибку, которую не показал статус, лента объявляет', () => {

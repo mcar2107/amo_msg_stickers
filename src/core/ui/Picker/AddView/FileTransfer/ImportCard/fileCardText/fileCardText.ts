@@ -1,10 +1,7 @@
-import { t } from '../../../../../../i18n/translate';
-import type { ManifestPack } from '../../../../../../libraryFile/manifest.types';
-import type {
-  FileCard,
-  FileCardPack,
-} from '../../../../../../libraryFile/readLibraryFile.types';
-import { packTitle } from '../../../../../../packTitle';
+import { t } from '@core/i18n';
+import type { ManifestPack } from '@core/libraryFile';
+import type { FileCard, FileCardPack } from '@core/libraryFile';
+import { packTitle } from '@core/packTitle';
 
 /**
  * Название пака из файла для карточки. Свой пак — на языке интерфейса, как в ленте: в файле его название записано на

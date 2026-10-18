@@ -1,4 +1,4 @@
-import type { Pack } from '../../../../db.types';
+import type { Pack } from '@core/db.types';
 
 import type {
   PackCard,

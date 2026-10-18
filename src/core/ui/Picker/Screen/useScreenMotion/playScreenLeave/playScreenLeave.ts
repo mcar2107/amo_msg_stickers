@@ -1,4 +1,7 @@
-import { SCREEN_ENTER_MS, SCREEN_LEAVE_MS } from '../screenTiming';
+import {
+  SCREEN_ENTER_MS,
+  SCREEN_LEAVE_MS,
+} from '@ui/Screen/useScreenMotion/screenTiming';
 
 import type { PlayScreenLeaveOptions } from './playScreenLeave.types';
 

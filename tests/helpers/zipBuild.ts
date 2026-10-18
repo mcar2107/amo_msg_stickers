@@ -1,4 +1,4 @@
-import { crc32 } from '../../src/core/zip/crc32';
+import { crc32 } from '@core/zip';
 
 import type { ZipBuildEntry, ZipBuildResult } from './zipBuild.types';
 

@@ -1,5 +1,5 @@
-import type { PageRejectReason } from '../shared/pageBridge.types';
-import { ATTACHMENTS_SELECTOR, CAPSULE_TOP_SELECTOR } from '../shared/workerCompose';
+import type { PageRejectReason } from '@shared/pageBridge.types';
+import { ATTACHMENTS_SELECTOR, CAPSULE_TOP_SELECTOR } from '@shared/workerCompose';
 
 import type { AgentMemory, AgentNode } from './agent.types';
 import type {

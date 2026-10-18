@@ -1,27 +1,27 @@
 import type { FunctionComponent as FC } from 'preact';
 import { useMemo } from 'preact/hooks';
 
-import { stickerCells } from '../keptScrollTop/keptScrollTop';
-import { useKeptScroll } from '../keptScrollTop/useKeptScroll/useKeptScroll';
-import { useKeptScrollMark } from '../keptScrollTop/useKeptScrollMark/useKeptScrollMark';
-import { useCoverBitmaps } from '../PackCover/useCoverBitmaps/useCoverBitmaps';
-import type { FavoriteToggle } from '../PickerProvider/useFavorites/useFavorites.types';
-import { useFavoritesContext } from '../PickerProvider/useFavorites/useFavoritesContext';
+import { stickerCells } from '@ui/keptScrollTop';
+import { useKeptScroll } from '@ui/keptScrollTop/useKeptScroll';
+import { useKeptScrollMark } from '@ui/keptScrollTop/useKeptScrollMark';
+import { useCoverBitmaps } from '@ui/PackCover/useCoverBitmaps';
+import type { FavoriteToggle } from '@ui/PickerProvider/useFavorites';
+import { useFavoritesContext } from '@ui/PickerProvider/useFavorites';
 import {
   cellRemovalTargets,
   favoriteToggleTargets,
   sectionRemovalTargets,
-} from '../removalFocus/removalFocus';
-import { SectionTabs } from '../SectionTabs/SectionTabs';
-import { StickerFeed } from '../StickerFeed/StickerFeed';
-import { useFeedEntry } from '../useFeedEntry/useFeedEntry';
-import { FAVORITE_SECTION_ID, RECENT_SECTION_ID } from '../usePickerView/sectionIds';
+} from '@ui/removalFocus';
+import { SectionTabs } from '@ui/SectionTabs';
+import { StickerFeed } from '@ui/StickerFeed';
+import { useFeedEntry } from '@ui/useFeedEntry';
+import { FAVORITE_SECTION_ID, RECENT_SECTION_ID } from '@ui/usePickerView';
 
-import type { FeedSticker } from './feedSections/feedSections.types';
-import { useFeedSections } from './useFeedSections/useFeedSections';
-import { useFeedWindow } from './useFeedWindow/useFeedWindow';
-import { useStickerRemovalFocus } from './useStickerRemovalFocus/useStickerRemovalFocus';
+import type { FeedSticker } from './feedSections';
 import type { StickersModeProps } from './StickersMode.types';
+import { useFeedSections } from './useFeedSections';
+import { useFeedWindow } from './useFeedWindow';
+import { useStickerRemovalFocus } from './useStickerRemovalFocus';
 
 /**
  * Режим «Стикеры»: полоса вкладок разделов над лентой всех разделов — избранного, недавних, «Моих

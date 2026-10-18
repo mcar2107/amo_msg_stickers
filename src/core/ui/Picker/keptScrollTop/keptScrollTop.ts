@@ -1,8 +1,8 @@
-import type { RemoteGif } from '../../../db.types';
-import { gifItemCellId } from '../MasonryGrid/gifCellId';
-import type { MasonryTile } from '../MasonryGrid/splitColumns/splitColumns.types';
-import { cellId } from '../StickerFeed/cellId';
-import type { StickerRow } from '../stickerLayout/stickerLayout.types';
+import type { RemoteGif } from '@core/db.types';
+import { gifItemCellId } from '@ui/MasonryGrid/gifCellId';
+import type { MasonryTile } from '@ui/MasonryGrid/splitColumns';
+import { cellId } from '@ui/StickerFeed/cellId';
+import type { StickerRow } from '@ui/stickerLayout';
 
 import type { CellPosition, KeptScrollInput, KeyedCell } from './keptScrollTop.types';
 

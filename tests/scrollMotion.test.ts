@@ -1,9 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import {
-  isMotionReduced,
-  scrollMotion,
-} from '../src/core/ui/Picker/scrollMotion/scrollMotion';
+import { isMotionReduced, scrollMotion } from '@ui/scrollMotion';
 
 const REDUCE_QUERY = '(prefers-reduced-motion: reduce)';
 

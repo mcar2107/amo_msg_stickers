@@ -1,7 +1,7 @@
 import type { FunctionComponent as FC } from 'preact';
 
-import { t } from '../../../../../i18n/translate';
-import { FEED_LABELS } from '../../../../../sources/gifs';
+import { t } from '@core/i18n';
+import { FEED_LABELS } from '@core/sources';
 
 import type { FeedChipProps } from './FeedChip.types';
 

@@ -1,7 +1,7 @@
 import { PAGE_AGENT_CODE } from 'page-agent:code';
 
-import { start } from '../core/app';
-import type { Host, HostNetwork, HostSettings } from '../core/host.types';
+import { start } from '@core/app';
+import type { Host, HostNetwork, HostSettings } from '@core/host.types';
 
 import { fetchNetwork } from './fetchNetwork';
 import type { GmGetValue, GmSetValue, GmXmlhttpRequest } from './gm.types';

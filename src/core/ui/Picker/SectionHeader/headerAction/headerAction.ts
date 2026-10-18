@@ -1,5 +1,5 @@
-import { CUSTOM_PACK_ID } from '../../../../db';
-import { FAVORITE_SECTION_ID, RECENT_SECTION_ID } from '../../usePickerView/sectionIds';
+import { CUSTOM_PACK_ID } from '@core/db';
+import { FAVORITE_SECTION_ID, RECENT_SECTION_ID } from '@ui/usePickerView';
 
 import type { HeaderAction } from './headerAction.types';
 

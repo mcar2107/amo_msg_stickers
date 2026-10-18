@@ -1,9 +1,9 @@
 import type { RefObject } from 'preact';
 import { useEffect, useRef } from 'preact/hooks';
 
-import type { StickerRec } from '../../../../db.types';
-import { coverBitmapKey, coverSize } from '../coverBitmaps/coverBitmaps';
-import type { CoverBitmaps } from '../coverBitmaps/coverBitmaps.types';
+import type { StickerRec } from '@core/db.types';
+import type { CoverBitmaps } from '@ui/PackCover/coverBitmaps';
+import { coverBitmapKey, coverSize } from '@ui/PackCover/coverBitmaps';
 
 /**
  * Рисует первый кадр стикера на холсте обложки. Кадр декодируется сразу в размер холста: полный

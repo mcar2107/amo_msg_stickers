@@ -1,6 +1,6 @@
-import { t } from '../../../../i18n/translate';
-import { parseSetName } from '../../../../sources/telegram';
-import { errorMessage } from '../errorMessage';
+import { t } from '@core/i18n';
+import { parseSetName } from '@core/sources';
+import { errorMessage } from '@ui/PickerProvider/errorMessage';
 
 import type { PackImportRun } from './runPackImport.types';
 

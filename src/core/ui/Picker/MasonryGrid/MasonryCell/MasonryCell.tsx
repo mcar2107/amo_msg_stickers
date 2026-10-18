@@ -5,16 +5,16 @@ import type {
   TargetedPointerEvent,
 } from 'preact';
 
-import type { SendItem } from '../../../../db.types';
-import { gifCellName } from '../../cellName/cellName';
-import { CellSpinner } from '../../CellSpinner/CellSpinner';
-import { CellMenu } from '../../Menu/CellMenu/CellMenu';
-import type { CellMenuRemove } from '../../Menu/CellMenu/CellMenu.types';
-import { isMenuKey } from '../../Menu/menuKey/menuKey';
-import { useContextMenu } from '../../Menu/useContextMenu/useContextMenu';
-import { gifPreviewTarget } from '../../Preview/previewTarget/previewTarget';
-import { useCellPreview } from '../../useCellPreview/useCellPreview';
-import { useCellSend } from '../../useCellSend/useCellSend';
+import type { SendItem } from '@core/db.types';
+import { gifCellName } from '@ui/cellName';
+import { CellSpinner } from '@ui/CellSpinner';
+import type { CellMenuRemove } from '@ui/Menu/CellMenu';
+import { CellMenu } from '@ui/Menu/CellMenu';
+import { isMenuKey } from '@ui/Menu/menuKey';
+import { useContextMenu } from '@ui/Menu/useContextMenu';
+import { gifPreviewTarget } from '@ui/Preview/previewTarget';
+import { useCellPreview } from '@ui/useCellPreview';
+import { useCellSend } from '@ui/useCellSend';
 
 import type { MasonryCellProps } from './MasonryCell.types';
 

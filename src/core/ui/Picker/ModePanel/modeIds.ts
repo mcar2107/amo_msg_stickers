@@ -1,4 +1,4 @@
-import type { PickerMode } from '../../../pickerMode.types';
+import type { PickerMode } from '@core/pickerMode.types';
 
 /**
  * id кнопки режима в нижнем переключателе — для `aria-labelledby` панели режима.

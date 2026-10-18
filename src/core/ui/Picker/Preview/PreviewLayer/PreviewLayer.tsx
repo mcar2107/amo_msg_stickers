@@ -1,13 +1,13 @@
 import { cva } from 'class-variance-authority';
 import type { FunctionComponent as FC, TargetedFocusEvent } from 'preact';
 
-import { t } from '../../../../i18n/translate';
-import { CloseIcon } from '../CloseIcon/CloseIcon';
-import { previewAttributes, shouldReturnFocus } from '../previewA11y/previewA11y';
-import type { PreviewCloseReason } from '../previewA11y/previewA11y.types';
-import { previewDirection } from '../previewDirection/previewDirection';
-import { PreviewImage } from '../PreviewImage/PreviewImage';
-import { usePreviewFlight } from '../usePreviewFlight/usePreviewFlight';
+import { t } from '@core/i18n';
+import { CloseIcon } from '@ui/Preview/CloseIcon';
+import type { PreviewCloseReason } from '@ui/Preview/previewA11y';
+import { previewAttributes, shouldReturnFocus } from '@ui/Preview/previewA11y';
+import { previewDirection } from '@ui/Preview/previewDirection';
+import { PreviewImage } from '@ui/Preview/PreviewImage';
+import { usePreviewFlight } from '@ui/Preview/usePreviewFlight';
 
 import type { PreviewLayerProps } from './PreviewLayer.types';
 

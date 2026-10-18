@@ -1,6 +1,6 @@
-import type { SendItem } from '../../../db.types';
-import type { CellNames } from '../cellName/cellName.types';
-import type { CellRemoveKind } from '../Menu/CellMenu/CellMenu.types';
+import type { SendItem } from '@core/db.types';
+import type { CellNames } from '@ui/cellName';
+import type { CellRemoveKind } from '@ui/Menu/CellMenu';
 
 /**
  * Удаление в меню ячейки: `removeKind` и `onRemove` задаются только вместе. У ячейки «Избранного» удаления нет.

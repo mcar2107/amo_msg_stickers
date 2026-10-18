@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { isPageEscape } from '../src/core/pageEscape';
+import { isPageEscape } from '@core/pageEscape';
 
 const panel = { name: 'panel' };
 const preview = { name: 'preview' };

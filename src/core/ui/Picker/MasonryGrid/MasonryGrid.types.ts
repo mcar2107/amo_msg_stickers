@@ -1,6 +1,6 @@
-import type { RemoteGif } from '../../../db.types';
-import type { KeptScroll } from '../keptScrollTop/createKeptScroll/createKeptScroll.types';
-import type { FavoriteToggle } from '../PickerProvider/useFavorites/useFavorites.types';
+import type { RemoteGif } from '@core/db.types';
+import type { KeptScroll } from '@ui/keptScrollTop/createKeptScroll';
+import type { FavoriteToggle } from '@ui/PickerProvider/useFavorites';
 
 /**
  * Раздел ленты GIF.

@@ -1,9 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { createHoverPopup } from '../src/core/hoverPopup';
-import type { OpenedBy, PanelPhase } from '../src/core/hoverPopup.types';
-import { createPopupHolds } from '../src/core/hoverPopupHolds';
-import { createPanelPhase } from '../src/core/hoverPopupPhase';
+import { createHoverPopup } from '@core/hoverPopup';
+import type { OpenedBy, PanelPhase } from '@core/hoverPopup.types';
+import { createPopupHolds } from '@core/hoverPopupHolds';
+import { createPanelPhase } from '@core/hoverPopupPhase';
 
 /**
  * Удержания нет: уход курсора закрывает попап.

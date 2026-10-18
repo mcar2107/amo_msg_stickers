@@ -1,10 +1,13 @@
 import type { FunctionComponent as FC } from 'preact';
 
-import { t } from '../../../../../../i18n/translate';
-import { filePackCount, filePackTitle } from '../fileCardText/fileCardText';
+import { t } from '@core/i18n';
+import {
+  filePackCount,
+  filePackTitle,
+} from '@ui/AddView/FileTransfer/ImportCard/fileCardText';
 
-import { useScrollTabStop } from './useScrollTabStop/useScrollTabStop';
 import type { PackListProps } from './PackList.types';
+import { useScrollTabStop } from './useScrollTabStop';
 
 /**
  * Кольцо то же, что у кнопок панели. Оно рисуется внутри границы, поэтому у области свой отступ, снятый отрицательным

@@ -1,5 +1,5 @@
-import type { SendItem } from '../../../../db.types';
-import type { MenuOpening } from '../Menu.types';
+import type { SendItem } from '@core/db.types';
+import type { MenuOpening } from '@ui/Menu';
 
 /**
  * Что убирает пункт меню ячейки: стикер из библиотеки или элемент из недавних.

@@ -1,7 +1,7 @@
-import { inspectGif } from '../gif';
-import { t } from '../i18n/translate';
-import type { ZipEntryContent } from '../zip/zip.types';
-import { readZipEntry } from '../zip/zipRead';
+import { inspectGif } from '@core/gif';
+import { t } from '@core/i18n';
+import type { ZipEntryContent } from '@core/zip';
+import { readZipEntry } from '@core/zip';
 
 import { MAX_STICKER_BYTES } from './limits';
 import type { ManifestPack, ManifestSticker } from './manifest.types';

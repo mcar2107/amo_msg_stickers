@@ -1,12 +1,12 @@
 import type { FunctionComponent as FC } from 'preact';
 
-import { Menu } from '../Menu';
+import { Menu } from '@ui/Menu';
 
-import { cellMenuItems } from './cellMenuItems/cellMenuItems';
-import { FavoriteItem } from './FavoriteItem/FavoriteItem';
-import { PreviewItem } from './PreviewItem/PreviewItem';
-import { RemoveItem } from './RemoveItem/RemoveItem';
 import type { CellMenuProps } from './CellMenu.types';
+import { cellMenuItems } from './cellMenuItems';
+import { FavoriteItem } from './FavoriteItem';
+import { PreviewItem } from './PreviewItem';
+import { RemoveItem } from './RemoveItem';
 
 /**
  * Контекстное меню ячейки стикера или GIF: «Предпросмотр» первым, пункт избранного вторым, затем

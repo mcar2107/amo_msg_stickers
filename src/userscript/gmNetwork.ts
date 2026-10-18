@@ -1,6 +1,6 @@
-import type { HostNetwork } from '../core/host.types';
-import type { MessageKey } from '../core/i18n/i18n.types';
-import { t } from '../core/i18n/translate';
+import type { HostNetwork } from '@core/host.types';
+import type { MessageKey } from '@core/i18n';
+import { t } from '@core/i18n';
 import {
   assertAllowedUrl,
   ERROR_BODY_MAX_BYTES,
@@ -9,7 +9,7 @@ import {
   MAX_JSON_BYTES,
   notAllowedError,
   tooBigError,
-} from '../core/net';
+} from '@core/net';
 
 import {
   type GmResponse,

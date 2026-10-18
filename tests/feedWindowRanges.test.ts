@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import type { StickerRow } from '../src/core/ui/Picker/stickerLayout/stickerLayout.types';
-import { feedWindowRanges } from '../src/core/ui/Picker/StickersMode/feedWindowRanges/feedWindowRanges';
+import type { StickerRow } from '@ui/stickerLayout';
+import { feedWindowRanges } from '@ui/StickersMode/feedWindowRanges';
 
 const ROW = 100;
 const VIEWPORT = 300;

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { nextMenuIndex } from '../src/core/ui/Picker/Menu/menuFocus/menuFocus';
+import { nextMenuIndex } from '@ui/Menu/menuFocus';
 
 describe('nextMenuIndex', () => {
   it('стрелка вниз ведёт к следующему пункту и с последнего на первый', () => {

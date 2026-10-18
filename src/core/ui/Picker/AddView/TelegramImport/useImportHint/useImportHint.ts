@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'preact/hooks';
 
-import { readHintSeen, writeHintSeen } from '../../../../../importHint';
-import { PAGE_STORAGE } from '../../../../../pageStorage';
+import { readHintSeen, writeHintSeen } from '@core/importHint';
+import { PAGE_STORAGE } from '@core/pageStorage';
 
 import type { ImportHintState } from './useImportHint.types';
 

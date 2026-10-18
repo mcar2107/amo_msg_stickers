@@ -1,4 +1,4 @@
-import { CUSTOM_PACK_ID, itemKey } from '../../../../db';
+import { CUSTOM_PACK_ID, itemKey } from '@core/db';
 import {
   type FavoriteRec,
   isStickerFavorite,
@@ -6,11 +6,11 @@ import {
   type RecentRec,
   type StickerRec,
   type StickersByPack,
-} from '../../../../db.types';
-import { t } from '../../../../i18n/translate';
-import { packTitle } from '../../../../packTitle';
-import { stickerCellName } from '../../cellName/cellName';
-import { FAVORITE_SECTION_ID, RECENT_SECTION_ID } from '../../usePickerView/sectionIds';
+} from '@core/db.types';
+import { t } from '@core/i18n';
+import { packTitle } from '@core/packTitle';
+import { stickerCellName } from '@ui/cellName';
+import { FAVORITE_SECTION_ID, RECENT_SECTION_ID } from '@ui/usePickerView';
 
 import type { FeedSection, FeedSticker } from './feedSections.types';
 

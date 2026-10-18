@@ -1,11 +1,11 @@
 import type { FunctionComponent as FC } from 'preact';
 
-import { t } from '../../../../i18n/translate';
-import { Field } from '../../Field/Field';
+import { t } from '@core/i18n';
+import { Field } from '@ui/Field';
 
-import { DraftPreview } from './DraftPreview/DraftPreview';
-import { DropZone } from './DropZone/DropZone';
 import type { CreateStickerProps } from './CreateSticker.types';
+import { DraftPreview } from './DraftPreview';
+import { DropZone } from './DropZone';
 
 const CAPTION_FIELD_ID = 'picker-add-custom-caption';
 

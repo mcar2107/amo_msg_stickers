@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { nextIndex } from '../src/core/ui/Picker/moveTabFocus/moveTabFocus';
+import { nextIndex } from '@ui/moveTabFocus';
 
 describe('nextIndex', () => {
   it('стрелка вправо переводит на следующую вкладку', () => {

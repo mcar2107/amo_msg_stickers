@@ -1,14 +1,14 @@
 import type { FunctionComponent as FC } from 'preact';
 
-import { t } from '../../../i18n/translate';
-import { usePickerView } from '../usePickerView/usePickerView';
+import { t } from '@core/i18n';
+import { usePickerView } from '@ui/usePickerView';
 
-import { AddButton } from './AddButton/AddButton';
-import { SectionTab } from './SectionTab/SectionTab';
-import { TabIcon } from './TabIcon/TabIcon';
-import { useCenterTab } from './useCenterTab/useCenterTab';
+import { AddButton } from './AddButton';
+import { SectionTab } from './SectionTab';
 import { FEED_PANEL_ID, sectionTabId } from './sectionTabIds';
 import type { SectionTabsProps } from './SectionTabs.types';
+import { TabIcon } from './TabIcon';
+import { useCenterTab } from './useCenterTab';
 
 /**
  * Перевода строки нет ни в id пака (`custom`, `tg:<имя пака Telegram>`), ни в id недавних и

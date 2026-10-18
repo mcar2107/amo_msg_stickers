@@ -1,5 +1,5 @@
-import { elementById } from '../elementById/elementById';
-import { revealScrollTop } from '../revealScrollTop/revealScrollTop';
+import { elementById } from '@ui/elementById';
+import { revealScrollTop } from '@ui/revealScrollTop';
 
 /**
  * Кнопка ячейки ленты, на которую переключается закреплённый предпросмотр, и прокрутка ленты к

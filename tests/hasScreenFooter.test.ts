@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { hasScreenFooter } from '../src/core/ui/Picker/usePickerView/hasScreenFooter';
+import { hasScreenFooter } from '@ui/usePickerView';
 
 describe('hasScreenFooter', () => {
   it('«Добавить стикеры» — с футером: строка статуса встаёт над «Импорт» и «Сохранить»', () => {

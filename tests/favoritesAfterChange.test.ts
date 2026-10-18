@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import type { FavoriteRec } from '../src/core/db.types';
-import { favoritesAfterChange } from '../src/core/ui/Picker/PickerProvider/useFavorites/favoritesAfterChange';
+import type { FavoriteRec } from '@core/db.types';
+import { favoritesAfterChange } from '@ui/PickerProvider/useFavorites';
 
 /**
  * @param stickerId — id стикера

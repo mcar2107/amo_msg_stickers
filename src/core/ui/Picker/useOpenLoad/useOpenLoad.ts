@@ -1,9 +1,9 @@
 import { useEffect, useRef } from 'preact/hooks';
 
-import { ensureCustomPack } from '../../../db';
-import { errorMessage } from '../PickerProvider/errorMessage';
-import { useFavoritesContext } from '../PickerProvider/useFavorites/useFavoritesContext';
-import { usePicker } from '../PickerProvider/usePicker';
+import { ensureCustomPack } from '@core/db';
+import { usePicker } from '@ui/PickerProvider';
+import { errorMessage } from '@ui/PickerProvider/errorMessage';
+import { useFavoritesContext } from '@ui/PickerProvider/useFavorites';
 
 /**
  * Загрузка на каждое открытие пикера: сброс статуса, свежие настройки, паки и избранное (их могли

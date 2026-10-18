@@ -110,12 +110,30 @@ declare module '*?raw' {
  */
 interface ImportMeta {
   /**
-   * Шаблон — только литерал: vitest разбирает вызов статически.
-   *
-   * @param patterns — шаблоны путей относительно файла; `!` в начале исключает совпадения
-   * @returns загрузчики модулей по путям найденных файлов
+   * Шаблон — только литерал: vitest разбирает вызов статически. Без параметров — загрузчики
+   * модулей по путям найденных файлов; с `?raw`, `default` и `eager` — тексты файлов по путям,
+   * без исполнения модулей.
    */
-  glob: (patterns: string | readonly string[]) => Record<string, () => Promise<unknown>>;
+  glob: {
+    (patterns: string | readonly string[]): Record<string, () => Promise<unknown>>;
+    (
+      patterns: string | readonly string[],
+      options: {
+        /**
+         * Файл — текстом, а не модулем.
+         */
+        query: '?raw';
+        /**
+         * Значение — экспорт `default`, то есть сам текст.
+         */
+        import: 'default';
+        /**
+         * Тексты — сразу в объекте, без загрузчиков.
+         */
+        eager: true;
+      }
+    ): Record<string, string>;
+  };
 }
 
 /**

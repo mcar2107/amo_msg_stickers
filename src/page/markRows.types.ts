@@ -1,4 +1,4 @@
-import type { StickerKind } from '../shared/stickerMark.types';
+import type { StickerKind } from '@shared/stickerMark.types';
 
 /**
  * Строка ленты `[data-key]`, как её помечает агент: атрибут вида на ней, переменные сторон — у её коробки медиа.

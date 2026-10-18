@@ -1,7 +1,7 @@
-import type { Pack } from '../../../db.types';
-import type { FeedSticker } from '../StickersMode/feedSections/feedSections.types';
+import type { Pack } from '@core/db.types';
+import type { FeedSticker } from '@ui/StickersMode/feedSections';
 
-import type { CoverBitmaps } from './coverBitmaps/coverBitmaps.types';
+import type { CoverBitmaps } from './coverBitmaps';
 
 export type PackCoverProps = {
   /**

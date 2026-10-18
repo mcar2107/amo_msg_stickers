@@ -1,4 +1,4 @@
-import type { PressStart } from '../pressGesture/pressGesture.types';
+import type { PressStart } from '@ui/pressGesture';
 
 /**
  * Параметры хука удержания на ячейке.

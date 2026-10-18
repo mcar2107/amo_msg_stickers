@@ -1,32 +1,28 @@
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
 
-import { BUILTIN_TELEGRAM_TOKEN } from '../../../builtinToken';
-import { t } from '../../../i18n/translate';
+import { BUILTIN_TELEGRAM_TOKEN } from '@core/builtinToken';
+import { t } from '@core/i18n';
+import type { ImportProgress } from '@core/sources';
 import {
   importTelegramSet,
   parseSetName,
   previewOutcome,
   resolveTelegramSet,
   TG_ID_PREFIX,
-} from '../../../sources/telegram';
-import type { ImportProgress } from '../../../sources/telegram.types';
+} from '@core/sources';
 
-import { finishImport, importErrorTarget } from './finishImport/finishImport';
-import type { ImportErrorTarget } from './finishImport/finishImport.types';
-import { packCard, previewView, shouldRequestPreview } from './packCardView/packCardView';
-import type {
-  PackSummary,
-  PreviewEntry,
-  PreviewResult,
-} from './packCardView/packCardView.types';
-import { createPackPreview } from './packPreview/packPreview';
-import { runPackImport } from './runPackImport/runPackImport';
 import { errorMessage } from './errorMessage';
+import type { ImportErrorTarget } from './finishImport';
+import { finishImport, importErrorTarget } from './finishImport';
+import type { PackSummary, PreviewEntry, PreviewResult } from './packCardView';
+import { packCard, previewView, shouldRequestPreview } from './packCardView';
+import { createPackPreview } from './packPreview';
 import type {
   ImportCount,
   PackImportOptions,
   PackImportState,
 } from './PickerProvider.types';
+import { runPackImport } from './runPackImport';
 
 /**
  * Пауза после последней правки ссылки до запроса превью: вставка показывает карточку почти

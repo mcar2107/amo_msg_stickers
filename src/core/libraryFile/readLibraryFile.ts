@@ -1,9 +1,9 @@
-import { CUSTOM_PACK_ID, listPacks, listStickerIds } from '../db';
-import { t } from '../i18n/translate';
-import type { ZipEntry } from '../zip/zip.types';
-import { ZipError } from '../zip/zipError';
-import { LOCAL_HEADER_SIGNATURE } from '../zip/zipFormat';
-import { findZipRoot, readZipDirectory, readZipEntry } from '../zip/zipRead';
+import { CUSTOM_PACK_ID, listPacks, listStickerIds } from '@core/db';
+import { t } from '@core/i18n';
+import type { ZipEntry } from '@core/zip';
+import { ZipError } from '@core/zip';
+import { LOCAL_HEADER_SIGNATURE } from '@core/zip';
+import { findZipRoot, readZipDirectory, readZipEntry } from '@core/zip';
 
 import {
   MANIFEST_FILE,

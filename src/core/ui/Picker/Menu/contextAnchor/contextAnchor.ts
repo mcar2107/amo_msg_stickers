@@ -1,4 +1,4 @@
-import type { Box, MenuPoint } from '../menuPosition/menuPosition.types';
+import type { Box, MenuPoint } from '@ui/Menu/menuPosition';
 
 /**
  * Источник контекстного меню ячейки. Правый клик даёт точку внутри ячейки — меню встаёт от неё.

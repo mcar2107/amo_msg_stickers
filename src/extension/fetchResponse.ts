@@ -1,6 +1,6 @@
-import type { MessageArgs, MessageKey } from '../core/i18n/i18n.types';
-import { RU } from '../core/i18n/messages.ru';
-import { LocalizedError, PLACEHOLDER } from '../core/i18n/translate';
+import type { MessageArgs, MessageKey } from '@core/i18n';
+import { RU } from '@core/i18n';
+import { LocalizedError, PLACEHOLDER } from '@core/i18n';
 
 import type { FetchFailure, FetchResponse, FetchSuccess } from './messages.types';
 

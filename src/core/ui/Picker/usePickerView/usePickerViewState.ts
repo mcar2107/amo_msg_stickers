@@ -1,9 +1,9 @@
 import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'preact/hooks';
 
-import { countFavoriteStickers, countStickers } from '../../../db';
-import { PAGE_STORAGE } from '../../../pageStorage';
-import { writeMode } from '../../../pickerMode';
-import type { PickerMode } from '../../../pickerMode.types';
+import { countFavoriteStickers, countStickers } from '@core/db';
+import { PAGE_STORAGE } from '@core/pageStorage';
+import { writeMode } from '@core/pickerMode';
+import type { PickerMode } from '@core/pickerMode.types';
 
 import { DEFAULT_ADD_SEGMENT, resolveAddSegment } from './addSegment';
 import { startMode } from './startMode';

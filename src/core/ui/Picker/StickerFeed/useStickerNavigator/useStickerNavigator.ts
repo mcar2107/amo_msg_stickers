@@ -1,14 +1,14 @@
 import type { RefObject } from 'preact';
 import { useCallback, useRef } from 'preact/hooks';
 
-import { usePicker } from '../../PickerProvider/usePicker';
-import type { PreviewNavigator } from '../../Preview/PreviewProvider.types';
-import { stickerPreviewTarget } from '../../Preview/previewTarget/previewTarget';
-import { revealFeedCell } from '../../revealFeedCell/revealFeedCell';
-import type { StickerLayout } from '../../stickerLayout/stickerLayout.types';
-import type { FeedSticker } from '../../StickersMode/feedSections/feedSections.types';
-import { cellId } from '../cellId';
-import { stickerNeighbor } from '../stickerNeighbor/stickerNeighbor';
+import { usePicker } from '@ui/PickerProvider';
+import type { PreviewNavigator } from '@ui/Preview';
+import { stickerPreviewTarget } from '@ui/Preview/previewTarget';
+import { revealFeedCell } from '@ui/revealFeedCell';
+import { cellId } from '@ui/StickerFeed/cellId';
+import { stickerNeighbor } from '@ui/StickerFeed/stickerNeighbor';
+import type { StickerLayout } from '@ui/stickerLayout';
+import type { FeedSticker } from '@ui/StickersMode/feedSections';
 
 /**
  * id кнопки ячейки ленты стикеров по разделу и стикеру.

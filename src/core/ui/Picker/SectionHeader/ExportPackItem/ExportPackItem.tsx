@@ -1,9 +1,9 @@
 import type { FunctionComponent as FC } from 'preact';
 
-import { t } from '../../../../i18n/translate';
-import { MenuItem } from '../../Menu/MenuItem/MenuItem';
-import { useMenuClose } from '../../Menu/useMenuClose/useMenuClose';
-import { usePicker } from '../../PickerProvider/usePicker';
+import { t } from '@core/i18n';
+import { MenuItem } from '@ui/Menu/MenuItem';
+import { useMenuClose } from '@ui/Menu/useMenuClose';
+import { usePicker } from '@ui/PickerProvider';
 
 import type { ExportPackItemProps } from './ExportPackItem.types';
 

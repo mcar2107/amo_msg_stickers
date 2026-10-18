@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'preact/hooks';
 
-import { usePicker } from '../../PickerProvider/usePicker';
-import { usePickerView } from '../../usePickerView/usePickerView';
+import { usePicker } from '@ui/PickerProvider';
+import { usePickerView } from '@ui/usePickerView';
 
 import { shouldFocusSearch } from './shouldFocusSearch';
 

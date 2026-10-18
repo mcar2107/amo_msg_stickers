@@ -1,12 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { setLocale } from '../src/core/i18n/translate';
-import type {
-  ExportOptions,
-  LibraryExport,
-} from '../src/core/libraryFile/exportLibrary.types';
-import { runLibraryExport } from '../src/core/ui/Picker/PickerProvider/runLibraryExport/runLibraryExport';
-import type { ExportTarget } from '../src/core/ui/Picker/PickerProvider/runLibraryExport/runLibraryExport.types';
+import { setLocale } from '@core/i18n';
+import type { ExportOptions, LibraryExport } from '@core/libraryFile';
+import type { ExportTarget } from '@ui/PickerProvider/runLibraryExport';
+import { runLibraryExport } from '@ui/PickerProvider/runLibraryExport';
 
 const PACK: ExportTarget = { kind: 'pack', packId: 'tg:cats', title: 'Коты' };
 const LIBRARY: ExportTarget = { kind: 'library' };

@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import type { TgStickerSet } from '../src/core/sources/telegram.types';
-import { createPackPreview } from '../src/core/ui/Picker/PickerProvider/packPreview/packPreview';
+import type { TgStickerSet } from '@core/sources';
+import { createPackPreview } from '@ui/PickerProvider/packPreview';
 
 const SET: TgStickerSet = { name: 'cats', title: 'Котики', stickers: [] };
 

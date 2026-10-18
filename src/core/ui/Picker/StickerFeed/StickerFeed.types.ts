@@ -1,11 +1,8 @@
 import type { RefObject } from 'preact';
 
-import type { FavoriteToggle } from '../PickerProvider/useFavorites/useFavorites.types';
-import type { RowRange, StickerLayout } from '../stickerLayout/stickerLayout.types';
-import type {
-  FeedSection,
-  FeedSticker,
-} from '../StickersMode/feedSections/feedSections.types';
+import type { FavoriteToggle } from '@ui/PickerProvider/useFavorites';
+import type { RowRange, StickerLayout } from '@ui/stickerLayout';
+import type { FeedSection, FeedSticker } from '@ui/StickersMode/feedSections';
 
 export type StickerFeedProps = {
   /**

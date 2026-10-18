@@ -1,7 +1,7 @@
-import { t } from './i18n/translate';
 import type { FrameSink } from './frameSink.types';
 import type { GifEncoderOptions } from './gifEncoder.types';
 import type { GifWorkerResponse } from './gifWorker.types';
+import { t } from './i18n';
 import type {
   Deferred,
   RetainedFrame,

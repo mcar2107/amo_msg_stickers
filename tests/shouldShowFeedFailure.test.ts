@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { shouldShowFeedFailure } from '../src/core/ui/Picker/useGifFeed/shouldShowFeedFailure';
+import { shouldShowFeedFailure } from '@ui/useGifFeed';
 
 describe('shouldShowFeedFailure', () => {
   it('пустая лента после упавшей загрузки показывает ошибку на месте выдачи', () => {

@@ -1,11 +1,11 @@
 import { cva } from 'class-variance-authority';
 import type { FunctionComponent as FC } from 'preact';
 
-import css from '../../../picker.css';
+import { usePreview } from '@ui/Preview';
+import { PreviewLayer } from '@ui/Preview/PreviewLayer';
+import { PreviewPortal } from '@ui/Preview/PreviewPortal';
 
-import { PreviewLayer } from '../PreviewLayer/PreviewLayer';
-import { PreviewPortal } from '../PreviewPortal/PreviewPortal';
-import { usePreview } from '../usePreview';
+import css from '@core/ui/picker.css';
 
 import type { PreviewOverlayProps } from './PreviewOverlay.types';
 

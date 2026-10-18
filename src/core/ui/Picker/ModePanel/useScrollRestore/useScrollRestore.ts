@@ -1,7 +1,7 @@
 import { useLayoutEffect, useState } from 'preact/hooks';
 
-import { createScrollMemory } from '../scrollMemory';
-import type { ScrollBox } from '../scrollMemory.types';
+import type { ScrollBox } from '@ui/ModePanel/scrollMemory';
+import { createScrollMemory } from '@ui/ModePanel/scrollMemory';
 
 /**
  * Прокрутка скрываемой панели: скрытие `display: none` сбрасывает её, а показ возвращает

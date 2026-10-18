@@ -1,12 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
-import type { Pack } from '../src/core/db.types';
-import { buildImportRecords } from '../src/core/libraryFile/importRecords';
-import type { ImportLibrary } from '../src/core/libraryFile/importRecords.types';
-import type {
-  ImportPlanPack,
-  ImportPlanSticker,
-} from '../src/core/libraryFile/prepareImport.types';
+import type { Pack } from '@core/db.types';
+import type { ImportPlanPack, ImportPlanSticker } from '@core/libraryFile';
+import type { ImportLibrary } from '@core/libraryFile/importRecords';
+import { buildImportRecords } from '@core/libraryFile/importRecords';
 
 const STARTED_AT = 1000;
 

@@ -1,26 +1,23 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'preact/hooks';
 
-import { writeImport } from '../../../db';
-import { t } from '../../../i18n/translate';
-import { prepareImport } from '../../../libraryFile/prepareImport';
-import type { FileImportProgress } from '../../../libraryFile/prepareImport.types';
-import { loadFileCard, readLibraryFile } from '../../../libraryFile/readLibraryFile';
-import type { FileCard, LibraryFile } from '../../../libraryFile/readLibraryFile.types';
+import { writeImport } from '@core/db';
+import { t } from '@core/i18n';
+import type { FileImportProgress } from '@core/libraryFile';
+import type { FileCard, LibraryFile } from '@core/libraryFile';
+import { prepareImport } from '@core/libraryFile';
+import { loadFileCard, readLibraryFile } from '@core/libraryFile';
 
-import {
-  fileImportStatus,
-  finishFileImport,
-} from './fileImportOutcome/fileImportOutcome';
-import type { FileImportFailure } from './fileImportOutcome/fileImportOutcome.types';
-import { importErrorTarget } from './finishImport/finishImport';
-import type { ImportErrorTarget } from './finishImport/finishImport.types';
-import { runFileImport } from './runFileImport/runFileImport';
 import { errorMessage } from './errorMessage';
+import type { FileImportFailure } from './fileImportOutcome';
+import { fileImportStatus, finishFileImport } from './fileImportOutcome';
+import type { ImportErrorTarget } from './finishImport';
+import { importErrorTarget } from './finishImport';
 import type {
   FileImportOptions,
   FileImportStage,
   FileImportState,
 } from './PickerProvider.types';
+import { runFileImport } from './runFileImport';
 
 /**
  * Импорт библиотеки из файла на уровне провайдера. Провайдер живёт всё время страницы, а сегмент «Файл»

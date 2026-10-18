@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { isDraftConverting } from '../src/core/ui/Picker/useStickerDraft/draftConverting';
+import { isDraftConverting } from '@ui/useStickerDraft';
 
 describe('isDraftConverting', () => {
   it('без файла не собирается, что бы ни было в подписи', () => {

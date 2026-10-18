@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { watchHoldRelease } from '../src/core/ui/Picker/Preview/holdRelease/holdRelease';
+import { watchHoldRelease } from '@ui/Preview/holdRelease';
 
-import { CountingEventTarget } from './helpers/countingEventTarget';
+import { CountingEventTarget } from './helpers';
 
 const dispatchClick = (target: EventTarget) => {
   const event = new Event('click', { cancelable: true });

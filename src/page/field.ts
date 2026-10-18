@@ -1,4 +1,4 @@
-import { isObject } from '../shared/guards';
+import { isObject } from '@shared/guards';
 
 /**
  * Поле чужого объекта без доверия к его форме: внутренности React и store amo — не API.

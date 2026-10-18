@@ -1,9 +1,9 @@
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
-import { MAX_JSON_BYTES } from '../src/core/net';
-import type { FetchRequest, FetchResponse } from '../src/extension/messages.types';
+import { MAX_JSON_BYTES } from '@core/net';
+import type { FetchRequest, FetchResponse } from '@extension/messages.types';
 
-import { mockResponse } from './helpers/mockResponse';
+import { mockResponse } from './helpers';
 
 type Listener = (
   msg: FetchRequest,
@@ -48,7 +48,7 @@ beforeAll(async () => {
       },
     },
   });
-  await import('../src/extension/background');
+  await import('@extension/background');
 });
 
 afterEach(() => {

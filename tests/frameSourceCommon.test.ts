@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { EVENT_TIMEOUT_MS, fit, waitForEvent } from '../src/core/frameSourceCommon';
-import { setLocale } from '../src/core/i18n/translate';
+import { EVENT_TIMEOUT_MS, fit, waitForEvent } from '@core/frameSourceCommon';
+import { setLocale } from '@core/i18n';
 
-import { CountingEventTarget } from './helpers/countingEventTarget';
+import { CountingEventTarget } from './helpers';
 
 /**
  * Сколько слушателей ожидания осталось на цели: и самого события, и `error`.

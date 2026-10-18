@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'preact/hooks';
 
-import { createKeptScroll } from '../createKeptScroll/createKeptScroll';
-import type { KeptScroll } from '../createKeptScroll/createKeptScroll.types';
+import type { KeptScroll } from '@ui/keptScrollTop/createKeptScroll';
+import { createKeptScroll } from '@ui/keptScrollTop/createKeptScroll';
 
 /**
  * Удержание места ленты режима на время правки избранного. Закрытие попапа снимает метку: правка,

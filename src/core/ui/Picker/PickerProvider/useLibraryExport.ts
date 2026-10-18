@@ -1,15 +1,12 @@
 import { useCallback, useMemo, useRef, useState } from 'preact/hooks';
 
-import { downloadBlob } from '../../../download';
-import { exportLibrary } from '../../../libraryFile/exportLibrary';
-import type {
-  ExportOptions,
-  ExportProgress,
-} from '../../../libraryFile/exportLibrary.types';
+import { downloadBlob } from '@core/download';
+import type { ExportOptions, ExportProgress } from '@core/libraryFile';
+import { exportLibrary } from '@core/libraryFile';
 
-import { runLibraryExport } from './runLibraryExport/runLibraryExport';
-import type { ExportTarget } from './runLibraryExport/runLibraryExport.types';
 import type { LibraryExportOptions, LibraryExportState } from './PickerProvider.types';
+import type { ExportTarget } from './runLibraryExport';
+import { runLibraryExport } from './runLibraryExport';
 
 /**
  * Выгрузка пака или библиотеки в файл на уровне провайдера. Провайдер живёт всё время страницы, а меню пака,

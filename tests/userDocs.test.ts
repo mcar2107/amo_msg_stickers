@@ -1,12 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
+import { USER_DOCS_PAGE, USER_DOCS_URL, userDocsUrl } from '@core/userDocs';
+
 /**
  * Файл — `config.mts`, а путь — с `.mjs`: TypeScript находит по нему исходник `.mts`, а путь
  * с `.mts` требует `allowImportingTsExtensions`.
  */
 import docsConfig from '../docs/.vitepress/config.mjs';
 import docsConfigSource from '../docs/.vitepress/config.mts?raw';
-import { USER_DOCS_PAGE, USER_DOCS_URL, userDocsUrl } from '../src/core/userDocs';
 
 /**
  * База сайта в конфиге VitePress: адрес сайта на Pages — хост плюс эта база. Литерал

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { fieldCheckTone } from '../src/core/ui/Picker/SettingsView/fieldCheckTone/fieldCheckTone';
+import { fieldCheckTone } from '@ui/SettingsView/fieldCheckTone';
 
 describe('fieldCheckTone', () => {
   it('принятый ключ — зелёный тон', () => {

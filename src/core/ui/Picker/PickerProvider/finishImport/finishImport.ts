@@ -1,6 +1,6 @@
-import { t } from '../../../../i18n/translate';
-import { packTitle } from '../../../../packTitle';
-import type { AddSegment, PickerScreen } from '../../usePickerView/usePickerView.types';
+import { t } from '@core/i18n';
+import { packTitle } from '@core/packTitle';
+import type { AddSegment, PickerScreen } from '@ui/usePickerView';
 
 import type { FinishImportOptions, ImportErrorTarget } from './finishImport.types';
 

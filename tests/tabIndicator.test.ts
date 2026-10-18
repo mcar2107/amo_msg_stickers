@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { placeIndicator } from '../src/core/ui/Picker/SectionTabs/tabIndicator/tabIndicator';
-import type { IndicatorElement } from '../src/core/ui/Picker/SectionTabs/tabIndicator/tabIndicator.types';
+import type { IndicatorElement } from '@ui/SectionTabs/tabIndicator';
+import { placeIndicator } from '@ui/SectionTabs/tabIndicator';
 
 /**
  * Индикатор без DOM: `offsetWidth` записывает, какой переход стоял в момент, когда браузер

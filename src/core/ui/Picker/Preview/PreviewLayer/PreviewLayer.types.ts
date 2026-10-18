@@ -1,5 +1,5 @@
-import type { PreviewDirection } from '../previewDirection/previewDirection.types';
-import type { PreviewState } from '../PreviewProvider.types';
+import type { PreviewState } from '@ui/Preview';
+import type { PreviewDirection } from '@ui/Preview/previewDirection';
 
 export type PreviewLayerProps = {
   /**

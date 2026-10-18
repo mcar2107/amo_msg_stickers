@@ -1,6 +1,6 @@
 import type { ComponentChildren } from 'preact';
 
-import type { Box } from './menuPosition/menuPosition.types';
+import type { Box } from './menuPosition';
 
 export type MenuProps = {
   /**

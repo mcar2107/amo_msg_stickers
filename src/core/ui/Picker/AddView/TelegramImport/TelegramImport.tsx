@@ -1,15 +1,15 @@
 import type { FunctionComponent as FC } from 'preact';
 
-import { getLocale, t } from '../../../../i18n/translate';
-import { USER_DOCS_PAGE, userDocsUrl } from '../../../../userDocs';
-import { renderMessage } from '../../../renderMessage/renderMessage';
-import { ExternalLink } from '../../ExternalLink/ExternalLink';
-import { Field } from '../../Field/Field';
+import { getLocale, t } from '@core/i18n';
+import { renderMessage } from '@core/ui/renderMessage';
+import { USER_DOCS_PAGE, userDocsUrl } from '@core/userDocs';
+import { ExternalLink } from '@ui/ExternalLink';
+import { Field } from '@ui/Field';
 
-import { HintToggle } from './HintToggle/HintToggle';
-import { PackCard } from './PackCard/PackCard';
-import { useImportHint } from './useImportHint/useImportHint';
+import { HintToggle } from './HintToggle';
+import { PackCard } from './PackCard';
 import type { TelegramImportProps } from './TelegramImport.types';
+import { useImportHint } from './useImportHint';
 
 const LINK_FIELD_ID = 'picker-add-telegram-link';
 const HOW_TO_ID = 'picker-add-telegram-how-to';

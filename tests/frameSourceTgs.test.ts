@@ -1,10 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { EVENT_TIMEOUT_MS } from '../src/core/frameSourceCommon';
-import { openTgsSource, tgsPlan } from '../src/core/frameSourceTgs';
+import { EVENT_TIMEOUT_MS } from '@core/frameSourceCommon';
+import { openTgsSource, tgsPlan } from '@core/frameSourceTgs';
 
-import { fakeCanvasContext } from './helpers/fakeCanvasContext';
-import { gzip } from './helpers/gzip';
+import { fakeCanvasContext } from './helpers';
+import { gzip } from './helpers';
 
 const anim = vi.hoisted(() => {
   return {

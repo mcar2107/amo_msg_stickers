@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { scheduleTimeout } from '../src/core/hoverPopup';
-import { createScrollLock } from '../src/core/ui/Picker/StickersMode/scrollLock/scrollLock';
+import { scheduleTimeout } from '@core/hoverPopup';
+import { createScrollLock } from '@ui/StickersMode/scrollLock';
 
 const QUIET_MS = 150;
 

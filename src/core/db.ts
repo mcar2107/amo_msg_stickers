@@ -1,7 +1,5 @@
-import { LocalizedError, t } from './i18n/translate';
+import type { ImportLibrary, ImportWritten } from './libraryFile/importRecords';
 import { buildImportRecords } from './libraryFile/importRecords';
-import type { ImportLibrary, ImportWritten } from './libraryFile/importRecords.types';
-import type { ImportPlan } from './libraryFile/prepareImport.types';
 import {
   type FavoriteRec,
   isStickerFavorite,
@@ -12,6 +10,8 @@ import {
   type StickerRec,
   type StickersByPack,
 } from './db.types';
+import { LocalizedError, t } from './i18n';
+import type { ImportPlan } from './libraryFile';
 
 export const CUSTOM_PACK_ID = 'custom';
 const RECENT_LIMIT = 40;

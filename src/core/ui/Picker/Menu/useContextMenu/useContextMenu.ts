@@ -1,7 +1,7 @@
 import { useCallback, useRef, useState } from 'preact/hooks';
 
-import { contextAnchor } from '../contextAnchor/contextAnchor';
-import type { MenuPoint } from '../menuPosition/menuPosition.types';
+import { contextAnchor } from '@ui/Menu/contextAnchor';
+import type { MenuPoint } from '@ui/Menu/menuPosition';
 
 import type { ContextMenu, ContextMenuOpening } from './useContextMenu.types';
 

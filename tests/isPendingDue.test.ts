@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { isPendingDue } from '../src/core/ui/Picker/useRemovalFocus/isPendingDue';
-import type { PendingFocus } from '../src/core/ui/Picker/useRemovalFocus/useRemovalFocus.types';
+import type { PendingFocus } from '@ui/useRemovalFocus';
+import { isPendingDue } from '@ui/useRemovalFocus';
 
 /**
  * Лента и данные правки до неё.

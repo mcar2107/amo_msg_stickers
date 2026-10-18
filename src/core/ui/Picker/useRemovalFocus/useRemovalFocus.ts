@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef } from 'preact/hooks';
 
-import type { FocusTarget } from '../removalFocus/removalFocus.types';
+import type { FocusTarget } from '@ui/removalFocus';
 
 import { isPendingDue } from './isPendingDue';
 import type { FocusElement, PendingFocus, RemovalFocus } from './useRemovalFocus.types';

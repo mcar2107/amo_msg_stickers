@@ -1,4 +1,4 @@
-import type { Locale } from './i18n/i18n.types';
+import type { Locale } from './i18n';
 import type { UserDocsPage } from './userDocs.types';
 
 /**

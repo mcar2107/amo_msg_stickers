@@ -2,13 +2,13 @@ import { cva } from 'class-variance-authority';
 import type { FunctionComponent as FC } from 'preact';
 import { useRef } from 'preact/hooks';
 
-import { t } from '../../../i18n/translate';
+import { t } from '@core/i18n';
 
-import { BackIcon } from './BackIcon/BackIcon';
-import { useScreenFocus } from './useScreenFocus/useScreenFocus';
-import { useScreenMotion } from './useScreenMotion/useScreenMotion';
+import { BackIcon } from './BackIcon';
 import type { ScreenProps } from './Screen.types';
 import { SCREEN_FOOTER_HEIGHT_PX } from './screenFooter';
+import { useScreenFocus } from './useScreenFocus';
+import { useScreenMotion } from './useScreenMotion';
 
 /**
  * `z-10` — над содержимым режима: позиционированные элементы ленты идут в DOM раньше

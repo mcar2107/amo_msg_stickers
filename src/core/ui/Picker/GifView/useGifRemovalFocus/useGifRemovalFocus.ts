@@ -1,11 +1,11 @@
 import type { RefObject } from 'preact';
 import { useCallback, useMemo, useRef } from 'preact/hooks';
 
-import { elementById } from '../../elementById/elementById';
-import { gifCellId } from '../../MasonryGrid/gifCellId';
-import type { GifSection } from '../../MasonryGrid/MasonryGrid.types';
-import type { FocusSection, FocusTarget } from '../../removalFocus/removalFocus.types';
-import { useRemovalFocus } from '../../useRemovalFocus/useRemovalFocus';
+import { elementById } from '@ui/elementById';
+import type { GifSection } from '@ui/MasonryGrid';
+import { gifCellId } from '@ui/MasonryGrid/gifCellId';
+import type { FocusSection, FocusTarget } from '@ui/removalFocus';
+import { useRemovalFocus } from '@ui/useRemovalFocus';
 
 import {
   gifCellTargets,

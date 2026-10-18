@@ -1,4 +1,4 @@
-import type { StickerKind } from '../shared/stickerMark.types';
+import type { StickerKind } from '@shared/stickerMark.types';
 
 import type { StickerRec } from './db.types';
 

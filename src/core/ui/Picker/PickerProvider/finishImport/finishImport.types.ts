@@ -1,9 +1,9 @@
-import type { Pack } from '../../../../db.types';
+import type { Pack } from '@core/db.types';
 import type {
   PickerScreen,
   SectionMotion,
   SectionScrollOptions,
-} from '../../usePickerView/usePickerView.types';
+} from '@ui/usePickerView';
 
 export type FinishImportOptions = {
   /**

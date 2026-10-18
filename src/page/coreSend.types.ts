@@ -1,4 +1,4 @@
-import type { PageDims } from '../shared/pageBridge.types';
+import type { PageDims } from '@shared/pageBridge.types';
 
 import type { AgentMemory, AgentNode } from './agent.types';
 import type { CoreWorker } from './workerCore.types';

@@ -1,6 +1,6 @@
 import type { ComponentChildren } from 'preact';
 
-import type { PickerMode } from '../../../pickerMode.types';
+import type { PickerMode } from '@core/pickerMode.types';
 
 export type ModePanelProps = {
   /**

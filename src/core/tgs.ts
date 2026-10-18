@@ -1,6 +1,6 @@
-import type { MessageKey } from './i18n/i18n.types';
-import { t } from './i18n/translate';
 import { isLottieJson } from './convert.types';
+import type { MessageKey } from './i18n';
+import { t } from './i18n';
 import { BYTES_IN_MB, readLimited } from './net';
 
 /**

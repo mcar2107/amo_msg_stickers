@@ -1,4 +1,4 @@
-import { LocalizedError } from './i18n/translate';
+import { LocalizedError } from './i18n';
 
 /**
  * Сетевая политика ядра: куда разрешено ходить и сколько байт читать. Её применяют оба

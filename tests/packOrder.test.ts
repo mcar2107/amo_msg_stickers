@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import type { Pack } from '../src/core/db.types';
-import { orderPacks, packSnapshot } from '../src/core/packOrder';
+import type { Pack } from '@core/db.types';
+import { orderPacks, packSnapshot } from '@core/packOrder';
 
 /**
  * Пак Telegram с заданными временами.

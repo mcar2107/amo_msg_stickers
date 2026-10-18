@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
 
-import type { RemoteGif } from '../../../db.types';
-import { getLocale, t } from '../../../i18n/translate';
-import { fetchGifs } from '../../../sources/gifs';
-import type { GifFeed } from '../../../sources/gifs.types';
-import { errorMessage } from '../PickerProvider/errorMessage';
-import { usePicker } from '../PickerProvider/usePicker';
-import { usePickerView } from '../usePickerView/usePickerView';
+import type { RemoteGif } from '@core/db.types';
+import { getLocale, t } from '@core/i18n';
+import type { GifFeed } from '@core/sources';
+import { fetchGifs } from '@core/sources';
+import { usePicker } from '@ui/PickerProvider';
+import { errorMessage } from '@ui/PickerProvider/errorMessage';
+import { usePickerView } from '@ui/usePickerView';
 
 import { feedFailureView } from './feedFailureView';
 import { shouldShowFeedError } from './shouldShowFeedError';

@@ -1,16 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
 
-import type { Settings } from '../../../../host.types';
-import { checkGifKey } from '../../../../sources/gifs';
-import type { GifProvider } from '../../../../sources/gifs.types';
-import { isBotTokenFormat } from '../../../../sources/telegram';
-import { usePicker } from '../../PickerProvider/usePicker';
+import type { Settings } from '@core/host.types';
+import type { GifProvider } from '@core/sources';
+import { checkGifKey } from '@core/sources';
+import { isBotTokenFormat } from '@core/sources';
+import { usePicker } from '@ui/PickerProvider';
 import {
   checkPlan,
   dropWritten,
   forgetChecked,
   pendingWrite,
-} from '../settingsDraft/settingsDraft';
+} from '@ui/SettingsView/settingsDraft';
 
 import type { FieldCheck, SettingsChecks, SettingsDraft } from './useSettingsDraft.types';
 

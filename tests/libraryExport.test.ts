@@ -1,24 +1,21 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import type { Pack, StickerRec } from '../src/core/db.types';
-import { t } from '../src/core/i18n/translate';
-import { libraryFileName, packFileName } from '../src/core/libraryFile/exportFileName';
-import { exportLibrary } from '../src/core/libraryFile/exportLibrary';
-import type { ExportProgress } from '../src/core/libraryFile/exportLibrary.types';
+import type { Pack, StickerRec } from '@core/db.types';
+import { t } from '@core/i18n';
+import type { ExportProgress } from '@core/libraryFile';
+import { libraryFileName, packFileName } from '@core/libraryFile';
+import { exportLibrary } from '@core/libraryFile';
 import {
   MAX_CAPTION_GRAPHEMES,
   MAX_FILE_STICKERS,
   MAX_STICKER_BYTES,
-} from '../src/core/libraryFile/limits';
-import { prepareImport } from '../src/core/libraryFile/prepareImport';
-import {
-  compareWithLibrary,
-  readLibraryFile,
-} from '../src/core/libraryFile/readLibraryFile';
-import { BYTES_IN_MB } from '../src/core/net';
-import { readZipDirectory, readZipEntry } from '../src/core/zip/zipRead';
+} from '@core/libraryFile';
+import { prepareImport } from '@core/libraryFile';
+import { compareWithLibrary, readLibraryFile } from '@core/libraryFile';
+import { BYTES_IN_MB } from '@core/net';
+import { readZipDirectory, readZipEntry } from '@core/zip';
 
-import { makeGif } from './helpers/makeGif';
+import { makeGif } from './helpers';
 
 /**
  * Библиотека, которую видит выгрузка через функции `db.ts`.
@@ -34,7 +31,7 @@ const writes = vi.hoisted(() => {
   return { touchPack: vi.fn(), putPack: vi.fn(), pushRecent: vi.fn() };
 });
 
-vi.mock('../src/core/db', () => {
+vi.mock('@core/db', () => {
   const byCreatedAt = (a: StickerRec, b: StickerRec) => {
     return a.createdAt - b.createdAt;
   };

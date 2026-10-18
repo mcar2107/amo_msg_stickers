@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { pickSettings } from '../src/core/host';
+import { pickSettings } from '@core/host';
 
 describe('pickSettings', () => {
   it('оставляет известные поля со строковыми значениями', () => {

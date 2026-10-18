@@ -1,6 +1,6 @@
 import { vi } from 'vitest';
 
-import type { GmResponse, GmXmlhttpRequest } from '../../src/userscript/gm.types';
+import type { GmResponse, GmXmlhttpRequest } from '@userscript/gm.types';
 
 import type { GmScript } from './mockGmRequest.types';
 

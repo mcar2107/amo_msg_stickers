@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
 
-import { clearRecent, deleteRecent, listRecent } from '../../../../db';
-import type { RemoteGif } from '../../../../db.types';
-import { errorMessage } from '../../PickerProvider/errorMessage';
-import { usePicker } from '../../PickerProvider/usePicker';
-import { recentGifs } from '../gifSections/gifSections';
+import { clearRecent, deleteRecent, listRecent } from '@core/db';
+import type { RemoteGif } from '@core/db.types';
+import { recentGifs } from '@ui/GifView/gifSections';
+import { usePicker } from '@ui/PickerProvider';
+import { errorMessage } from '@ui/PickerProvider/errorMessage';
 
 import type { RecentGifs } from './useRecentGifs.types';
 

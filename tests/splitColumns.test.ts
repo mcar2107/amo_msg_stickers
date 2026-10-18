@@ -1,15 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
-import {
-  splitColumns,
-  visibleTiles,
-} from '../src/core/ui/Picker/MasonryGrid/splitColumns/splitColumns';
 import type {
   ColumnGeometry,
   MasonrySection,
   MasonryTile,
   SizedItem,
-} from '../src/core/ui/Picker/MasonryGrid/splitColumns/splitColumns.types';
+} from '@ui/MasonryGrid/splitColumns';
+import { splitColumns, visibleTiles } from '@ui/MasonryGrid/splitColumns';
 
 type Item = SizedItem & {
   /**

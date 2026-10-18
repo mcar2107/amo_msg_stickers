@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { LocalizedError, setLocale } from '../src/core/i18n/translate';
-import { BYTES_IN_MB, notAllowedError, tooBigError } from '../src/core/net';
-import { toFailureResponse, unwrapFetchResponse } from '../src/extension/fetchResponse';
-import type { FetchResponse } from '../src/extension/messages.types';
+import { LocalizedError, setLocale } from '@core/i18n';
+import { BYTES_IN_MB, notAllowedError, tooBigError } from '@core/net';
+import { toFailureResponse, unwrapFetchResponse } from '@extension/fetchResponse';
+import type { FetchResponse } from '@extension/messages.types';
 
 /**
  * Ответ так, как его получает content script: runtime-сообщение сериализуется в JSON.

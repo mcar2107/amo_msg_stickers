@@ -1,4 +1,4 @@
-import type { PickerMode } from '../../../pickerMode.types';
+import type { PickerMode } from '@core/pickerMode.types';
 
 /**
  * Экран поверх режима.

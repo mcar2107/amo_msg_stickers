@@ -1,6 +1,6 @@
-import { DEFAULT_SETTINGS, pickSettings } from '../core/host';
-import type { HostSettings, Settings } from '../core/host.types';
-import { isObject } from '../shared/guards';
+import { DEFAULT_SETTINGS, pickSettings } from '@core/host';
+import type { HostSettings, Settings } from '@core/host.types';
+import { isObject } from '@shared/guards';
 
 import type { GmStore, SettingsStorage } from './settings.types';
 

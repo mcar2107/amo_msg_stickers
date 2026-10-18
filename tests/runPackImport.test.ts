@@ -1,19 +1,19 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import type { Pack } from '../src/core/db.types';
-import { setLocale } from '../src/core/i18n/translate';
-import type { ImportErrorTarget } from '../src/core/ui/Picker/PickerProvider/finishImport/finishImport.types';
-import { runPackImport } from '../src/core/ui/Picker/PickerProvider/runPackImport/runPackImport';
+import type { Pack } from '@core/db.types';
+import { setLocale } from '@core/i18n';
+import type { ImportErrorTarget } from '@ui/PickerProvider/finishImport';
+import { runPackImport } from '@ui/PickerProvider/runPackImport';
 
 /**
  * Разбор ссылки живёт в модуле Bot API, а он тянет конвертацию и базу: в Node нет ни canvas,
  * ни IndexedDB, а проверяем мы здесь ход импорта, а не их.
  */
-vi.mock('../src/core/convert', () => {
+vi.mock('@core/convert', () => {
   return { toStickerGif: vi.fn() };
 });
 
-vi.mock('../src/core/db', () => {
+vi.mock('@core/db', () => {
   return {
     getPack: vi.fn(),
     putPack: vi.fn(),

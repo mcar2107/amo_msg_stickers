@@ -1,16 +1,16 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import type { Pack, StickerRec } from '../src/core/db.types';
-import { inspectGif } from '../src/core/gif';
-import { t } from '../src/core/i18n/translate';
-import { MAX_FILE_STICKERS, MAX_STICKER_BYTES } from '../src/core/libraryFile/limits';
-import { prepareImport } from '../src/core/libraryFile/prepareImport';
-import type { FileImportProgress } from '../src/core/libraryFile/prepareImport.types';
-import { loadFileCard, readLibraryFile } from '../src/core/libraryFile/readLibraryFile';
-import { writeZip } from '../src/core/zip/zipWrite';
+import type { Pack, StickerRec } from '@core/db.types';
+import { inspectGif } from '@core/gif';
+import { t } from '@core/i18n';
+import type { FileImportProgress } from '@core/libraryFile';
+import { MAX_FILE_STICKERS, MAX_STICKER_BYTES } from '@core/libraryFile';
+import { prepareImport } from '@core/libraryFile';
+import { loadFileCard, readLibraryFile } from '@core/libraryFile';
+import { writeZip } from '@core/zip';
 
-import { makeGif } from './helpers/makeGif';
-import { buildZip } from './helpers/zipBuild';
+import { makeGif } from './helpers';
+import { buildZip } from './helpers';
 
 /**
  * Библиотека, которую видит загрузка через `listPacks` и `listStickerIds`.
@@ -19,7 +19,7 @@ const library = vi.hoisted(() => {
   return { packs: [] as Pack[], stickers: [] as StickerRec[] };
 });
 
-vi.mock('../src/core/db', () => {
+vi.mock('@core/db', () => {
   return {
     CUSTOM_PACK_ID: 'custom',
     listPacks: vi.fn(async () => {

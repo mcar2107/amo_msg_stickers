@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef } from 'preact/hooks';
 
-import { playPreviewClose, playPreviewOpen } from '../previewMotion/previewMotion';
-import type { PreviewState } from '../PreviewProvider.types';
+import type { PreviewState } from '@ui/Preview';
+import { playPreviewClose, playPreviewOpen } from '@ui/Preview/previewMotion';
 
 import type {
   PreviewFlightRefs,

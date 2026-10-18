@@ -1,12 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { DEFAULT_SETTINGS } from '../src/core/host';
-import {
-  gmSettings,
-  localStorageSettings,
-  SETTINGS_KEY,
-} from '../src/userscript/settings';
-import type { GmStore, SettingsStorage } from '../src/userscript/settings.types';
+import { DEFAULT_SETTINGS } from '@core/host';
+import { gmSettings, localStorageSettings, SETTINGS_KEY } from '@userscript/settings';
+import type { GmStore, SettingsStorage } from '@userscript/settings.types';
 
 /**
  * Фейковый `localStorage`: строки в `Map`, каждый метод — шпион.

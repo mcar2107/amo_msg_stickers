@@ -1,6 +1,6 @@
-import { BUILTIN_TELEGRAM_TOKEN } from '../builtinToken';
-import { toStickerGif } from '../convert';
-import type { SourceKind } from '../convert.types';
+import { BUILTIN_TELEGRAM_TOKEN } from '@core/builtinToken';
+import { toStickerGif } from '@core/convert';
+import type { SourceKind } from '@core/convert.types';
 import {
   deletePack,
   deleteSticker,
@@ -9,11 +9,11 @@ import {
   putPack,
   putSticker,
   setPackCover,
-} from '../db';
-import type { Pack, StickerRec } from '../db.types';
-import type { Host } from '../host.types';
-import { LocalizedError, t } from '../i18n/translate';
-import { BYTES_IN_MB, httpStatus } from '../net';
+} from '@core/db';
+import type { Pack, StickerRec } from '@core/db.types';
+import type { Host } from '@core/host.types';
+import { LocalizedError, t } from '@core/i18n';
+import { BYTES_IN_MB, httpStatus } from '@core/net';
 
 import {
   type ImportProgress,

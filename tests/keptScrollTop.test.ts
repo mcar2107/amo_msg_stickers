@@ -1,20 +1,15 @@
 import { describe, expect, it } from 'vitest';
 
-import type { RemoteGif } from '../src/core/db.types';
-import { createKeptScroll } from '../src/core/ui/Picker/keptScrollTop/createKeptScroll/createKeptScroll';
-import {
-  cellTops,
-  gifCells,
-  keptScrollTop,
-  stickerCells,
-} from '../src/core/ui/Picker/keptScrollTop/keptScrollTop';
-import type { CellPosition } from '../src/core/ui/Picker/keptScrollTop/keptScrollTop.types';
-import { gifCellId } from '../src/core/ui/Picker/MasonryGrid/gifCellId';
-import { splitColumns } from '../src/core/ui/Picker/MasonryGrid/splitColumns/splitColumns';
-import type { MasonrySection } from '../src/core/ui/Picker/MasonryGrid/splitColumns/splitColumns.types';
-import { cellId } from '../src/core/ui/Picker/StickerFeed/cellId';
-import { buildStickerLayout } from '../src/core/ui/Picker/stickerLayout/stickerLayout';
-import type { StickerSection } from '../src/core/ui/Picker/stickerLayout/stickerLayout.types';
+import type { RemoteGif } from '@core/db.types';
+import type { CellPosition } from '@ui/keptScrollTop';
+import { cellTops, gifCells, keptScrollTop, stickerCells } from '@ui/keptScrollTop';
+import { createKeptScroll } from '@ui/keptScrollTop/createKeptScroll';
+import { gifCellId } from '@ui/MasonryGrid/gifCellId';
+import type { MasonrySection } from '@ui/MasonryGrid/splitColumns';
+import { splitColumns } from '@ui/MasonryGrid/splitColumns';
+import { cellId } from '@ui/StickerFeed/cellId';
+import type { StickerSection } from '@ui/stickerLayout';
+import { buildStickerLayout } from '@ui/stickerLayout';
 
 /**
  * Стикер ленты: раскладке нужен только ключ ячейки.

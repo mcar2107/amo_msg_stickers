@@ -1,13 +1,10 @@
 import { h } from 'preact';
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { EN } from '../src/core/i18n/messages.en';
-import { RU } from '../src/core/i18n/messages.ru';
-import { setLocale } from '../src/core/i18n/translate';
-import {
-  renderMessage,
-  renderTemplate,
-} from '../src/core/ui/renderMessage/renderMessage';
+import { EN } from '@core/i18n';
+import { RU } from '@core/i18n';
+import { setLocale } from '@core/i18n';
+import { renderMessage, renderTemplate } from '@core/ui/renderMessage';
 
 const LINK = h('a', { href: 'https://giphy.com' }, 'GIPHY');
 const DOCS = h('a', { href: 'https://example.com/setup/telegram' }, 'docs');

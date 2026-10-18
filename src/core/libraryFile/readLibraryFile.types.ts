@@ -1,4 +1,4 @@
-import type { ZipEntry } from '../zip/zip.types';
+import type { ZipEntry } from '@core/zip';
 
 import type {
   LibraryManifest,

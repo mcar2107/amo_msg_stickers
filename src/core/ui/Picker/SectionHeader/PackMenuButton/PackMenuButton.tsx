@@ -1,12 +1,12 @@
 import type { FunctionComponent as FC, TargetedMouseEvent } from 'preact';
 import { useState } from 'preact/hooks';
 
-import { t } from '../../../../i18n/translate';
-import { Menu } from '../../Menu/Menu';
-import type { MenuOpening } from '../../Menu/Menu.types';
-import { CopyPackLinkItem } from '../CopyPackLinkItem/CopyPackLinkItem';
-import { DeletePackItem } from '../DeletePackItem/DeletePackItem';
-import { ExportPackItem } from '../ExportPackItem/ExportPackItem';
+import { t } from '@core/i18n';
+import type { MenuOpening } from '@ui/Menu';
+import { Menu } from '@ui/Menu';
+import { CopyPackLinkItem } from '@ui/SectionHeader/CopyPackLinkItem';
+import { DeletePackItem } from '@ui/SectionHeader/DeletePackItem';
+import { ExportPackItem } from '@ui/SectionHeader/ExportPackItem';
 
 import type { PackMenuButtonProps } from './PackMenuButton.types';
 

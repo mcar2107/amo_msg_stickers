@@ -1,6 +1,6 @@
-import type { CellIdOf } from '../../cellIdOf/cellIdOf.types';
-import type { PreviewDirection } from '../../Preview/previewDirection/previewDirection.types';
-import type { ItemTile, MasonryTile } from '../splitColumns/splitColumns.types';
+import type { CellIdOf } from '@ui/cellIdOf';
+import type { ItemTile, MasonryTile } from '@ui/MasonryGrid/splitColumns';
+import type { PreviewDirection } from '@ui/Preview/previewDirection';
 
 /**
  * Ближайшая плитка элемента, идя от `from` с шагом `delta`: соседи стоят рядом с текущей, и

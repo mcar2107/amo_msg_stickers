@@ -1,6 +1,6 @@
-import { start } from '../core/app';
-import { DEFAULT_SETTINGS, pickSettings } from '../core/host';
-import type { Host } from '../core/host.types';
+import { start } from '@core/app';
+import { DEFAULT_SETTINGS, pickSettings } from '@core/host';
+import type { Host } from '@core/host.types';
 
 import { unwrapFetchResponse } from './fetchResponse';
 import type { FetchRequest, FetchResponse, IconThemeMessage } from './messages.types';

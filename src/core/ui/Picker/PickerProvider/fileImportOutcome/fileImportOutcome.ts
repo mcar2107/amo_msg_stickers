@@ -1,8 +1,8 @@
-import type { Pack } from '../../../../db.types';
-import { t } from '../../../../i18n/translate';
-import type { FileImportProgress } from '../../../../libraryFile/prepareImport.types';
-import { errorMessage } from '../errorMessage';
-import type { FileImportStage } from '../PickerProvider.types';
+import type { Pack } from '@core/db.types';
+import { t } from '@core/i18n';
+import type { FileImportProgress } from '@core/libraryFile';
+import type { FileImportStage } from '@ui/PickerProvider';
+import { errorMessage } from '@ui/PickerProvider/errorMessage';
 
 import type {
   FileImportFailure,

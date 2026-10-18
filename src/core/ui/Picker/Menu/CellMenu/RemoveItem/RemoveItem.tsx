@@ -1,12 +1,12 @@
 import type { FunctionComponent as FC } from 'preact';
 
-import type { MessageKey } from '../../../../../i18n/i18n.types';
-import { t } from '../../../../../i18n/translate';
-import { useConfirmPress } from '../../../useConfirmPress/useConfirmPress';
-import { MenuItem } from '../../MenuItem/MenuItem';
-import type { MenuItemVariant } from '../../MenuItem/MenuItem.types';
-import { useMenuClose } from '../../useMenuClose/useMenuClose';
-import type { CellRemoveKind } from '../CellMenu.types';
+import type { MessageKey } from '@core/i18n';
+import { t } from '@core/i18n';
+import type { CellRemoveKind } from '@ui/Menu/CellMenu';
+import type { MenuItemVariant } from '@ui/Menu/MenuItem';
+import { MenuItem } from '@ui/Menu/MenuItem';
+import { useMenuClose } from '@ui/Menu/useMenuClose';
+import { useConfirmPress } from '@ui/useConfirmPress';
 
 import type { RemoveItemProps } from './RemoveItem.types';
 

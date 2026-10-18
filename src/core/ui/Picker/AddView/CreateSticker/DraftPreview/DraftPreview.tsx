@@ -4,9 +4,9 @@ import type {
   TargetedPointerEvent,
 } from 'preact';
 
-import { t } from '../../../../../i18n/translate';
-import { CellSpinner } from '../../../CellSpinner/CellSpinner';
-import { useCellPreview } from '../../../useCellPreview/useCellPreview';
+import { t } from '@core/i18n';
+import { CellSpinner } from '@ui/CellSpinner';
+import { useCellPreview } from '@ui/useCellPreview';
 
 import type { DraftPreviewProps } from './DraftPreview.types';
 

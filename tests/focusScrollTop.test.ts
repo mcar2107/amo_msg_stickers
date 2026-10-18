@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { focusScrollTop } from '../src/core/ui/Picker/Screen/useScreenFocus/focusScrollTop';
+import { focusScrollTop } from '@ui/Screen/useScreenFocus';
 
 describe('focusScrollTop', () => {
   it('группа уже видна — тело не сдвигается', () => {

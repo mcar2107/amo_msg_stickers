@@ -1,15 +1,15 @@
 import { describe, expect, it } from 'vitest';
 
-import { inspectGif } from '../src/core/gif';
-import { createGifEncoder } from '../src/core/gifEncoder';
+import { inspectGif } from '@core/gif';
+import { createGifEncoder } from '@core/gifEncoder';
 
-import { parseGif } from './helpers/parseGif';
+import { parseGif } from './helpers';
 import {
   SYNTHETIC_HEIGHT,
   SYNTHETIC_WIDTH,
   syntheticFrames,
   TRANSPARENT_CORNER,
-} from './helpers/syntheticFrames';
+} from './helpers';
 
 /**
  * SHA-256 GIF, которые `encodeGif` из `convert.ts` базы прогона (5efdc81) выдавал на

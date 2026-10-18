@@ -9,9 +9,9 @@ import {
   recentOfKind,
   recentOverflow,
   transactionError,
-} from '../src/core/db';
-import type { FavoriteRec, RecentRec, StickerRec } from '../src/core/db.types';
-import { LocalizedError, t } from '../src/core/i18n/translate';
+} from '@core/db';
+import type { FavoriteRec, RecentRec, StickerRec } from '@core/db.types';
+import { LocalizedError, t } from '@core/i18n';
 
 /**
  * Запись недавнего стикера из пака.

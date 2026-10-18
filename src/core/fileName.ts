@@ -5,7 +5,7 @@ import {
   NAME_PARAM_VALUE,
   splitStickerFileName,
   STICKER_MARKER,
-} from '../shared/stickerMark';
+} from '@shared/stickerMark';
 
 import type { SendItem } from './db.types';
 import type {

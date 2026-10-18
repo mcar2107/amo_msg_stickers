@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { setLocale } from '../src/core/i18n/translate';
-import { readTgs } from '../src/core/tgs';
+import { setLocale } from '@core/i18n';
+import { readTgs } from '@core/tgs';
 
-import { gzip } from './helpers/gzip';
+import { gzip } from './helpers';
 
 const LOTTIE = { w: 512, h: 512, fr: 60, ip: 0, op: 180, layers: [] };
 

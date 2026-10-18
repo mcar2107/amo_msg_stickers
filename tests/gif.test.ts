@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
-import { GIF_HEADER_BYTES, gifScreenSize, inspectGif } from '../src/core/gif';
+import { GIF_HEADER_BYTES, gifScreenSize, inspectGif } from '@core/gif';
 
-import { makeGif } from './helpers/makeGif';
+import { makeGif } from './helpers';
 
 const TEXT = new TextEncoder();
 

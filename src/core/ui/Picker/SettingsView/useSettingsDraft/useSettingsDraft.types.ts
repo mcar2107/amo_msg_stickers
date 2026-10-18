@@ -1,5 +1,5 @@
-import type { Settings } from '../../../../host.types';
-import type { KeyCheck } from '../../../../sources/gifs.types';
+import type { Settings } from '@core/host.types';
+import type { KeyCheck } from '@core/sources';
 
 /**
  * Состояние проверки поля: идёт запрос, ответ источника о ключе или токен не того вида.

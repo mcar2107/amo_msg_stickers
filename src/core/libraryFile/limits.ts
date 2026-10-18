@@ -1,4 +1,4 @@
-import { BYTES_IN_MB } from '../net';
+import { BYTES_IN_MB } from '@core/net';
 
 /**
  * Признак формата в `manifest.json`: по нему файл amo stickers узнаётся по содержимому, а не по расширению.
