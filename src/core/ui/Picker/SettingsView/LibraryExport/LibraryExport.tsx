@@ -7,7 +7,7 @@ import { usePicker } from '@ui/PickerProvider';
 import { SCREEN_FOCUS_ID, usePickerView } from '@ui/usePickerView';
 
 import type { LibraryNoteState } from './LibraryExport.types';
-import { useStickerCount } from './useStickerCount';
+import { useExportableCount } from './useExportableCount';
 
 const GROUP_ID = 'settings-group-library';
 const NOTE_ID = 'settings-library-export-note';
@@ -20,19 +20,19 @@ const GROUP_TITLE_CLASS = 'm-0 font-primary text-xsm font-semibold';
 const NOTE_CLASS = 'm-0 text-xs leading-[1.4] text-cadetGray-30 dark:text-gray-70';
 
 /**
- * Текст рядом с кнопкой: ход выгрузки библиотеки важнее причины недоступности — пока она идёт, стикеры есть. Выгрузка
+ * Текст рядом с кнопкой: ход выгрузки библиотеки важнее причины недоступности — пока она идёт, выгружать есть что. Выгрузка
  * пака из меню хода здесь не показывает (он в строке статуса), но недоступную кнопку объясняет: иначе скринридер
  * прочитал бы «недоступна» без причины.
  *
- * @param state — идёт ли выгрузка, ход выгрузки библиотеки и число стикеров в библиотеке
+ * @param state — идёт ли выгрузка, ход выгрузки библиотеки и сколько в библиотеке того, что попадёт в файл
  * @returns текст; пустая строка — пояснять нечего
  */
 const noteText = (state: LibraryNoteState) => {
-  const { isExporting, progress, stickerCount } = state;
+  const { isExporting, progress, exportableCount } = state;
 
   if (progress) return t('settings.library.progress', progress);
   if (isExporting) return t('settings.library.packExporting');
-  if (stickerCount === 0) return t('settings.library.empty');
+  if (exportableCount === 0) return t('settings.library.empty');
 
   return '';
 };
@@ -50,8 +50,8 @@ export const LibraryExport: FC = () => {
     libraryExport: { isExporting, libraryProgress, exportAll },
   } = usePicker();
   const { openScreen } = usePickerView();
-  const stickerCount = useStickerCount();
-  const note = noteText({ isExporting, progress: libraryProgress, stickerCount });
+  const exportableCount = useExportableCount();
+  const note = noteText({ isExporting, progress: libraryProgress, exportableCount });
 
   const handleExportClick = () => {
     void exportAll();
@@ -75,7 +75,7 @@ export const LibraryExport: FC = () => {
         <Button
           variant="secondary"
           id={SCREEN_FOCUS_ID.libraryExport}
-          isDisabled={isExporting || stickerCount === 0}
+          isDisabled={isExporting || exportableCount === 0}
           shouldKeepFocus
           {...(note ? { describedBy: NOTE_ID } : {})}
           onClick={handleExportClick}

@@ -57,9 +57,10 @@ export const RU = {
   'settings.group.telegram': 'Telegram',
   'settings.group.library': 'Библиотека',
   'settings.library.hint':
-    'Все паки и свои стикеры одним файлом .amostickers — его можно загрузить в другом браузере или отправить коллеге.',
+    'Все паки, избранное и история отправок одним файлом .amostickers — чтобы перенести их в другой браузер. Поделиться стикерами с другим человеком — «Выгрузить пак» в меню пака.',
   'settings.library.export': 'Выгрузить библиотеку',
-  'settings.library.empty': 'Выгружать нечего: в библиотеке нет стикеров',
+  'settings.library.empty':
+    'Выгружать нечего: нет ни стикеров, ни избранного, ни недавних GIF',
   'settings.library.progress': 'Выгрузка: {done}/{total}',
   'settings.library.packExporting': 'Идёт выгрузка пака — дождитесь её конца',
   'settings.library.import': 'Загрузить из файла',
@@ -189,11 +190,14 @@ export const RU = {
   'error.libraryFile.packTooBig':
     'Пак не помещается в один файл: до {max} стикеров и меньше 4 ГБ',
   'error.libraryFile.packExportEmpty': 'В паке нет стикеров',
-  'error.libraryFile.libraryExportEmpty': 'В библиотеке нет стикеров',
+  'error.libraryFile.libraryExportEmpty':
+    'В библиотеке нет ни стикеров, ни избранного, ни недавних GIF',
   'error.libraryFile.exportInvalid':
     'Запись библиотеки повреждена — такой файл не прочитать',
   'error.libraryFile.gifTooBig':
     'В паке «{title}» стикер больше {size} МБ — такой файл не прочитать',
+  'error.libraryFile.favoriteGifTooBig':
+    'В избранном стикер больше {size} МБ — такой файл не прочитать',
   'error.libraryFile.writeFailed': 'Не удалось записать в библиотеку: {message}',
   'error.libraryFile.quota': 'Не хватает места в браузере — библиотека не изменилась',
   'error.net.notAllowed': 'Адрес вне списка разрешённых',

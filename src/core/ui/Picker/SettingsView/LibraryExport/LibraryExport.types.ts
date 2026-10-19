@@ -15,7 +15,7 @@ export type LibraryNoteState = {
   progress: ExportProgress | null;
 
   /**
-   * Стикеров в библиотеке; `null` — ещё не посчитаны.
+   * Стикеров, записей избранного и недавних GIF в библиотеке — того, что попадёт в файл; `null` — ещё не посчитаны.
    */
-  stickerCount: number | null;
+  exportableCount: number | null;
 };

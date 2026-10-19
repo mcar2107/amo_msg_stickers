@@ -59,9 +59,9 @@ export const EN: Messages = {
   'settings.group.telegram': 'Telegram',
   'settings.group.library': 'Library',
   'settings.library.hint':
-    'All packs and custom stickers in one .amostickers file — load it in another browser or send it to a colleague.',
+    'All packs, favorites, and send history in one .amostickers file — to move them to another browser. To share stickers with someone, use “Export pack” in the pack menu.',
   'settings.library.export': 'Export library',
-  'settings.library.empty': 'Nothing to export: your library has no stickers',
+  'settings.library.empty': 'Nothing to export: no stickers, favorites, or recent GIFs',
   'settings.library.progress': 'Exporting: {done}/{total}',
   'settings.library.packExporting': 'A pack is being exported — wait for it to finish',
   'settings.library.import': 'Load from file',
@@ -192,11 +192,14 @@ export const EN: Messages = {
   'error.libraryFile.packTooBig':
     'The pack doesn’t fit in one file: up to {max} stickers and under 4 GB',
   'error.libraryFile.packExportEmpty': 'The pack has no stickers',
-  'error.libraryFile.libraryExportEmpty': 'Your library has no stickers',
+  'error.libraryFile.libraryExportEmpty':
+    'Your library has no stickers, favorites, or recent GIFs',
   'error.libraryFile.exportInvalid':
     'A library record is damaged, and the file couldn’t be read back',
   'error.libraryFile.gifTooBig':
     'Pack “{title}” has a sticker larger than {size} MB, which can’t be read back',
+  'error.libraryFile.favoriteGifTooBig':
+    'A favorite sticker is larger than {size} MB, which can’t be read back',
   'error.libraryFile.writeFailed': 'Couldn’t save to the library: {message}',
   'error.libraryFile.quota': 'Not enough browser storage — the library is unchanged',
   'error.net.notAllowed': 'URL is not on the allowed list',

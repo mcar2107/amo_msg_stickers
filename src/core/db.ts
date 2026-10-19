@@ -721,3 +721,27 @@ export const countFavoriteStickers = async (): Promise<number> => {
 
   return promisify<number>((await store(STORE.favorites)).count(range));
 };
+
+/**
+ * Есть ли что выгружать в файл библиотеки. Недавние стикеры не считаются: без стикеров библиотеки их нет и в файле, а
+ * со стикерами число уже не ноль. Считает по ключам одной транзакцией, без чтения блобов и снимков.
+ *
+ * @returns сумма стикеров, записей избранного и недавних GIF
+ */
+export const countExportable = async (): Promise<number> => {
+  const db = await openDb();
+  const tx = db.transaction([STORE.stickers, STORE.favorites, STORE.recent]);
+  /**
+   * `;` — следующий за `:` символ: диапазон берёт все ключи недавних GIF `r:<источник>:<id>`.
+   */
+  const remoteRange = IDBKeyRange.bound('r:', 'r;', false, true);
+  const counts = await Promise.all([
+    promisify<number>(tx.objectStore(STORE.stickers).count()),
+    promisify<number>(tx.objectStore(STORE.favorites).count()),
+    promisify<number>(tx.objectStore(STORE.recent).count(remoteRange)),
+  ]);
+
+  return counts.reduce((sum, count) => {
+    return sum + count;
+  }, 0);
+};
