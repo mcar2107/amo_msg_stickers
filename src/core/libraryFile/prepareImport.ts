@@ -4,9 +4,11 @@ import type { ZipEntryContent } from '@core/zip';
 import { readZipEntry } from '@core/zip';
 
 import { MAX_STICKER_BYTES } from './limits';
-import type { ManifestPack, ManifestSticker } from './manifest.types';
+import type { ManifestFavorite, ManifestPack, ManifestSticker } from './manifest.types';
+import { isManifestSnapshot } from './manifest.types';
 import type {
   ImportPlan,
+  ImportPlanFavorite,
   ImportPlanPack,
   ImportPlanSticker,
   PrepareImportOptions,
@@ -85,16 +87,39 @@ const toPlanPack = (
 };
 
 /**
- * Проверяет новые стикеры карточки по одному и собирает план импорта, ничего не записывая в базу. GIF без сжатия в
- * плане — срез файла без копии в память, после сжатия архиватором — распакованные байты.
+ * @param favorites — новое избранное карточки
+ * @returns сколько в нём стикеров со своим GIF
+ */
+const countSnapshots = (favorites: readonly ManifestFavorite[]) => {
+  return favorites.reduce((count, item) => {
+    return isManifestSnapshot(item) ? count + 1 : count;
+  }, 0);
+};
+
+/**
+ * Сколько GIF проверит подготовка импорта: новые стикеры паков и снимки нового избранного. Ход проверки и его полоса до
+ * первого шага считают от этого числа.
  *
- * Отмена проверяется перед каждым стикером и после последнего: отменённая подготовка не доходит до записи. Ошибка
- * любого стикера останавливает подготовку.
+ * @param card — карточка файла
+ * @returns число проверяемых GIF
+ */
+export const fileCardCheckCount = (card: FileCard): number => {
+  return card.newStickerCount + countSnapshots(card.newFavorites);
+};
+
+/**
+ * Проверяет новые стикеры карточки, затем GIF снимков её нового избранного по одному и собирает план импорта, ничего не
+ * записывая в базу. GIF без сжатия в плане — срез файла без копии в память, после сжатия архиватором — распакованные
+ * байты.
+ *
+ * Отмена проверяется перед каждым стикером и снимком и после последнего: отменённая подготовка не доходит до записи.
+ * Ошибка любого GIF останавливает подготовку.
  *
  * @param libraryFile — прочитанный файл
  * @param card — карточка этого файла по свежему состоянию библиотеки
  * @param options — отмена и ход проверки
- * @returns план: паки в порядке файла, в которые добавляется хоть один стикер; отмена — `signal.reason`
+ * @returns план: паки в порядке файла, в которые добавляется хоть один стикер, новое избранное карточки и недавние
+ * файла; отмена — `signal.reason`
  */
 export const prepareImport = async (
   libraryFile: LibraryFile,
@@ -102,9 +127,24 @@ export const prepareImport = async (
   options: PrepareImportOptions = {}
 ): Promise<ImportPlan> => {
   const { signal, onProgress } = options;
-  const total = card.newStickerCount;
+  const total = fileCardCheckCount(card);
   const packs: ImportPlanPack[] = [];
+  const favorites: ImportPlanFavorite[] = [];
   let done = 0;
+
+  /**
+   * @param sticker — стикер пака или снимок избранного
+   * @returns проверенный стикер плана
+   */
+  const check = async (sticker: ManifestSticker) => {
+    signal?.throwIfAborted();
+    const checked = await checkSticker(libraryFile, sticker);
+
+    done += 1;
+    onProgress?.({ done, total });
+
+    return checked;
+  };
 
   onProgress?.({ done, total });
 
@@ -112,17 +152,21 @@ export const prepareImport = async (
     if (!newStickers.length) continue;
     const stickers: ImportPlanSticker[] = [];
 
-    for (const sticker of newStickers) {
-      signal?.throwIfAborted();
-      stickers.push(await checkSticker(libraryFile, sticker));
-      done += 1;
-      onProgress?.({ done, total });
-    }
-
+    for (const sticker of newStickers) stickers.push(await check(sticker));
     packs.push(toPlanPack(pack, stickers));
+  }
+
+  for (const item of card.newFavorites) {
+    if (isManifestSnapshot(item)) {
+      const { kind, id, ts, packId } = item;
+
+      favorites.push({ kind, id, ts, packId, sticker: await check(item) });
+    } else {
+      favorites.push(item);
+    }
   }
 
   signal?.throwIfAborted();
 
-  return { packs };
+  return { packs, favorites, recent: libraryFile.manifest.recent || [] };
 };

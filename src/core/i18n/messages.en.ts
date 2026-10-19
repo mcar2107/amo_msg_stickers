@@ -49,6 +49,7 @@ export const EN: Messages = {
   'add.file.packAdds': 'Stickers to add: {count} of {total}',
   'add.file.packPresent': 'Already in your library',
   'add.file.summary': 'New packs: {packs}, stickers: {stickers}',
+  'add.file.listsSummary': 'Adds to favorites: {favorites}, to recent: {recent}',
   'add.file.allInLibrary': 'Everything in this file is already in your library',
   'add.file.checking': 'Checking stickers…',
   'add.file.progress': '{done}/{total}',

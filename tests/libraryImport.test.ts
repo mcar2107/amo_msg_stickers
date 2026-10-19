@@ -126,6 +126,8 @@ describe('buildImportRecords', () => {
             coverId: 'tg:b',
           }),
         ],
+        favorites: [],
+        recent: [],
       },
       library(),
       OPTIONS
@@ -157,7 +159,11 @@ describe('buildImportRecords', () => {
   it('стикер несёт GIF, стороны, эмодзи и подпись из плана', () => {
     const planSticker = sticker('tg:a', { emoji: '😀', width: 120, height: 90 });
     const records = buildImportRecords(
-      { packs: [tgPack('cats', [], { stickers: [planSticker] })] },
+      {
+        packs: [tgPack('cats', [], { stickers: [planSticker] })],
+        favorites: [],
+        recent: [],
+      },
       library(),
       OPTIONS
     );
@@ -178,7 +184,11 @@ describe('buildImportRecords', () => {
   it('стикер без эмодзи и подписи — без их ключей в записи', () => {
     const planSticker = sticker('tg:a');
     const [record] = buildImportRecords(
-      { packs: [tgPack('cats', [], { stickers: [planSticker] })] },
+      {
+        packs: [tgPack('cats', [], { stickers: [planSticker] })],
+        favorites: [],
+        recent: [],
+      },
       library(),
       OPTIONS
     ).stickers;
@@ -189,7 +199,7 @@ describe('buildImportRecords', () => {
 
   it('без времени добавления и использования в файле — время начала и пак без использования', () => {
     const [pack] = buildImportRecords(
-      { packs: [tgPack('cats', ['tg:a'])] },
+      { packs: [tgPack('cats', ['tg:a'])], favorites: [], recent: [] },
       library(),
       OPTIONS
     ).packs;
@@ -216,6 +226,8 @@ describe('buildImportRecords', () => {
             stickers: [sticker('tg:a')],
           },
         ],
+        favorites: [],
+        recent: [],
       },
       library(),
       OPTIONS
@@ -234,6 +246,8 @@ describe('buildImportRecords', () => {
             coverId: 'tg:new2',
           }),
         ],
+        favorites: [],
+        recent: [],
       },
       library({
         packIds: ['tg:cats'],
@@ -257,7 +271,7 @@ describe('buildImportRecords', () => {
 
   it('пак удалён после карточки — создаётся заново', () => {
     const records = buildImportRecords(
-      { packs: [tgPack('cats', ['tg:a', 'tg:b'])] },
+      { packs: [tgPack('cats', ['tg:a', 'tg:b'])], favorites: [], recent: [] },
       library({ packIds: ['tg:dogs'], stickerIds: ['tg:x'] }),
       OPTIONS
     );
@@ -272,7 +286,11 @@ describe('buildImportRecords', () => {
 
   it('стикер появился после карточки — пропускается, обложка — первый оставшийся', () => {
     const records = buildImportRecords(
-      { packs: [tgPack('cats', ['tg:a', 'tg:b', 'tg:c'], { coverId: 'tg:a' })] },
+      {
+        packs: [tgPack('cats', ['tg:a', 'tg:b', 'tg:c'], { coverId: 'tg:a' })],
+        favorites: [],
+        recent: [],
+      },
       library({ packIds: ['tg:dogs'], stickerIds: ['tg:a'] }),
       OPTIONS
     );
@@ -291,7 +309,11 @@ describe('buildImportRecords', () => {
 
   it('обложка не из стикеров пака — первый стикер', () => {
     const [pack] = buildImportRecords(
-      { packs: [tgPack('cats', ['tg:a', 'tg:b'], { coverId: 'tg:gone' })] },
+      {
+        packs: [tgPack('cats', ['tg:a', 'tg:b'], { coverId: 'tg:gone' })],
+        favorites: [],
+        recent: [],
+      },
       library(),
       OPTIONS
     ).packs;
@@ -301,7 +323,11 @@ describe('buildImportRecords', () => {
 
   it('все стикеры пака заняты — пак не создаётся и в итог не входит', () => {
     const records = buildImportRecords(
-      { packs: [tgPack('cats', ['tg:a']), tgPack('dogs', ['tg:d'])] },
+      {
+        packs: [tgPack('cats', ['tg:a']), tgPack('dogs', ['tg:d'])],
+        favorites: [],
+        recent: [],
+      },
       library({ stickerIds: ['tg:a'] }),
       OPTIONS
     );
@@ -316,7 +342,7 @@ describe('buildImportRecords', () => {
 
   it('«Мои стикеры» из чужого файла — после своих, запись пака не трогается', () => {
     const records = buildImportRecords(
-      { packs: [customPlanPack(['f1', 'f2', 'f3'])] },
+      { packs: [customPlanPack(['f1', 'f2', 'f3'])], favorites: [], recent: [] },
       library({
         packIds: ['custom'],
         stickerIds: ['own1', 'own2'],
@@ -339,7 +365,7 @@ describe('buildImportRecords', () => {
 
   it('«Моих стикеров» нет — запись пикера, а не полей из файла', () => {
     const records = buildImportRecords(
-      { packs: [customPlanPack(['f1'])] },
+      { packs: [customPlanPack(['f1'])], favorites: [], recent: [] },
       library(),
       OPTIONS
     );
@@ -350,7 +376,7 @@ describe('buildImportRecords', () => {
 
   it('пак есть, а его стикеров нет — отсчёт от времени начала', () => {
     const records = buildImportRecords(
-      { packs: [customPlanPack(['f1'])] },
+      { packs: [customPlanPack(['f1'])], favorites: [], recent: [] },
       library({ packIds: ['custom'] }),
       OPTIONS
     );
@@ -367,6 +393,8 @@ describe('buildImportRecords', () => {
           tgPack('cats', ['tg:a', 'tg:b']),
           tgPack('dogs', ['tg:d']),
         ],
+        favorites: [],
+        recent: [],
       },
       library({ packIds: ['tg:dogs'], lastStickerAt: [['tg:dogs', 10]] }),
       OPTIONS
@@ -385,7 +413,11 @@ describe('buildImportRecords', () => {
 
   it('повтор id стикера в плане — второй пропускается', () => {
     const records = buildImportRecords(
-      { packs: [tgPack('cats', ['tg:a']), tgPack('dogs', ['tg:a', 'tg:d'])] },
+      {
+        packs: [tgPack('cats', ['tg:a']), tgPack('dogs', ['tg:a', 'tg:d'])],
+        favorites: [],
+        recent: [],
+      },
       library(),
       OPTIONS
     );
@@ -402,7 +434,7 @@ describe('buildImportRecords', () => {
 
   it('повторная загрузка того же файла — ничего не пишется', () => {
     const records = buildImportRecords(
-      { packs: [tgPack('cats', ['tg:a', 'tg:b'])] },
+      { packs: [tgPack('cats', ['tg:a', 'tg:b'])], favorites: [], recent: [] },
       library({
         packIds: ['tg:cats'],
         stickerIds: ['tg:a', 'tg:b'],

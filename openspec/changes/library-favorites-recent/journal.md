@@ -36,3 +36,11 @@ G1 вынесла `itemKey`, `recentKindOf`, `RECENT_LIMIT`, `LOCAL_KEY_PREFIX` 
 Словарь: прежние ключи `settings.library.hint`, `settings.library.empty`, `error.libraryFile.libraryExportEmpty` с новым текстом, новый — `error.libraryFile.favoriteGifTooBig`.
 Аудит: ok с первого круга. Вопрос пользователю: граница приёмки для GIF, непригодной для загрузки (пропуск или `exportInvalid`).
 Долг: G4 — круговой тест «выгрузил → writeImport» в fake-indexeddb на избранном стикере пака, снимке и GIF; номер первого GIF снимков берётся из `exportedIds.size`, а не из числа записей паков (равны по смыслу); нет теста «недавний стикер одновременно в избранном»; итог «Библиотека выгружена: стикеров 0» для библиотеки только с избранными GIF — посмотреть в G6; CLAUDE.md:286 и :643 упоминают `useStickerCount/` — 7.1.
+
+### G3 · Карточка и план импорта
+
+`LibraryState`: `favoriteKeys` (`listFavoriteKeys`, getAllKeys) и `recent` — `readonly RecentRec[]` (`listAllRecent`) вместо карты ключ → ts из design: так требует `mergeRecent` (поправить design при архиве). `hasFileCardAdds` и `fileCardCheckCount` — общие условия для карточки, хода и `runFileImport`.
+`ImportPlan.favorites` — ссылка, снимок (`ImportPlanSnapshot` с проверенным `sticker`) или GIF; проверяется каждый снимок из `newFavorites`, даже с занятым id — выбор записи за G4. `ImportPlan.recent` — весь `manifest.recent`, G4 сливает заново в транзакции.
+Отступление: обязательные поля K5/K6 механически дописаны в литералы тестов вне группы (libraryImport, writeImport, libraryExport, fileImportOutcome).
+Аудит: ok с первого круга.
+Долг: G5 — «Импорт» в `useFileImport.ts:176` по `hasFileCardAdds(card)` вместо `newStickerCount`; tests/fileCardText.test.ts — нет `afterEach(() => setLocale('ru'))` у теста на английском (правило CLAUDE.md) — G5; G4 — повторная загрузка на состоянии из `writeImport`; `listAllRecent` дублирует `getAll` в `listRecent`/`clearRecent`.

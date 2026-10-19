@@ -111,17 +111,62 @@ describe('filePackTitle', () => {
 });
 
 describe('fileCardSummary', () => {
-  const card = (newPackCount: number, newStickerCount: number): FileCard => {
-    return { packs: [], stickerCount: 48, newStickerCount, newPackCount };
+  /**
+   * @param newPackCount — новых паков
+   * @param newStickerCount — новых стикеров
+   * @param newFavoriteCount — добавится в избранное
+   * @param newRecentCount — добавится в недавние
+   * @returns карточка
+   */
+  const card = (
+    newPackCount: number,
+    newStickerCount: number,
+    newFavoriteCount = 0,
+    newRecentCount = 0
+  ): FileCard => {
+    return {
+      packs: [],
+      stickerCount: 48,
+      newStickerCount,
+      newPackCount,
+      newFavorites: [],
+      recentAdds: [],
+      newFavoriteCount,
+      newRecentCount,
+    };
   };
 
   it('итог: новых паков и стикеров', () => {
-    expect(fileCardSummary(card(1, 48))).toBe('Новых паков: 1, стикеров: 48');
+    expect(fileCardSummary(card(1, 48))).toEqual(['Новых паков: 1, стикеров: 48']);
   });
 
-  it('всё уже в библиотеке', () => {
-    expect(fileCardSummary(card(0, 0))).toBe(
-      'Всё из\u00A0этого файла уже в\u00A0библиотеке'
-    );
+  it('всё уже в библиотеке — только при нуле стикеров, избранного и недавних', () => {
+    expect(fileCardSummary(card(0, 0))).toEqual([
+      'Всё из\u00A0этого файла уже в\u00A0библиотеке',
+    ]);
+  });
+
+  it('стикеры и избранное с недавними — две строки', () => {
+    expect(fileCardSummary(card(1, 3, 2, 5))).toEqual([
+      'Новых паков: 1, стикеров: 3',
+      'В\u00A0избранное: 2, в\u00A0недавние: 5',
+    ]);
+  });
+
+  it('только избранное или недавние — без строки о паках', () => {
+    expect(fileCardSummary(card(0, 0, 1))).toEqual([
+      'В\u00A0избранное: 1, в\u00A0недавние: 0',
+    ]);
+    expect(fileCardSummary(card(0, 0, 0, 4))).toEqual([
+      'В\u00A0избранное: 0, в\u00A0недавние: 4',
+    ]);
+  });
+
+  it('на английском — английская строка избранного и недавних', () => {
+    setLocale('en');
+
+    expect(fileCardSummary(card(0, 0, 1, 2))).toEqual([
+      'Adds to\u00A0favorites: 1, to\u00A0recent: 2',
+    ]);
   });
 });

@@ -1,5 +1,6 @@
 import { t } from '@core/i18n';
 import type { FileCard, FileCardPack, ManifestPack } from '@core/libraryFile';
+import { hasFileCardAdds } from '@core/libraryFile';
 import { packTitle } from '@core/packTitle';
 
 /**
@@ -32,15 +33,28 @@ export const filePackCount = (cardPack: FileCardPack): string => {
 };
 
 /**
- * Итог карточки: сколько новых паков и стикеров добавит импорт, а если нечего — что всё уже в библиотеке.
+ * Итог карточки: сколько новых паков и стикеров и сколько элементов избранного и недавних добавит импорт, а если
+ * нечего — что всё уже в библиотеке. Строка о паках — только когда добавятся стикеры, строка об избранном и недавних —
+ * только когда добавится хоть один их элемент: файл с одним избранным не говорит «новых паков: 0, стикеров: 0».
  *
  * @param card — карточка файла
- * @returns строка итога
+ * @returns строки итога сверху вниз, хотя бы одна
  */
-export const fileCardSummary = (card: FileCard): string => {
-  const { newPackCount, newStickerCount } = card;
+export const fileCardSummary = (card: FileCard): string[] => {
+  const { newPackCount, newStickerCount, newFavoriteCount, newRecentCount } = card;
+  const lines: string[] = [];
 
-  if (!newStickerCount) return t('add.file.allInLibrary');
+  if (!hasFileCardAdds(card)) return [t('add.file.allInLibrary')];
 
-  return t('add.file.summary', { packs: newPackCount, stickers: newStickerCount });
+  if (newStickerCount) {
+    lines.push(t('add.file.summary', { packs: newPackCount, stickers: newStickerCount }));
+  }
+
+  if (newFavoriteCount || newRecentCount) {
+    lines.push(
+      t('add.file.listsSummary', { favorites: newFavoriteCount, recent: newRecentCount })
+    );
+  }
+
+  return lines;
 };

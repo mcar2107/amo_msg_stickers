@@ -47,6 +47,7 @@ export const RU = {
   'add.file.packAdds': 'Добавится стикеров: {count} из {total}',
   'add.file.packPresent': 'Уже в библиотеке',
   'add.file.summary': 'Новых паков: {packs}, стикеров: {stickers}',
+  'add.file.listsSummary': 'В избранное: {favorites}, в недавние: {recent}',
   'add.file.allInLibrary': 'Всё из этого файла уже в библиотеке',
   'add.file.checking': 'Проверка стикеров…',
   'add.file.progress': '{done}/{total}',

@@ -593,6 +593,15 @@ export const listRecent = async (kind: RecentKind): Promise<RecentRec[]> => {
   return recentOfKind(all, kind);
 };
 
+/**
+ * Недавние обоих видов одним чтением: сверке файла нужны их ключи и время, а записей не больше двух лимитов.
+ *
+ * @returns записи недавних в любом порядке
+ */
+export const listAllRecent = async (): Promise<RecentRec[]> => {
+  return promisify<RecentRec[]>((await store(STORE.recent)).getAll());
+};
+
 export const clearRecent = async (kind: RecentKind) => {
   const all = await promisify<RecentRec[]>((await store(STORE.recent)).getAll());
 
@@ -654,6 +663,17 @@ export const favoritesNewestFirst = (records: FavoriteRec[]): FavoriteRec[] => {
 export const listFavorites = async (): Promise<FavoriteRec[]> => {
   return favoritesNewestFirst(
     await promisify<FavoriteRec[]>((await store(STORE.favorites)).getAll())
+  );
+};
+
+/**
+ * Ключи избранного без чтения записей: сверке с файлом снимки с GIF не нужны.
+ *
+ * @returns ключи элементов избранного в любом порядке
+ */
+export const listFavoriteKeys = async (): Promise<string[]> => {
+  return stringKeys(
+    await promisify<IDBValidKey[]>((await store(STORE.favorites)).getAllKeys())
   );
 };
 

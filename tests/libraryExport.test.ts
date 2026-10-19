@@ -256,6 +256,8 @@ describe('exportLibrary — библиотека', () => {
     const card = compareWithLibrary(libraryFile.manifest, {
       packIds: new Set(),
       stickerIds: new Set(),
+      favoriteKeys: new Set(),
+      recent: [],
     });
     const plan = await prepareImport(libraryFile, card);
     const summary = plan.packs.map(({ stickers, ...pack }) => {

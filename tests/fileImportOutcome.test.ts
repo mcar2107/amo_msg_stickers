@@ -32,16 +32,29 @@ const LIBRARY_FILE: LibraryFile = {
 };
 
 /**
- * Карточка с заданным числом новых стикеров: ход импорта читает только его.
+ * Карточка с заданным числом новых стикеров, избранного и недавних: ход импорта читает только их.
  *
  * @param newStickerCount — стикеров, которых нет в библиотеке
+ * @param lists — сколько добавится в избранное и в недавние
  * @returns карточка
  */
-const cardWith = (newStickerCount: number): FileCard => {
-  return { packs: [], stickerCount: newStickerCount, newStickerCount, newPackCount: 0 };
+const cardWith = (
+  newStickerCount: number,
+  lists: Partial<Pick<FileCard, 'newFavoriteCount' | 'newRecentCount'>> = {}
+): FileCard => {
+  return {
+    packs: [],
+    stickerCount: newStickerCount,
+    newStickerCount,
+    newPackCount: 0,
+    newFavorites: [],
+    recentAdds: [],
+    newFavoriteCount: lists.newFavoriteCount || 0,
+    newRecentCount: lists.newRecentCount || 0,
+  };
 };
 
-const PLAN: ImportPlan = { packs: [] };
+const PLAN: ImportPlan = { packs: [], favorites: [], recent: [] };
 const WRITTEN: ImportWritten = { packIds: ['tg:cats', 'custom'], stickerCount: 7 };
 
 afterEach(() => {
@@ -347,6 +360,20 @@ describe('runFileImport', () => {
 
     expect(write).not.toHaveBeenCalled();
     expect(calls).toEqual(['start', 'card 0', 'finish']);
+  });
+
+  it('стикеры уже в библиотеке, но добавится избранное или недавние — проверка и запись идут', async () => {
+    for (const lists of [{ newFavoriteCount: 1 }, { newRecentCount: 1 }]) {
+      const { write, start } = fileRun({
+        loadCard: async () => {
+          return cardWith(0, lists);
+        },
+      });
+
+      await start();
+
+      expect(write).toHaveBeenCalledWith(PLAN);
+    }
   });
 
   it('отмена во время проверки — onCancel, записи нет', async () => {

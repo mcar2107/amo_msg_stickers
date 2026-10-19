@@ -126,6 +126,8 @@ describe('writeImport', () => {
       const before = await snapshot();
       const plan: ImportPlan = {
         packs: [tgPack('cats', ['c1', 'c2', 'c3']), tgPack('old', ['o2', 'o3'])],
+        favorites: [],
+        recent: [],
       };
 
       failOnPut(4, () => {
@@ -140,7 +142,11 @@ describe('writeImport', () => {
     it('транзакция обрывается посреди записи — импорт отклонён, библиотека как до него', async () => {
       await db.putSticker(librarySticker('own-1', 'custom', 1000));
       const before = await snapshot();
-      const plan: ImportPlan = { packs: [tgPack('cats', ['c1', 'c2', 'c3'])] };
+      const plan: ImportPlan = {
+        packs: [tgPack('cats', ['c1', 'c2', 'c3'])],
+        favorites: [],
+        recent: [],
+      };
 
       failOnPut(3, (store) => {
         store.transaction.abort();
@@ -153,7 +159,11 @@ describe('writeImport', () => {
     });
 
     it('запрос записи падает — импорт отклонён ошибкой запроса, а не null, и её текст доходит до статуса', async () => {
-      const plan: ImportPlan = { packs: [tgPack('cats', ['c1', 'c2', 'c3'])] };
+      const plan: ImportPlan = {
+        packs: [tgPack('cats', ['c1', 'c2', 'c3'])],
+        favorites: [],
+        recent: [],
+      };
       const { add } = IDBObjectStore.prototype;
       let calls = 0;
 
@@ -181,7 +191,11 @@ describe('writeImport', () => {
     });
 
     it('без сбоя тот же план записывается целиком', async () => {
-      const plan: ImportPlan = { packs: [tgPack('cats', ['c1', 'c2', 'c3'])] };
+      const plan: ImportPlan = {
+        packs: [tgPack('cats', ['c1', 'c2', 'c3'])],
+        favorites: [],
+        recent: [],
+      };
 
       expect(await db.writeImport(plan)).toEqual({
         packIds: ['tg:cats'],
@@ -200,6 +214,8 @@ describe('writeImport', () => {
 
       const written = await db.writeImport({
         packs: [tgPack('cats', ['c1', 'shared', 'c2'])],
+        favorites: [],
+        recent: [],
       });
 
       expect(written).toEqual({ packIds: ['tg:cats'], stickerCount: 2 });
@@ -213,7 +229,11 @@ describe('writeImport', () => {
       await db.putSticker(librarySticker('d1', 'tg:dogs', 1000));
       await db.putSticker(librarySticker('d2', 'tg:dogs', 1001));
 
-      const written = await db.writeImport({ packs: [tgPack('cats', ['d1', 'd2'])] });
+      const written = await db.writeImport({
+        packs: [tgPack('cats', ['d1', 'd2'])],
+        favorites: [],
+        recent: [],
+      });
 
       expect(written).toEqual({ packIds: [], stickerCount: 0 });
       expect(await db.getPack('tg:cats')).toBeUndefined();
@@ -234,7 +254,11 @@ describe('writeImport', () => {
       await db.putSticker(librarySticker('cats-2', 'tg:cats', 70_000));
       await db.putSticker(librarySticker('cats-3', 'tg:cats', 60_000));
 
-      const written = await db.writeImport({ packs: [tgPack('cats', ['n1', 'n2'])] });
+      const written = await db.writeImport({
+        packs: [tgPack('cats', ['n1', 'n2'])],
+        favorites: [],
+        recent: [],
+      });
       const stickers = await db.listStickers('tg:cats');
 
       expect(written).toEqual({ packIds: ['tg:cats'], stickerCount: 2 });
