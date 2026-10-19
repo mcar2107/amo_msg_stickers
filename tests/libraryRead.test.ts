@@ -13,6 +13,7 @@ import {
 } from '@core/libraryFile';
 import { writeZip } from '@core/zip';
 
+import type { ZipBuildEntry } from './helpers';
 import { buildZip, makeGif } from './helpers';
 
 /**
@@ -408,6 +409,60 @@ describe('readLibraryFile', () => {
     await expect(
       readLibraryFile(await zipWithGifOf(MAX_STICKER_BYTES))
     ).resolves.toMatchObject({ entries: expect.any(Map) });
+  });
+});
+
+describe('readLibraryFile: снимки избранного', () => {
+  const SNAPSHOT_FILE = 'stickers/snapshot.gif';
+
+  /**
+   * Файл с паком и избранным стикером удалённого пака со своим GIF.
+   *
+   * @param snapshotGif — запись GIF снимка; undefined — записи в архиве нет
+   * @returns архив
+   */
+  const fileWithSnapshot = async (snapshotGif?: ZipBuildEntry) => {
+    const { entries } = entriesOf([tgPack('Gachi', 2)], {
+      favorites: [
+        { kind: 'sticker', id: 'tg:Gachi0', ts: 3 },
+        {
+          kind: 'sticker',
+          id: 'tg:Gone7',
+          ts: 2,
+          file: SNAPSHOT_FILE,
+          packId: 'tg:Gone',
+        },
+      ],
+    });
+    const { bytes } = await buildZip(snapshotGif ? [...entries, snapshotGif] : entries);
+
+    return new Blob([bytes]);
+  };
+
+  it('запись GIF снимка лежит в entries по id снимка', async () => {
+    const { manifest, entries } = await readLibraryFile(
+      await fileWithSnapshot({ name: SNAPSHOT_FILE, data: gifOf(9) })
+    );
+
+    expect(manifest.favorites).toHaveLength(2);
+    expect([...entries.keys()]).toEqual(['tg:Gachi0', 'tg:Gachi1', 'tg:Gone7']);
+    expect(entries.get('tg:Gone7')).toMatchObject({ name: SNAPSHOT_FILE });
+  });
+
+  it('снимок без записи в архиве — битый файл', async () => {
+    await expect(readLibraryFile(await fileWithSnapshot())).rejects.toThrow(BROKEN);
+  });
+
+  it('запись GIF снимка больше предела — битый файл', async () => {
+    await expect(
+      readLibraryFile(
+        await fileWithSnapshot({
+          name: SNAPSHOT_FILE,
+          data: new Uint8Array(MAX_STICKER_BYTES + 1),
+          method: 8,
+        })
+      )
+    ).rejects.toThrow(BROKEN);
   });
 });
 

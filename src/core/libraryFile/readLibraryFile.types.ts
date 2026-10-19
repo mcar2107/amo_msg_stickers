@@ -13,7 +13,8 @@ import type {
 export type FileErrorReason = ManifestError | 'broken' | 'readFailed';
 
 /**
- * Прочитанный файл выгрузки: описание проверено, у каждого стикера есть запись в архиве. GIF ещё не прочитаны.
+ * Прочитанный файл выгрузки: описание проверено, у каждого стикера и снимка избранного есть запись в архиве. GIF ещё
+ * не прочитаны.
  */
 export type LibraryFile = {
   /**
@@ -27,7 +28,7 @@ export type LibraryFile = {
   manifest: LibraryManifest;
 
   /**
-   * Запись архива с GIF по id стикера — для каждого стикера описания.
+   * Запись архива с GIF по id стикера — для каждого стикера паков и каждого избранного стикера со своим GIF.
    */
   entries: Map<string, ZipEntry>;
 };

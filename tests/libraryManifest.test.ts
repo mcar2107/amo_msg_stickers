@@ -1,11 +1,14 @@
 import { describe, expect, it } from 'vitest';
 
+import { itemKey } from '@core/db';
 import {
   FORMAT_VERSION,
   MAX_CAPTION_GRAPHEMES,
+  MAX_FILE_FAVORITES,
   MAX_FILE_STICKERS,
   MAX_TITLE_GRAPHEMES,
   parseManifest,
+  toSendItem,
 } from '@core/libraryFile';
 
 /**
@@ -349,5 +352,543 @@ describe('parseManifest', () => {
 
     expect(errorOf(withStickers(MAX_FILE_STICKERS))).toBeUndefined();
     expect(errorOf(withStickers(MAX_FILE_STICKERS + 1))).toBe('tooBig');
+  });
+});
+
+/**
+ * GIF из поиска в описании.
+ *
+ * @param id — id у источника
+ * @param extra — поля поверх
+ * @returns GIF описания
+ */
+const gif = (id: string, extra: Record<string, unknown> = {}) => {
+  return {
+    provider: 'giphy',
+    id,
+    title: `gif ${id}`,
+    url: `https://media.giphy.com/media/${id}/giphy.gif`,
+    previewUrl: `https://media.giphy.com/media/${id}/200w.gif`,
+    width: 480,
+    height: 270,
+    ...extra,
+  };
+};
+
+/**
+ * @param id — id у источника
+ * @param ts — время
+ * @param extra — поля GIF поверх
+ * @returns элемент раздела с GIF
+ */
+const gifItem = (id: string, ts: number, extra: Record<string, unknown> = {}) => {
+  return { kind: 'gif', ts, gif: gif(id, extra) };
+};
+
+/**
+ * @param id — id стикера
+ * @param ts — время
+ * @returns элемент раздела со ссылкой на стикер
+ */
+const stickerRef = (id: string, ts: unknown) => {
+  return { kind: 'sticker', id, ts };
+};
+
+/**
+ * Избранный стикер со своим GIF — стикера нет в паках файла.
+ *
+ * @param extra — поля поверх
+ * @returns снимок описания
+ */
+const snapshot = (extra: Record<string, unknown> = {}) => {
+  return {
+    kind: 'sticker',
+    id: 'tg:Gone7',
+    ts: 30,
+    file: 'stickers/90.gif',
+    packId: 'tg:Gone',
+    emoji: '👋',
+    ...extra,
+  };
+};
+
+/**
+ * @param sections — разделы описания
+ * @param packs — паки описания
+ * @returns описание с разделами
+ */
+const withSections = (
+  sections: Record<string, unknown>,
+  packs: unknown[] = [tgPack()]
+) => {
+  return manifest(packs, sections);
+};
+
+describe('parseManifest: избранное и недавние', () => {
+  it('формат не поднят: разделы необязательные', () => {
+    expect(FORMAT_VERSION).toBe(1);
+  });
+
+  it('файл без разделов читается как раньше — без полей разделов', () => {
+    const result = parsed(manifest([tgPack()]));
+
+    expect(result).not.toHaveProperty('favorites');
+    expect(result).not.toHaveProperty('recent');
+  });
+
+  it('принимает ссылку на стикер пака, снимок и GIF в избранном и недавних', () => {
+    const favorites = [stickerRef('tg:AgAD0', 50), snapshot(), gifItem('a', 10)];
+    const recent = [stickerRef('tg:AgAD1', 40), gifItem('b', 20)];
+
+    expect(parsed(withSections({ favorites, recent }))).toEqual({
+      ...manifest([tgPack()]),
+      favorites,
+      recent,
+    });
+  });
+
+  it('файл только с избранной GIF — не пустой', () => {
+    const result = parsed(withSections({ favorites: [gifItem('a', 1)] }, []));
+
+    expect(result.packs).toEqual([]);
+    expect(result.favorites).toEqual([gifItem('a', 1)]);
+  });
+
+  it('файл только с недавней GIF — не пустой', () => {
+    expect(errorOf(withSections({ recent: [gifItem('a', 1)] }, []))).toBeUndefined();
+  });
+
+  it('пустой — только без паков, избранного и недавних после отбрасываний', () => {
+    expect(errorOf(withSections({ favorites: [], recent: [] }, []))).toBe('empty');
+    expect(
+      errorOf(
+        withSections(
+          { favorites: [stickerRef('tg:AgAD0', 1)], recent: [stickerRef('tg:AgAD1', 1)] },
+          []
+        )
+      )
+    ).toBe('empty');
+  });
+
+  it('ссылки на стикеры не из паков файла отбрасываются без ошибки', () => {
+    const result = parsed(
+      withSections({
+        favorites: [stickerRef('tg:AgAD9', 3), stickerRef('tg:AgAD0', 2)],
+        recent: [stickerRef('tg:AgAD9', 3), stickerRef('tg:AgAD1', 2)],
+      })
+    );
+
+    expect(result.favorites).toEqual([stickerRef('tg:AgAD0', 2)]);
+    expect(result.recent).toEqual([stickerRef('tg:AgAD1', 2)]);
+  });
+
+  it('ссылка на стикер пустого пака отбрасывается', () => {
+    const result = parsed(
+      withSections({ favorites: [stickerRef('tg:AgAD0', 1), gifItem('a', 1)] }, [
+        tgPack({ stickers: [] }),
+      ])
+    );
+
+    expect(result.favorites).toEqual([gifItem('a', 1)]);
+  });
+
+  it('разделы не массивом — ошибка описания', () => {
+    expect(errorOf(withSections({ favorites: {} }))).toBe('invalid');
+    expect(errorOf(withSections({ recent: 'x' }))).toBe('invalid');
+    expect(errorOf(withSections({ favorites: null }))).toBe('invalid');
+  });
+
+  it('элемент не объект или вид не стикер и не GIF — ошибка описания', () => {
+    expect(errorOf(withSections({ favorites: [1] }))).toBe('invalid');
+    expect(
+      errorOf(withSections({ favorites: [{ kind: 'video', id: 'x', ts: 1 }] }))
+    ).toBe('invalid');
+    expect(errorOf(withSections({ recent: [{ id: 'tg:AgAD0', ts: 1 }] }))).toBe(
+      'invalid'
+    );
+  });
+
+  it('id стикера — стикера Telegram или своего', () => {
+    expect(errorOf(withSections({ favorites: [stickerRef('Tg:x y', 1)] }))).toBe(
+      'invalid'
+    );
+    expect(errorOf(withSections({ recent: [stickerRef('', 1)] }))).toBe('invalid');
+    expect(
+      errorOf(withSections({ favorites: [stickerRef('lq3k9a1zabc', 1)] }, [customPack()]))
+    ).toBeUndefined();
+  });
+
+  it('время обязательно и конечное неотрицательное', () => {
+    expect(
+      errorOf(withSections({ favorites: [{ kind: 'sticker', id: 'tg:AgAD0' }] }))
+    ).toBe('invalid');
+    expect(errorOf(withSections({ recent: [{ kind: 'gif', gif: gif('a') }] }))).toBe(
+      'invalid'
+    );
+    expect(errorOf(withSections({ favorites: [gifItem('a', -1)] }))).toBe('invalid');
+    expect(errorOf(withSections({ recent: [stickerRef('tg:AgAD0', Infinity)] }))).toBe(
+      'invalid'
+    );
+    expect(errorOf(withSections({ favorites: [stickerRef('tg:AgAD0', '5')] }))).toBe(
+      'invalid'
+    );
+  });
+
+  it('у снимка packId — custom или tg:<имя набора>, согласованный с id стикера', () => {
+    expect(errorOf(withSections({ favorites: [snapshot({ packId: undefined })] }))).toBe(
+      'invalid'
+    );
+    expect(errorOf(withSections({ favorites: [snapshot({ packId: 'other' })] }))).toBe(
+      'invalid'
+    );
+    expect(
+      errorOf(withSections({ favorites: [snapshot({ packId: 'tg:bad name' })] }))
+    ).toBe('invalid');
+    expect(
+      errorOf(withSections({ favorites: [snapshot({ packId: `tg:${'a'.repeat(65)}` })] }))
+    ).toBe('invalid');
+    expect(errorOf(withSections({ favorites: [snapshot({ packId: 'custom' })] }))).toBe(
+      'invalid'
+    );
+    expect(
+      errorOf(
+        withSections({ favorites: [snapshot({ id: 'lq3k9a1zabc', packId: 'tg:Gone' })] })
+      )
+    ).toBe('invalid');
+    expect(
+      errorOf(
+        withSections({ favorites: [snapshot({ id: 'lq3k9a1zabc', packId: 'custom' })] })
+      )
+    ).toBeUndefined();
+  });
+
+  it('у снимка file — непустая строка', () => {
+    expect(errorOf(withSections({ favorites: [snapshot({ file: '' })] }))).toBe(
+      'invalid'
+    );
+    expect(errorOf(withSections({ favorites: [snapshot({ file: 5 })] }))).toBe('invalid');
+  });
+
+  it('подпись и эмодзи снимка урезаются, пустые — то же, что их нет', () => {
+    const result = parsed(
+      withSections({
+        favorites: [
+          snapshot({ caption: 'п'.repeat(250), emoji: '😀'.repeat(20) }),
+          snapshot({ id: 'tg:Gone8', file: 'stickers/91.gif', caption: '', emoji: '' }),
+        ],
+      })
+    );
+
+    expect(result.favorites).toEqual([
+      snapshot({ caption: 'п'.repeat(MAX_CAPTION_GRAPHEMES), emoji: '😀'.repeat(16) }),
+      {
+        kind: 'sticker',
+        id: 'tg:Gone8',
+        ts: 30,
+        file: 'stickers/91.gif',
+        packId: 'tg:Gone',
+      },
+    ]);
+    expect(errorOf(withSections({ favorites: [snapshot({ caption: 1 })] }))).toBe(
+      'invalid'
+    );
+  });
+
+  it('у GIF источник — GIPHY или KLIPY', () => {
+    expect(
+      errorOf(withSections({ favorites: [gifItem('a', 1, { provider: 'tenor' })] }))
+    ).toBe('invalid');
+    expect(
+      errorOf(withSections({ favorites: [gifItem('a', 1, { provider: 'klipy' })] }))
+    ).toBeUndefined();
+    expect(errorOf(withSections({ recent: [{ kind: 'gif', ts: 1, gif: 'x' }] }))).toBe(
+      'invalid'
+    );
+  });
+
+  it('у GIF id — непустая строка до 128 символов', () => {
+    expect(errorOf(withSections({ favorites: [gifItem('', 1)] }))).toBe('invalid');
+    expect(errorOf(withSections({ favorites: [gifItem('a'.repeat(129), 1)] }))).toBe(
+      'invalid'
+    );
+    expect(
+      errorOf(withSections({ favorites: [gifItem('a'.repeat(128), 1)] }))
+    ).toBeUndefined();
+    expect(errorOf(withSections({ favorites: [gifItem('a', 1, { id: 5 })] }))).toBe(
+      'invalid'
+    );
+  });
+
+  it('название GIF урезается, не строкой — ошибка, пустое — то же, что его нет', () => {
+    const result = parsed(
+      withSections({
+        favorites: [
+          gifItem('a', 1, { title: 'я'.repeat(200) }),
+          gifItem('b', 1, { title: '' }),
+          gifItem('c', 1, { title: undefined }),
+        ],
+      })
+    );
+    const [long, empty, absent] = result.favorites || [];
+
+    expect(long).toEqual(gifItem('a', 1, { title: 'я'.repeat(MAX_TITLE_GRAPHEMES) }));
+    expect(empty).toEqual({ kind: 'gif', ts: 1, gif: gif('b', { title: undefined }) });
+    expect(empty && 'gif' in empty && Object.hasOwn(empty.gif, 'title')).toBe(false);
+    expect(absent && 'gif' in absent && Object.hasOwn(absent.gif, 'title')).toBe(false);
+    expect(errorOf(withSections({ favorites: [gifItem('a', 1, { title: 5 })] }))).toBe(
+      'invalid'
+    );
+  });
+
+  it('ссылка GIF вне сетевой политики — ошибка, отдельно в url и в previewUrl', () => {
+    const evil = 'https://evil.example/a.gif';
+
+    expect(errorOf(withSections({ favorites: [gifItem('a', 1, { url: evil })] }))).toBe(
+      'invalid'
+    );
+    expect(
+      errorOf(withSections({ favorites: [gifItem('a', 1, { previewUrl: evil })] }))
+    ).toBe('invalid');
+    expect(
+      errorOf(
+        withSections({
+          recent: [gifItem('a', 1, { url: 'http://media.giphy.com/a.gif' })],
+        })
+      )
+    ).toBe('invalid');
+    expect(
+      errorOf(
+        withSections({
+          recent: [gifItem('a', 1, { previewUrl: 'https://giphy.com.evil.example/a' })],
+        })
+      )
+    ).toBe('invalid');
+    expect(errorOf(withSections({ recent: [gifItem('a', 1, { url: 5 })] }))).toBe(
+      'invalid'
+    );
+  });
+
+  it('ссылка GIF — до 2048 символов', () => {
+    const base = 'https://media.giphy.com/';
+    const atLimit = `${base}${'a'.repeat(2048 - base.length)}`;
+
+    expect(
+      errorOf(withSections({ favorites: [gifItem('a', 1, { url: atLimit })] }))
+    ).toBe(undefined);
+    expect(
+      errorOf(withSections({ favorites: [gifItem('a', 1, { url: `${atLimit}a` })] }))
+    ).toBe('invalid');
+    expect(
+      errorOf(
+        withSections({ favorites: [gifItem('a', 1, { previewUrl: `${atLimit}a` })] })
+      )
+    ).toBe('invalid');
+  });
+
+  it('стороны GIF — положительные целые', () => {
+    expect(errorOf(withSections({ favorites: [gifItem('a', 1, { width: 0 })] }))).toBe(
+      'invalid'
+    );
+    expect(errorOf(withSections({ favorites: [gifItem('a', 1, { height: 1.5 })] }))).toBe(
+      'invalid'
+    );
+    expect(errorOf(withSections({ recent: [gifItem('a', 1, { width: '480' })] }))).toBe(
+      'invalid'
+    );
+  });
+
+  it('повтор элемента в избранном — ошибка', () => {
+    expect(
+      errorOf(
+        withSections({
+          favorites: [stickerRef('tg:AgAD0', 1), stickerRef('tg:AgAD0', 2)],
+        })
+      )
+    ).toBe('invalid');
+    expect(
+      errorOf(
+        withSections({ favorites: [gifItem('a', 1), gifItem('a', 2, { title: 'x' })] })
+      )
+    ).toBe('invalid');
+  });
+
+  it('повтор отброшенной ссылки в избранном — тоже ошибка', () => {
+    expect(
+      errorOf(
+        withSections({
+          favorites: [stickerRef('tg:AgAD9', 1), stickerRef('tg:AgAD9', 2)],
+        })
+      )
+    ).toBe('invalid');
+  });
+
+  it('повтор элемента в недавних — ошибка', () => {
+    expect(
+      errorOf(
+        withSections({ recent: [stickerRef('tg:AgAD0', 1), stickerRef('tg:AgAD0', 2)] })
+      )
+    ).toBe('invalid');
+    expect(errorOf(withSections({ recent: [gifItem('a', 1), gifItem('a', 2)] }))).toBe(
+      'invalid'
+    );
+  });
+
+  it('один GIF у разных источников и элемент в обоих разделах — не повтор', () => {
+    expect(
+      errorOf(
+        withSections({
+          favorites: [gifItem('a', 1), gifItem('a', 1, { provider: 'klipy' })],
+          recent: [gifItem('a', 2), stickerRef('tg:AgAD0', 3)],
+        })
+      )
+    ).toBeUndefined();
+  });
+
+  it('снимок со стикером, который есть в паке файла, — ошибка', () => {
+    expect(errorOf(withSections({ favorites: [snapshot({ id: 'tg:AgAD0' })] }))).toBe(
+      'invalid'
+    );
+  });
+
+  it('снимок с file, занятым стикером пака или другим снимком, — ошибка', () => {
+    expect(
+      errorOf(withSections({ favorites: [snapshot({ file: 'stickers/1.gif' })] }))
+    ).toBe('invalid');
+    expect(
+      errorOf(withSections({ favorites: [snapshot(), snapshot({ id: 'tg:Gone8' })] }))
+    ).toBe('invalid');
+  });
+
+  it('недавних каждого вида — 40 самых поздних по времени, от новых к старым', () => {
+    /**
+     * Время вперемешку: самые поздние лежат не в начале массива.
+     *
+     * @param n — номер элемента
+     * @returns время элемента
+     */
+    const tsOf = (n: number) => {
+      return (n * 37) % 50;
+    };
+
+    const stickers = Array.from({ length: 50 }, (_, n) => {
+      return tgSticker(n);
+    });
+    const recentStickers = stickers.map(({ id }, n) => {
+      return stickerRef(id, tsOf(n));
+    });
+    const recentGifs = Array.from({ length: 50 }, (_, n) => {
+      return gifItem(`g${n}`, tsOf(n));
+    });
+    const result = parsed(
+      withSections({ recent: [...recentGifs, ...recentStickers] }, [
+        tgPack({ coverId: undefined, stickers }),
+      ])
+    );
+    const recent = result.recent || [];
+
+    /**
+     * @param kind — вид недавних
+     * @returns время элементов вида в порядке результата
+     */
+    const timesOf = (kind: string) => {
+      return recent.reduce<number[]>((acc, item) => {
+        if (item.kind === kind) acc.push(item.ts);
+
+        return acc;
+      }, []);
+    };
+
+    const expected = Array.from({ length: 40 }, (_, n) => {
+      return 49 - n;
+    });
+
+    expect(timesOf('sticker')).toEqual(expected);
+    expect(timesOf('gif')).toEqual(expected);
+  });
+
+  it('урезание недавних — после отбрасывания ссылок без стикера', () => {
+    const recent = [
+      stickerRef('tg:AgAD9', 100),
+      ...Array.from({ length: 40 }, (_, n) => {
+        return gifItem(`g${n}`, n);
+      }),
+    ];
+    const result = parsed(withSections({ recent }));
+
+    expect(result.recent).toHaveLength(40);
+  });
+
+  it('избранного больше предела — слишком большой файл', () => {
+    /**
+     * @param count — число избранных GIF
+     * @returns описание с `count` избранными GIF
+     */
+    const withFavorites = (count: number) => {
+      return withSections({
+        favorites: Array.from({ length: count }, (_, n) => {
+          return gifItem(`g${n}`, n);
+        }),
+      });
+    };
+
+    expect(errorOf(withFavorites(MAX_FILE_FAVORITES))).toBeUndefined();
+    expect(errorOf(withFavorites(MAX_FILE_FAVORITES + 1))).toBe('tooBig');
+  });
+
+  it('снимки считаются в предел стикеров файла вместе со стикерами паков', () => {
+    /**
+     * @param count — число стикеров пака
+     * @returns описание с паком из `count` стикеров и одним снимком
+     */
+    const withSnapshot = (count: number) => {
+      return withSections({ favorites: [snapshot({ file: 'stickers/snapshot.gif' })] }, [
+        tgPack({
+          coverId: undefined,
+          stickers: Array.from({ length: count }, (_, n) => {
+            return tgSticker(n);
+          }),
+        }),
+      ]);
+    };
+
+    expect(errorOf(withSnapshot(MAX_FILE_STICKERS - 1))).toBeUndefined();
+    expect(errorOf(withSnapshot(MAX_FILE_STICKERS))).toBe('tooBig');
+  });
+
+  it('неизвестные поля элементов игнорируются', () => {
+    const result = parsed(
+      withSections({
+        favorites: [{ ...stickerRef('tg:AgAD0', 1), future: 1 }],
+        recent: [{ ...gifItem('a', 1), extra: true, gif: { ...gif('a'), rating: 'g' } }],
+      })
+    );
+
+    expect(result.favorites).toEqual([stickerRef('tg:AgAD0', 1)]);
+    expect(result.recent).toEqual([gifItem('a', 1)]);
+  });
+});
+
+describe('toSendItem', () => {
+  it('ключ элемента раздела — тот же, что у недавних и избранного библиотеки', () => {
+    const { favorites = [] } = parsed(
+      withSections({
+        favorites: [
+          stickerRef('tg:AgAD0', 1),
+          snapshot(),
+          gifItem('a', 1),
+          gifItem('a', 1, { provider: 'klipy' }),
+        ],
+      })
+    );
+
+    expect(
+      favorites.map((item) => {
+        return itemKey(toSendItem(item));
+      })
+    ).toEqual(['l:tg:AgAD0', 'l:tg:Gone7', 'r:giphy:a', 'r:klipy:a']);
+    expect(favorites[2] && toSendItem(favorites[2])).toEqual({
+      kind: 'remote',
+      gif: gif('a'),
+    });
   });
 });

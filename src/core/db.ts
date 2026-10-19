@@ -11,10 +11,16 @@ import {
   type StickersByPack,
 } from './db.types';
 import { LocalizedError, t } from './i18n';
+import { itemKey, LOCAL_KEY_PREFIX, RECENT_LIMIT, recentKindOf } from './itemKey';
 import type { ImportPlan } from './libraryFile';
 
 export const CUSTOM_PACK_ID = 'custom';
-const RECENT_LIMIT = 40;
+
+/**
+ * Ключи и вид элементов живут в `itemKey.ts` без импорта базы: их берёт и разбор файла выгрузки, который база сама
+ * импортирует. Реэкспорт — для UI и тестов, которые берут их вместе с базой из `@core/db`.
+ */
+export { itemKey, RECENT_LIMIT, recentKindOf } from './itemKey';
 
 const DB_NAME = 'amo-stickers';
 const DB_VERSION = 2;
@@ -29,11 +35,6 @@ const STORE = {
 type StoreName = (typeof STORE)[keyof typeof STORE];
 
 const PACK_ID_INDEX = 'packId';
-
-/**
- * Начало ключа стикера библиотеки у недавних и избранного.
- */
-const LOCAL_KEY_PREFIX = 'l:';
 
 /**
  * Состояние открытия базы на вкладку. Запрос `indexedDB.open` один: запросы к базе стоят в общей очереди, и повтор
@@ -532,55 +533,6 @@ export const putSticker = async (sticker: StickerRec) => {
 
 export const deleteSticker = async (id: string) => {
   await promisify((await store(STORE.stickers, 'readwrite')).delete(id));
-};
-
-/**
- * Один ключ на элемент у недавних и избранного: «в избранном ли» узнаётся у любой ячейки по её элементу.
- *
- * @param item — элемент
- * @returns `l:<id стикера>` у стикера библиотеки, `r:<источник>:<id>` у GIF из поиска
- */
-export const itemKey = (item: SendItem): string => {
-  switch (item.kind) {
-    case 'local': {
-      return `${LOCAL_KEY_PREFIX}${item.stickerId}`;
-    }
-
-    case 'remote': {
-      return `r:${item.gif.provider}:${item.gif.id}`;
-    }
-
-    default: {
-      const unknownItem: never = item;
-
-      throw new Error(`Unknown send item: ${JSON.stringify(unknownItem)}`);
-    }
-  }
-};
-
-/**
- * Вид выводится из самого элемента, а не хранится отдельным полем: записи, сохранённые до
- * разделения недавних, попадают каждая в свой вид без миграции базы.
- *
- * @param item — отправленный элемент
- * @returns вид недавних
- */
-export const recentKindOf = (item: SendItem): RecentKind => {
-  switch (item.kind) {
-    case 'local': {
-      return 'sticker';
-    }
-
-    case 'remote': {
-      return 'gif';
-    }
-
-    default: {
-      const unknownItem: never = item;
-
-      throw new Error(`Unknown send item: ${JSON.stringify(unknownItem)}`);
-    }
-  }
 };
 
 /**
