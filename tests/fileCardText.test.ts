@@ -157,12 +157,15 @@ describe('fileCardSummary', () => {
     ]);
   });
 
-  it('только избранное или недавние — без строки о паках', () => {
-    expect(fileCardSummary(card(0, 0, 1))).toEqual([
-      'В\u00A0избранное: 1, в\u00A0недавние: 0',
-    ]);
-    expect(fileCardSummary(card(0, 0, 0, 4))).toEqual([
-      'В\u00A0избранное: 0, в\u00A0недавние: 4',
+  it('только избранное или недавние — без строки о паках и без части с нулём', () => {
+    expect(fileCardSummary(card(0, 0, 1))).toEqual(['В\u00A0избранное: 1']);
+    expect(fileCardSummary(card(0, 0, 0, 4))).toEqual(['В\u00A0недавние: 4']);
+  });
+
+  it('стикеры и только избранное — строка избранного без недавних', () => {
+    expect(fileCardSummary(card(1, 3, 2))).toEqual([
+      'Новых паков: 1, стикеров: 3',
+      'В\u00A0избранное: 2',
     ]);
   });
 
@@ -172,5 +175,7 @@ describe('fileCardSummary', () => {
     expect(fileCardSummary(card(0, 0, 1, 2))).toEqual([
       'Adds to\u00A0favorites: 1, to\u00A0recent: 2',
     ]);
+    expect(fileCardSummary(card(0, 0, 1))).toEqual(['Adds to\u00A0favorites: 1']);
+    expect(fileCardSummary(card(0, 0, 0, 4))).toEqual(['Adds to\u00A0recent: 4']);
   });
 });

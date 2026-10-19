@@ -33,6 +33,21 @@ export const filePackCount = (cardPack: FileCardPack): string => {
 };
 
 /**
+ * Строка избранного и недавних: часть с нулём не пишется — файл с одним избранным не говорит «в недавние: 0».
+ *
+ * @param favorites — добавится в избранное
+ * @param recent — добавится в недавние
+ * @returns строка итога; `undefined` — не добавится ни одного элемента
+ */
+const listsLine = (favorites: number, recent: number): string | undefined => {
+  if (favorites && recent) return t('add.file.listsSummary', { favorites, recent });
+  if (favorites) return t('add.file.favoritesSummary', { favorites });
+  if (recent) return t('add.file.recentSummary', { recent });
+
+  return undefined;
+};
+
+/**
  * Итог карточки: сколько новых паков и стикеров и сколько элементов избранного и недавних добавит импорт, а если
  * нечего — что всё уже в библиотеке. Строка о паках — только когда добавятся стикеры, строка об избранном и недавних —
  * только когда добавится хоть один их элемент: файл с одним избранным не говорит «новых паков: 0, стикеров: 0».
@@ -50,11 +65,9 @@ export const fileCardSummary = (card: FileCard): string[] => {
     lines.push(t('add.file.summary', { packs: newPackCount, stickers: newStickerCount }));
   }
 
-  if (newFavoriteCount || newRecentCount) {
-    lines.push(
-      t('add.file.listsSummary', { favorites: newFavoriteCount, recent: newRecentCount })
-    );
-  }
+  const lists = listsLine(newFavoriteCount, newRecentCount);
+
+  if (lists) lines.push(lists);
 
   return lines;
 };

@@ -96,8 +96,10 @@ type LibraryManifest = { format; version; packs: ManifestPack[]; favorites?: Man
 `exportLibrary` для библиотеки дочитывает `listFavorites()` и недавние обоих видов (`listRecent`) — без транзакции с
 чтением паков, как и сейчас: выгрузка — снимок «примерно сейчас». Избранный стикер, id которого есть среди выгружаемых
 стикеров, пишется ссылкой, иначе — снимком со своим GIF в `stickers/<n>.gif` после стикеров паков. Недавний стикер —
-только если его id среди выгружаемых. GIF-элементы — из `item.gif` как есть, урезанные пределом формата. Свой манифест,
-как и сейчас, проходит `parseManifest` до сборки архива.
+только если его id среди выгружаемых. GIF-элементы — из `item.gif`, название урезано пределом формата; GIF, которую
+загрузка не примет (ссылка длиннее 2048 или не `isAllowedUrl`, сторона не `isDimension`), молча пропускается: одна
+битая запись базы не роняет выгрузку всей библиотеки, а файл не несёт того, что гард не прочитает. Свой манифест, как и
+сейчас, проходит `parseManifest` до сборки архива.
 
 `checkLimits` считает и снимки: ход и итог — по всем GIF стикеров файла, предел `MAX_STICKER_BYTES` — и для снимков
 (ошибка без названия пака — `error.libraryFile.favoriteGifTooBig`). Пустота — нет ни стикеров, ни избранного, ни
@@ -109,9 +111,9 @@ type LibraryManifest = { format; version; packs: ManifestPack[]; favorites?: Man
 
 ### Карточка
 
-`LibraryState` получает `favoriteKeys: ReadonlySet<string>` и `recent: ReadonlyMap<string, number>` (ключ → `ts`);
-`loadFileCard` читает их ключами (`getAllKeys` избранного — без снимков с блобами) и `getAll` недавних (не больше 80
-мелких записей). `compareWithLibrary` добавляет в `FileCard`:
+`LibraryState` получает `favoriteKeys: ReadonlySet<string>` и `recent: readonly RecentRec[]` — записи недавних целиком,
+а не карту ключ → `ts`: их же принимает `mergeRecent`; `loadFileCard` читает ключи избранного (`listFavoriteKeys`,
+`getAllKeys` — без снимков с блобами) и `getAll` недавних (`listAllRecent`, не больше 80 мелких записей). `compareWithLibrary` добавляет в `FileCard`:
 
 - `newFavorites` — элементы избранного файла, ключей которых нет в `favoriteKeys`; у снимка — признак, что его GIF нужно
   проверить;
@@ -120,8 +122,9 @@ type LibraryManifest = { format; version; packs: ManifestPack[]; favorites?: Man
 - `newFavoriteCount`, `newRecentCount`.
 
 «Всё уже в библиотеке» — `newStickerCount + newFavoriteCount + newRecentCount === 0`; `runFileImport` заканчивает импорт
-по тому же условию. Итог карточки — прежняя строка о паках и, если есть, строка «В избранное: N, в недавние: M»
-(`add.file.listsSummary`); при нуле новых стикеров строка о паках не показывается.
+по тому же условию. Итог карточки — прежняя строка о паках и, если есть, строка об избранном и недавних: часть с нулём
+не пишется — «В избранное: N, в недавние: M» (`add.file.listsSummary`), «В избранное: N» (`add.file.favoritesSummary`)
+или «В недавние: M» (`add.file.recentSummary`); при нуле новых стикеров строка о паках не показывается.
 
 Недавний стикер считается добавляемым, только если стикер будет в библиотеке: он в паке файла (тогда он в библиотеке
 или будет записан). Это уже гарантирует гард: ссылки на стикеры вне паков файла отброшены.

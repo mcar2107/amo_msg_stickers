@@ -18,8 +18,9 @@ The “Export library” link on the “File” tab of the “Add stickers�
 
 The browser downloads an `amo-stickers-<date>.amostickers` file — as a regular download, to your downloads folder.
 It has all packs and custom stickers, favorites, and recent stickers and GIFs. The export progress is shown next
-to the button, and at the end — “Library exported, stickers: N”. While there’s nothing to export — no stickers,
-favorites or recent GIFs — the button is unavailable.
+to the button, and at the end — “Library exported, stickers: N”, or just “Library exported” for a library
+with no stickers, only GIFs. While there’s nothing to export — no stickers, favorites or recent GIFs — the button
+is unavailable.
 
 The library file is for moving your own library: it has your favorites and send history. To share stickers, use a [pack
 file](#share-pack).

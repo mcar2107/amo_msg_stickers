@@ -37,11 +37,16 @@ const TITLE_CLASS = 'm-0 min-w-0 truncate pl-1 font-primary text-sm font-semibol
 /**
  * Нижний отступ тела растёт на высоту строки статуса (`--status-inset` панели): строка лежит
  * слоем поверх низа тела, и без отступа конец содержимого под ней не долистывался бы.
+ *
+ * На ту же высоту поднят и низ области, в которую браузер доводит элемент при фокусе с клавиатуры
+ * (`scroll-padding-bottom`): элемент под строкой статуса лежит внутри видимой части тела, и без
+ * этого Tab оставил бы его под ней без прокрутки.
  */
 const bodyVariants = cva(
   [
     'min-h-0 flex-1 overflow-y-auto px-2.5 pt-1.5 [scrollbar-width:thin]',
     'pb-[calc(theme(spacing.3)_+_var(--status-inset,0px))]',
+    'scroll-pb-[var(--status-inset,0px)]',
   ].join(' '),
   {
     variants: {

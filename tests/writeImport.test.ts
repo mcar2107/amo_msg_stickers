@@ -456,6 +456,34 @@ describe('writeImport', () => {
       ).toMatchObject({ ts: 100, sticker: taken });
     });
 
+    it('избранное, которого нет в файле, остаётся с прежним временем', async () => {
+      await db.putPack(libraryPack('dogs'));
+      const mine = librarySticker('tg:mine', 'tg:dogs', 5000);
+
+      await db.putSticker(mine);
+      tickingClock(1_000_000);
+      const keptGif = await db.putFavorite({ kind: 'remote', gif: remoteGif('mine') });
+      const keptSticker = await db.putFavorite(
+        { kind: 'local', stickerId: 'tg:mine' },
+        mine
+      );
+
+      await db.writeImport(listsPlan());
+      const favorites = await db.listFavorites();
+
+      expect(
+        favorites.find(({ key }) => {
+          return key === 'r:giphy:mine';
+        })
+      ).toEqual(keptGif);
+      expect(
+        favorites.find(({ key }) => {
+          return key === 'l:tg:mine';
+        })
+      ).toEqual(keptSticker);
+      expect(favorites).toHaveLength(5);
+    });
+
     it('лимит недавних — вытесненный ключ удаляется в базе', async () => {
       tickingClock(1000);
       const keys = await fillRecentStickers();
