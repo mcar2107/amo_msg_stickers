@@ -137,6 +137,7 @@ export const EN: Messages = {
   'status.fileImportProgress': 'Checking file: {done}/{total}',
   'status.fileImportWriting': 'Saving…',
   'status.fileImportDone': 'Stickers added: {count}',
+  'status.fileImportListsDone': 'Favorites and recent added',
   'status.fileImportFailed': 'File import: {message}',
   'status.sending': 'Sending…',
   'status.sendFailed': 'Failed to send',

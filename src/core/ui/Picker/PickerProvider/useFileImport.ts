@@ -1,13 +1,22 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'preact/hooks';
 
-import { writeImport } from '@core/db';
+import { listFavoriteKeys, listRecent, listStickerIds, writeImport } from '@core/db';
 import { t } from '@core/i18n';
 import type { FileCard, FileImportProgress, LibraryFile } from '@core/libraryFile';
-import { loadFileCard, prepareImport, readLibraryFile } from '@core/libraryFile';
+import {
+  hasFileCardAdds,
+  loadFileCard,
+  prepareImport,
+  readLibraryFile,
+} from '@core/libraryFile';
 
 import { errorMessage } from './errorMessage';
 import type { FileImportFailure } from './fileImportOutcome';
-import { fileImportStatus, finishFileImport } from './fileImportOutcome';
+import {
+  fileImportStatus,
+  finishFileImport,
+  isRecentSectionShown,
+} from './fileImportOutcome';
 import type { ImportErrorTarget } from './finishImport';
 import { importErrorTarget } from './finishImport';
 import type {
@@ -16,6 +25,28 @@ import type {
   FileImportState,
 } from './PickerProvider.types';
 import { runFileImport } from './runFileImport';
+
+/**
+ * Покажет ли лента «Недавние» после записи — по базе, а не по ленте: лента перечитывается после импорта сама и к
+ * моменту итога может быть ещё прежней. Сбой чтения — раздела нет: лента остаётся у паков.
+ *
+ * @returns true — раздел «Недавние» будет в ленте
+ */
+const isRecentShown = async () => {
+  try {
+    const [recent, stickerIds, favoriteKeys] = await Promise.all([
+      listRecent('sticker'),
+      listStickerIds(),
+      listFavoriteKeys(),
+    ]);
+
+    return isRecentSectionShown(recent, stickerIds, favoriteKeys);
+  } catch (error) {
+    console.warn('[amo-stickers] recent read after file import failed', error);
+
+    return false;
+  }
+};
 
 /**
  * Импорт библиотеки из файла на уровне провайдера. Провайдер живёт всё время страницы, а сегмент «Файл»
@@ -42,6 +73,8 @@ export const useFileImport = (options: FileImportOptions): FileImportState => {
     showError,
     clearStatus,
     scrollToSection,
+    refreshFavorites,
+    refreshRecent,
   } = options;
   const [libraryFile, setLibraryFile] = useState<LibraryFile | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
@@ -173,7 +206,7 @@ export const useFileImport = (options: FileImportOptions): FileImportState => {
   const isImportDisabled =
     !libraryFile ||
     !card ||
-    !card.newStickerCount ||
+    !hasFileCardAdds(card) ||
     isReading ||
     isFileRejected ||
     isImporting ||
@@ -258,12 +291,15 @@ export const useFileImport = (options: FileImportOptions): FileImportState => {
         setFileName(null);
         setCard(null);
         setError(null);
-        finishFileImport({
+        void finishFileImport({
           screen: screenRef.current,
           packs,
           written,
           scrollToSection,
           showStatus,
+          refreshFavorites,
+          refreshRecent,
+          isRecentShown,
         });
       },
       onError: showImportError,
@@ -286,6 +322,8 @@ export const useFileImport = (options: FileImportOptions): FileImportState => {
     showError,
     clearStatus,
     scrollToSection,
+    refreshFavorites,
+    refreshRecent,
     changeStage,
     changeProgress,
     syncStatus,

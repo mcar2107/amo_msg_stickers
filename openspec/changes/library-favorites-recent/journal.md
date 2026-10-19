@@ -53,3 +53,11 @@ K7 — двумя признаками `hasFavoriteStickers`/`hasRecentStickers`
 Круговые тесты «выгрузил → writeImport → loadFileCard» в tests/writeImport.test.ts.
 Аудит: ok с первого круга, зубы — три мутации пойманы.
 Долг: название теста «сбой на последней записи недавних» не соответствует (`failOnPut(7)` роняет первую); строка JSDoc длиннее 120 в db.ts:24; CLAUDE.md «Хранение» и «Структура» — 7.1.
+
+### G5 · Исход импорта, дока и гейт
+
+`finishFileImport` async и не отклоняется: refreshRecent → refreshFavorites → выбор раздела (`hasFavoriteStickers` при перечитанном избранном → «Избранное»; `hasRecentStickers` и `isRecentSectionShown` → «Недавние»; иначе `firstAddedSection`) → статус. Проверка показа «Недавних» — чистая `isRecentSectionShown` по данным из базы: запрос к разделу, которого нет в ленте, висел бы.
+Сигнал недавних GIF — счётчик `recentRevision` контекста, `useRecentGifs` перечитывает при смене; недавние стикеры — по новым `packs`.
+«Импорт» по `hasFileCardAdds`; долг прошлых групп закрыт (afterEach setLocale, номер сбоя writeImport, JSDoc db.ts:24).
+Аудит: ok с первого круга.
+Долг: `screen` в `finishFileImport` берётся до await — уход с экрана в эти мс всё равно ведёт ленту; `recentRevision` описан как сигнал «лентам недавних», слушает только GIF — при сбое `refreshPacks` недавние стикеры устаревают до открытия; G6 — на стенде «Только избранное» (Импорт доступна) и фокус на вкладке после перехода к «Избранному».

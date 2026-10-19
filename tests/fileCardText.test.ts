@@ -111,6 +111,10 @@ describe('filePackTitle', () => {
 });
 
 describe('fileCardSummary', () => {
+  afterEach(() => {
+    setLocale('ru');
+  });
+
   /**
    * @param newPackCount — новых паков
    * @param newStickerCount — новых стикеров

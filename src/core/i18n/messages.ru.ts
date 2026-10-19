@@ -136,6 +136,7 @@ export const RU = {
   'status.fileImportProgress': 'Проверка файла: {done}/{total}',
   'status.fileImportWriting': 'Запись…',
   'status.fileImportDone': 'Добавлено стикеров: {count}',
+  'status.fileImportListsDone': 'Избранное и недавние добавлены',
   'status.fileImportFailed': 'Импорт файла: {message}',
   'status.sending': 'Отправляю…',
   'status.sendFailed': 'Ошибка отправки',

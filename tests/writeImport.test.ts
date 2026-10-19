@@ -524,7 +524,10 @@ describe('writeImport', () => {
     it('сбой на последней записи недавних — избранное и недавние как до импорта', async () => {
       const before = await snapshot();
 
-      failOnPut(7, () => {
+      /**
+       * Пак, два стикера, три записи избранного и две записи недавних: восьмая — последняя.
+       */
+      failOnPut(8, () => {
         throw new DOMException('сбой записи', 'DataCloneError');
       });
 

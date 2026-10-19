@@ -82,6 +82,14 @@ export const usePickerState = (options: PickerStateOptions): PickerStateValue =>
     return ordered;
   }, []);
 
+  const [recentRevision, setRecentRevision] = useState(0);
+
+  const refreshRecent = useCallback(() => {
+    setRecentRevision((revision) => {
+      return revision + 1;
+    });
+  }, []);
+
   const showStatus = useCallback((text: string) => {
     setStatus({ text, isError: false });
   }, []);
@@ -144,6 +152,7 @@ export const usePickerState = (options: PickerStateOptions): PickerStateValue =>
   );
 
   const favorites = useFavorites({ showStatus, showError });
+  const { refreshFavorites } = favorites;
   const view = usePickerViewState(isOpen, clearStatus);
   const { screen, addSegment, scrollToSection } = view;
   const importLock = useRef<ImportSource | null>(null);
@@ -173,6 +182,8 @@ export const usePickerState = (options: PickerStateOptions): PickerStateValue =>
     showError,
     clearStatus,
     scrollToSection,
+    refreshFavorites,
+    refreshRecent,
   });
   const { isImporting: isFileImporting } = fileImport;
 
@@ -212,6 +223,7 @@ export const usePickerState = (options: PickerStateOptions): PickerStateValue =>
       saveSettings,
       packs,
       refreshPacks,
+      recentRevision,
       status,
       showStatus,
       showError,

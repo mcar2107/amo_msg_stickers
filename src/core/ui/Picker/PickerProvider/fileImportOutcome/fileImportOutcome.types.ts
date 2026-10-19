@@ -57,4 +57,20 @@ export type FinishFileImportOptions = {
    * Показывает итог импорта в статусе.
    */
   showStatus: (text: string) => void;
+
+  /**
+   * Перечитывает избранное провайдера.
+   */
+  refreshFavorites: () => Promise<void>;
+
+  /**
+   * Просит ленты перечитать недавние.
+   */
+  refreshRecent: () => void;
+
+  /**
+   * Покажет ли лента стикеров раздел «Недавние» после записи; спрашивается, только когда переход к нему возможен.
+   * Промис не отклоняется.
+   */
+  isRecentShown: () => Promise<boolean>;
 };

@@ -76,6 +76,12 @@ export type PickerContextValue = {
   refreshPacks: (options?: RefreshPacksOptions) => Promise<Pack[]>;
 
   /**
+   * Номер версии недавних: растёт, когда недавние меняет не отправка, а импорт файла. Лента недавних перечитывает их на
+   * его смену так же, как на открытие попапа.
+   */
+  recentRevision: number;
+
+  /**
    * Текущий статус; `null` — строка статуса скрыта.
    */
   status: PickerStatus | null;
@@ -319,6 +325,16 @@ export type FileImportOptions = {
     motion: SectionMotion,
     options?: SectionScrollOptions
   ) => void;
+
+  /**
+   * Перечитывает избранное: импорт добавляет в него.
+   */
+  refreshFavorites: () => Promise<void>;
+
+  /**
+   * Просит ленты перечитать недавние: импорт добавляет в них.
+   */
+  refreshRecent: () => void;
 };
 
 export type LibraryExportState = {
