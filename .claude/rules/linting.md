@@ -1,6 +1,8 @@
 ---
 paths:
   - "/**"
+  - "/.lintstagedrc.mjs"
+  - "/.husky/**"
 ---
 
 # Линтеры

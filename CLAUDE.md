@@ -126,8 +126,7 @@ vitest (`resolve.tsconfigPaths`) и eslint берут alias оттуда же.
   без путей к исходникам amo web и имён его внутренних функций. Заметки по исходникам — в `CLAUDE.local.md`.
 - **Правка страницы доки — в обоих языках одним PR** (`docs-site.md`).
 - **Тесты.** Логика ядра, скриптов сборки и CI — юнит-тестами vitest, DOM amo и отправка — на стенде и в живом amo
-  (`testing.md`, `harness.md`). Гейт коммита гоняет `vitest --changed`, полный прогон — `pnpm test`; перед PR —
-  `pnpm lint` и `pnpm test`.
+  (`testing.md`, `harness.md`); перед PR — `pnpm lint` и `pnpm test`: гейт коммита их не заменяет (`linting.md`).
 
 ## Воркфлоу задачи
 

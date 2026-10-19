@@ -2,6 +2,7 @@
 paths:
   - "/docs/**"
   - "/README.md"
+  - "/docs/.vitepress/**"
   - "/tests/userDocsPages.test.ts"
   - "/src/core/userDocs*.ts"
 ---

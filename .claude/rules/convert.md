@@ -1,10 +1,10 @@
 ---
 paths:
-  - "/src/core/convert.ts"
+  - "/src/core/convert*.ts"
   - "/src/core/sidePick.ts"
-  - "/src/core/encodeLadder.ts"
+  - "/src/core/encodeLadder*.ts"
   - "/src/core/frameSource*.ts"
-  - "/src/core/gifEncoder.ts"
+  - "/src/core/gifEncoder*.ts"
   - "/src/core/frameSink*.ts"
   - "/src/core/workerSink*.ts"
   - "/src/core/gifWorker*.ts"

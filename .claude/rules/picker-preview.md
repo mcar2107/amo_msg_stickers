@@ -11,6 +11,9 @@ paths:
   - "/src/core/ui/Picker/StickerFeed/stickerNeighbor/**"
   - "/src/core/ui/Picker/MasonryGrid/useMasonryNavigator/**"
   - "/src/core/ui/Picker/MasonryGrid/masonryNeighbor/**"
+  - "/src/core/ui/Picker/StickerFeed/cellId/**"
+  - "/src/core/ui/Picker/MasonryGrid/gifCellId/**"
+  - "/src/core/ui/Picker/revealScrollTop/**"
 ---
 
 # Предпросмотр

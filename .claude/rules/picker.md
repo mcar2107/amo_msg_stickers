@@ -106,11 +106,7 @@ live region (`role="status"`) слоем поверх низа ленты: вы�
 `:focus-visible` (`@layer base` в `picker.css`). Имена ячеек — целые фразы словаря из `cellName/` («Отправить стикер
 «привет»», «Send sticker “привет”»): подпись не переводится.
 
-## Тема и цвета
+## Тема
 
-`resolveDarkTheme` (`amoDom.ts`, чистая): класс `dark` на `<html>`, затем `data-amo-theme="dark"` / `"light"`
-(Worker-версия), без обоих — системная тёмная, но только при поле Worker-версии на странице: у прежней amo в светлой
-теме нет ни класса, ни атрибута, и системная перекрасила бы пикер. `app.ts` пересчитывает её по `class` и
-`data-amo-theme` на `<html>`, `watchSystemTheme`, вставке кнопки и перед каждым открытием и зовёт `setTheme`; корень
-получает `dark`, `dark:`-варианты (`darkMode: 'selector'`) работают внутри shadow root. Цвета — только токены
-`tailwind.config.ts`, без hex и inline-цветов.
+Тему страницы определяет и пересчитывает ядро (`amo-dom.md`, «Тема»), а фасад получает её через `setTheme`: корень
+пикера получает `dark`, `dark:`-варианты (`darkMode: 'selector'`) работают внутри shadow root.

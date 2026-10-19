@@ -23,8 +23,7 @@ paths:
    `any` запрещён.
 6. **IndexedDB** — `fake-indexeddb` (devDependencies). Тест `writeImport` ставит каждому тесту свежую `IDBFactory`
    (`vi.stubGlobal`) и берёт `db.ts` заново после `vi.resetModules`: модуль держит открытое соединение.
-7. **Без Node API** — правило в `CLAUDE.md`: Web API из lib DOM вместо `node:*`, `Buffer`, `process`; файлы — через
-   `import.meta.glob` и `?raw`, а не `fs`. Локальный `pnpm typecheck` нарушение может пропустить — падает оно в CI.
+7. **Без Node API** — сквозное правило `CLAUDE.md`.
 8. **Язык** — тест, который переключает его `setLocale('en')`, возвращает `'ru'` в `afterEach`.
 
 ## Тест структуры модулей

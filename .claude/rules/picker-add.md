@@ -8,6 +8,9 @@ paths:
   - "/src/core/ui/Picker/Screen/**"
   - "/src/core/libraryFile/**"
   - "/src/core/sources/telegram.ts"
+  - "/src/core/ui/Picker/useTelegramImport/**"
+  - "/src/core/ui/Picker/useStickerDraft/**"
+  - "/src/core/download.ts"
 ---
 
 # Экраны «Добавить стикеры» и «Настройки», выгрузка
@@ -95,8 +98,9 @@ Chrome 130.
 виртуализацией и экран размонтируются, а выгрузка доходит до конца. Одна за раз (`ref` и `isExporting`):
 `MenuItem.isDisabled` — `aria-disabled`, выбор игнорируется, пункт остаётся в обходе стрелками, чего `disabled` не дал
 бы; у кнопки — `shouldKeepFocus`. Ход — `onEntry` у `writeZip`. Итог — только после запуска скачивания
-(`runLibraryExport/`); сбой сборки — неполный файл не скачивается. Выгрузка не пишет в базу, `usedAt` и недавние не
-трогает.
+(`runLibraryExport/`); сбой сборки — неполный файл не скачивается. Файл сохраняет `downloadBlob`: адрес блоба отзывается
+через `REVOKE_DELAY_MS`, сразу после `click()` отзыв оборвал бы скачивание. Выгрузка не пишет в базу, `usedAt` и
+недавние не трогает.
 
 ## «Настройки»
 

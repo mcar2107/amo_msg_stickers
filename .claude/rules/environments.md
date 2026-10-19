@@ -22,8 +22,7 @@ paths:
 - без менеджера — прямой `fetch` под CORS страницы, `localStorage`.
 
 Заголовок userscript: гранты `GM_*`, `@connect` к хостам сетевой политики, `@sandbox DOM`, `@inject-into content`,
-`@run-at document-start`. Матч — `https://*.amo.tm/*`, `localhost` / `127.0.0.1` :3000, :3001 — только в `pnpm watch`;
-`@updateURL` / `@downloadURL` на `releases/latest/download/` — только в боевой (в watch менеджер заменил бы dev-сборку).
+`@run-at document-start`. Хосты `pnpm watch` и `@updateURL` боевой сборки — `build.md`.
 
 ## Агент в мире страницы
 

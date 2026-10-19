@@ -23,6 +23,8 @@ paths:
   - "/src/core/ui/Picker/useConfirmPress/**"
   - "/src/core/ui/Picker/useCellSend/**"
   - "/src/core/packOrder.ts"
+  - "/src/core/ui/Picker/PickerProvider/usePickerState.ts"
+  - "/src/core/ui/Picker/useOpenLoad/**"
 ---
 
 # Ленты стикеров и GIF
@@ -59,8 +61,8 @@ paths:
   `useCellSend(item, packId)` → `send` провайдера → после `onSend` `touchPack`; сбой — `console.warn`, стикер уже ушёл.
   GIF, «Избранное», «Недавние», предпросмотр и меню время не трогают. `SendItem` раздела не несёт: он хранится в
   недавних, и раздел был бы ложным при повторной отправке.
-- Новый пак получает `usedAt` при импорте; повторный импорт берёт `createdAt` и `usedAt` прежней записи. `setPackCover`
-  и `touchPack` читают и пишут в одной транзакции — отправка во время повторного импорта не затирается.
+- Новый пак получает `usedAt` при импорте; повторный импорт берёт `createdAt` и `usedAt` прежней записи; почему отправка
+  во время повторного импорта не затирается — `storage.md`.
 - `orderPacks` (`packOrder.ts`) сортирует только на открытии (`refreshPacks({ isReorder: true })` в `useOpenLoad`);
   прочие перечитывания ставят паки по снимку показанного порядка в `ref` провайдера — лента не прыгает под курсором, в
   том числе от отметки из другой вкладки. Новые паки — перед снимком, удалённые пропускаются; снимок обновляется после

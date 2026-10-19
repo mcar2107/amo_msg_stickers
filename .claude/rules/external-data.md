@@ -2,6 +2,7 @@
 paths:
   - "/src/core/net.ts"
   - "/src/core/gif.ts"
+  - "/src/core/gif.types.ts"
   - "/src/core/tgs.ts"
   - "/src/core/sources/**"
   - "/src/core/zip/**"

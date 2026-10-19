@@ -58,9 +58,6 @@ paths:
 `declare const` — в `src/types.d.ts`, `define` пустой строкой — в `vitest.config.ts`. Риск утечки — `external-data.md`,
 секреты CI — `ci.md`.
 
-**TypeScript** — `typescript-native` 7.x проверяет типы, `typescript` 6.x — только для typescript-eslint;
-`node_modules/.bin/tsc` занят одной из них, поэтому — `pnpm typecheck`.
-
 ## Метаданные
 
 - Описание расширения — `__MSG_extDescription__` из `_locales/{ru,en}`, `default_locale: ru`. `_locales` и `icons/`
