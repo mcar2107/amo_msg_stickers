@@ -1,6 +1,5 @@
 import type { RecentRec } from '@core/db.types';
-
-import type { ManifestRecent } from './manifest.types';
+import type { ManifestRecent } from '@core/libraryFile';
 
 /**
  * Итог слияния недавних файла с недавними библиотеки.

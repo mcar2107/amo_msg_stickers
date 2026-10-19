@@ -1,6 +1,4 @@
-import { CUSTOM_PACK_ID } from '@core/db';
-import type { SendItem } from '@core/db.types';
-import { itemKey, RECENT_LIMIT } from '@core/itemKey';
+import { CUSTOM_PACK_ID, itemKey, RECENT_LIMIT } from '@core/itemKey';
 import { isAllowedUrl } from '@core/net';
 import { SET_NAME_RE } from '@core/sources';
 import { isDimension, isObject } from '@shared/guards';
@@ -18,6 +16,7 @@ import {
   MAX_TITLE_GRAPHEMES,
   MAX_URL_LENGTH,
 } from './limits';
+import { toSendItem } from './mergeRecent';
 
 /**
  * Префикс id пака и стикера Telegram. Свой, а не `TG_ID_PREFIX` из `sources/telegram.ts`: тот модуль тянет
@@ -250,28 +249,6 @@ export const isManifestSnapshot = (
   item: ManifestFavorite
 ): item is ManifestStickerSnapshot => {
   return 'file' in item;
-};
-
-/**
- * Элемент раздела как элемент библиотеки: по нему `itemKey` даёт тот же ключ, что у избранного и недавних базы.
- *
- * @param item — элемент избранного или недавних
- * @returns стикер библиотеки или GIF из поиска
- */
-export const toSendItem = (item: ManifestFavorite | ManifestRecent): SendItem => {
-  switch (item.kind) {
-    case 'sticker': {
-      return { kind: 'local', stickerId: item.id };
-    }
-
-    case 'gif': {
-      return { kind: 'remote', gif: item.gif };
-    }
-
-    default: {
-      throw new Error(`Неизвестный вид элемента: ${String(item satisfies never)}`);
-    }
-  }
 };
 
 /**

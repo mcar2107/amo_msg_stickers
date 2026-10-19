@@ -25,8 +25,8 @@ import {
   MAX_ZIP_ENTRIES,
 } from './limits';
 import type { LibraryManifest, ManifestSticker } from './manifest.types';
-import { isManifestSnapshot, parseManifest, toSendItem } from './manifest.types';
-import { mergeRecent } from './mergeRecent';
+import { isManifestSnapshot, parseManifest } from './manifest.types';
+import { mergeRecent, toSendItem } from './mergeRecent';
 import type {
   FileCard,
   FileCardPack,

@@ -11,16 +11,20 @@ import {
   type StickersByPack,
 } from './db.types';
 import { LocalizedError, t } from './i18n';
-import { itemKey, LOCAL_KEY_PREFIX, RECENT_LIMIT, recentKindOf } from './itemKey';
+import {
+  CUSTOM_PACK_ID,
+  itemKey,
+  LOCAL_KEY_PREFIX,
+  RECENT_LIMIT,
+  recentKindOf,
+} from './itemKey';
 import type { ImportPlan } from './libraryFile';
 
-export const CUSTOM_PACK_ID = 'custom';
-
 /**
- * Ключи и вид элементов живут в `itemKey.ts` без импорта базы: их берёт и разбор файла выгрузки, который база сама
+ * Ключи и вид элементов и id своего пака живут в `itemKey.ts` без импорта базы: их берёт и разбор файла выгрузки, который база сама
  * импортирует. Реэкспорт — для UI и тестов, которые берут их вместе с базой из `@core/db`.
  */
-export { itemKey, RECENT_LIMIT, recentKindOf } from './itemKey';
+export { CUSTOM_PACK_ID, itemKey, RECENT_LIMIT, recentKindOf } from './itemKey';
 
 const DB_NAME = 'amo-stickers';
 const DB_VERSION = 2;
@@ -449,32 +453,63 @@ export const deletePack = async (packId: string) => {
 };
 
 /**
- * Записывает импорт из файла одной транзакцией: сверка с библиотекой и запись идут в колбэках её запросов, без
- * ожидания чего-либо вне базы, — иначе транзакция закоммитилась бы между чтением и записью. Поэтому библиотека сверяется
- * в момент записи, а сбой (квота, закрытие вкладки) оставляет её как до импорта. Отменить запись нельзя: выданные
- * запросы коммитятся.
+ * Id стикеров, записи которых нужны избранному плана: и ссылки, и снимки — снимок с занятым id берёт запись библиотеки.
  *
  * @param plan — проверенный план импорта
- * @returns что записано на самом деле: паки, в которые добавлены стикеры, и число стикеров; отклоняется ошибкой
- * упавшего запроса или транзакции при сбое или прерывании
+ * @returns id стикеров избранного плана
+ */
+const favoriteStickerIds = (plan: ImportPlan): string[] => {
+  return plan.favorites.reduce<string[]>((acc, item) => {
+    if (item.kind === 'sticker') acc.push(item.id);
+
+    return acc;
+  }, []);
+};
+
+/**
+ * Записывает импорт из файла одной транзакцией на паки, стикеры, избранное и недавние: сверка с библиотекой и запись
+ * идут в колбэках её запросов, без ожидания чего-либо вне базы, — иначе транзакция закоммитилась бы между чтением и
+ * записью. Поэтому библиотека, избранное и недавние сверяются в момент записи, а сбой (квота, закрытие вкладки)
+ * оставляет их все как до импорта. Отменить запись нельзя: выданные запросы коммитятся.
+ *
+ * @param plan — проверенный план импорта
+ * @returns что записано на самом деле: паки, в которые добавлены стикеры, число стикеров, избранного и недавних;
+ * отклоняется ошибкой упавшего запроса или транзакции при сбое или прерывании
  */
 export const writeImport = async (plan: ImportPlan): Promise<ImportWritten> => {
   const db = await openDb();
   const startedAt = Date.now();
   const customPack = customPackRecord();
-  const tx = db.transaction([STORE.packs, STORE.stickers], 'readwrite');
+  const tx = db.transaction(
+    [STORE.packs, STORE.stickers, STORE.favorites, STORE.recent],
+    'readwrite'
+  );
   const packs = tx.objectStore(STORE.packs);
   const stickers = tx.objectStore(STORE.stickers);
+  const favorites = tx.objectStore(STORE.favorites);
+  const recent = tx.objectStore(STORE.recent);
+  const stickerIdsToRead = favoriteStickerIds(plan);
   const library: ImportLibrary = {
     packIds: new Set(),
     stickerIds: new Set(),
     lastStickerAt: new Map(),
+    favoriteKeys: new Set(),
+    recent: [],
+    favoriteStickers: new Map(),
   };
-  let written: ImportWritten = { packIds: [], stickerCount: 0 };
-  let pendingReads = 2 + plan.packs.length;
+  let written: ImportWritten = {
+    packIds: [],
+    stickerCount: 0,
+    favoriteCount: 0,
+    recentCount: 0,
+    hasFavoriteStickers: false,
+    hasRecentStickers: false,
+  };
+  let pendingReads = 4 + plan.packs.length + stickerIdsToRead.length;
 
   /**
-   * Записи строятся по последнему прочитанному: до него состояние библиотеки неполное.
+   * Записи строятся по последнему прочитанному: до него состояние библиотеки неполное. Удаление недавних сверх лимита
+   * идёт после всех записей.
    */
   const handleRead = () => {
     pendingReads -= 1;
@@ -483,6 +518,9 @@ export const writeImport = async (plan: ImportPlan): Promise<ImportWritten> => {
 
     for (const pack of records.packs) packs.put(pack);
     for (const sticker of records.stickers) stickers.put(sticker);
+    for (const favorite of records.favorites) favorites.put(favorite);
+    for (const rec of records.recent) recent.put(rec);
+    for (const key of records.recentDeleteKeys) recent.delete(key);
     ({ written } = records);
   };
 
@@ -500,6 +538,23 @@ export const writeImport = async (plan: ImportPlan): Promise<ImportWritten> => {
     handleRead();
   };
 
+  const favoriteKeys = favorites.getAllKeys();
+
+  favoriteKeys.onsuccess = () => {
+    for (const key of stringKeys(favoriteKeys.result)) library.favoriteKeys.add(key);
+    handleRead();
+  };
+
+  const recentRecords = recent.getAll();
+
+  recentRecords.onsuccess = () => {
+    /**
+     * Каст — как у `promisify`: в хранилище недавних пишут только функции этого модуля.
+     */
+    library.recent = recentRecords.result as RecentRec[];
+    handleRead();
+  };
+
   for (const { id: packId } of plan.packs) {
     const packStickers = stickers.index(PACK_ID_INDEX).getAll(packId);
 
@@ -514,6 +569,20 @@ export const writeImport = async (plan: ImportPlan): Promise<ImportWritten> => {
           library.lastStickerAt.set(packId, createdAt);
       }
 
+      handleRead();
+    };
+  }
+
+  for (const id of stickerIdsToRead) {
+    const sticker = stickers.get(id);
+
+    sticker.onsuccess = () => {
+      /**
+       * Каст — как у `promisify`: в хранилище стикеров пишут только put-функции этого модуля.
+       */
+      const rec = sticker.result as StickerRec | undefined;
+
+      if (rec) library.favoriteStickers.set(id, rec);
       handleRead();
     };
   }

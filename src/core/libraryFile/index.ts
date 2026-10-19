@@ -3,8 +3,6 @@ export * from './exportLibrary';
 export type * from './exportLibrary.types';
 export * from './limits';
 export * from './manifest.types';
-export * from './mergeRecent';
-export type * from './mergeRecent.types';
 export * from './prepareImport';
 export type * from './prepareImport.types';
 export * from './readLibraryFile';

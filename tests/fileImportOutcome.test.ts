@@ -55,7 +55,14 @@ const cardWith = (
 };
 
 const PLAN: ImportPlan = { packs: [], favorites: [], recent: [] };
-const WRITTEN: ImportWritten = { packIds: ['tg:cats', 'custom'], stickerCount: 7 };
+const WRITTEN: ImportWritten = {
+  packIds: ['tg:cats', 'custom'],
+  stickerCount: 7,
+  favoriteCount: 0,
+  recentCount: 0,
+  hasFavoriteStickers: false,
+  hasRecentStickers: false,
+};
 
 afterEach(() => {
   setLocale('ru');
@@ -137,7 +144,7 @@ describe('finishFileImport', () => {
     finishFileImport({
       screen: 'add',
       packs: FEED_PACKS,
-      written: { packIds: [], stickerCount: 0 },
+      written: { ...WRITTEN, packIds: [], stickerCount: 0 },
       scrollToSection,
       showStatus,
     });

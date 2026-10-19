@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import type { RecentRec } from '@core/db.types';
 import type { ManifestRecent } from '@core/libraryFile';
-import { mergeRecent } from '@core/libraryFile';
+import { mergeRecent } from '@core/libraryFile/mergeRecent';
 
 /**
  * @param n — номер стикера

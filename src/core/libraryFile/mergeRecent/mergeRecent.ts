@@ -1,9 +1,9 @@
 import type { RecentKind, RecentRec } from '@core/db.types';
 import { itemKey, RECENT_LIMIT, recentKindOf } from '@core/itemKey';
+import type { ManifestRecent } from '@core/libraryFile';
 
-import type { ManifestRecent } from './manifest.types';
-import { toSendItem } from './manifest.types';
 import type { RecentMerge } from './mergeRecent.types';
+import { toSendItem } from './toSendItem';
 
 /**
  * Претендент на место в недавних после слияния.

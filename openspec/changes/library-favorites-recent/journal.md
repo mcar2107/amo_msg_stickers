@@ -44,3 +44,12 @@ G1 вынесла `itemKey`, `recentKindOf`, `RECENT_LIMIT`, `LOCAL_KEY_PREFIX` 
 Отступление: обязательные поля K5/K6 механически дописаны в литералы тестов вне группы (libraryImport, writeImport, libraryExport, fileImportOutcome).
 Аудит: ok с первого круга.
 Долг: G5 — «Импорт» в `useFileImport.ts:176` по `hasFileCardAdds(card)` вместо `newStickerCount`; tests/fileCardText.test.ts — нет `afterEach(() => setLocale('ru'))` у теста на английском (правило CLAUDE.md) — G5; G4 — повторная загрузка на состоянии из `writeImport`; `listAllRecent` дублирует `getAll` в `listRecent`/`clearRecent`.
+
+### G4 · Запись импорта
+
+Снимок с занятым id: записываемая запись → запись библиотеки → GIF из файла (design). Недавний стикер и ссылка избранного без записи стикера после записи пропускаются. Удаление недавних сверх лимита — после всех put той же транзакции. У снимка `createdAt` = `startedAt`.
+K7 — двумя признаками `hasFavoriteStickers`/`hasRecentStickers` вместо одного: G5 различает «Избранное» и «Недавние». `recentCount`/`hasRecentStickers` считают и поднятые более поздним временем записи (`put` из `mergeRecent`).
+Цикл db ↔ libraryFile разорван: `CUSTOM_PACK_ID` в `itemKey.ts`, `mergeRecent`/`toSendItem` — дочерний модуль `libraryFile/mergeRecent/`; аудитор подтвердил 0 циклов по metafile esbuild.
+Круговые тесты «выгрузил → writeImport → loadFileCard» в tests/writeImport.test.ts.
+Аудит: ok с первого круга, зубы — три мутации пойманы.
+Долг: название теста «сбой на последней записи недавних» не соответствует (`failOnPut(7)` роняет первую); строка JSDoc длиннее 120 в db.ts:24; CLAUDE.md «Хранение» и «Структура» — 7.1.

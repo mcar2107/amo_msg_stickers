@@ -8,8 +8,8 @@ import {
   MAX_FILE_STICKERS,
   MAX_TITLE_GRAPHEMES,
   parseManifest,
-  toSendItem,
 } from '@core/libraryFile';
+import { toSendItem } from '@core/libraryFile/mergeRecent';
 
 /**
  * Стикер Telegram из описания.

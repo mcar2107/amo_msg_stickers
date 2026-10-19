@@ -18,8 +18,8 @@ import {
   MAX_STICKER_BYTES,
   prepareImport,
   readLibraryFile,
-  toSendItem,
 } from '@core/libraryFile';
+import { toSendItem } from '@core/libraryFile/mergeRecent';
 import { writeZip } from '@core/zip';
 
 import type { ZipBuildEntry } from './helpers';
