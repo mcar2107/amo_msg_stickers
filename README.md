@@ -34,8 +34,8 @@
 
 ## Разработка
 
-Одно ядро на TypeScript собирается в расширение Chrome (MV3) и userscript. Устройство, соглашения и правила — в
-[CLAUDE.md](./CLAUDE.md).
+Одно ядро на TypeScript собирается в расширение Chrome (MV3) и userscript. Соглашения — в
+[CLAUDE.md](./CLAUDE.md), устройство подсистем — в [.claude/rules/](./.claude/rules/).
 
 ```bash
 pnpm i
