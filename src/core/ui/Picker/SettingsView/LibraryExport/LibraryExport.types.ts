@@ -10,12 +10,17 @@ export type LibraryNoteState = {
   isExporting: boolean;
 
   /**
+   * Идёт выгрузка именно библиотеки — в том числе пока у неё нет хода.
+   */
+  isLibraryExporting: boolean;
+
+  /**
    * Ход выгрузки библиотеки; `null` — библиотека не выгружается.
    */
   progress: ExportProgress | null;
 
   /**
-   * Стикеров в библиотеке; `null` — ещё не посчитаны.
+   * Стикеров, записей избранного и недавних GIF в библиотеке — того, что попадёт в файл; `null` — ещё не посчитаны.
    */
-  stickerCount: number | null;
+  exportableCount: number | null;
 };

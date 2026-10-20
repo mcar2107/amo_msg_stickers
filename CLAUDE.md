@@ -63,7 +63,7 @@ src/
     sender.ts pageClient*.ts fileName*.ts          отправка и имя файла (send.md, feed-style.md)
     convert.ts sidePick.ts encodeLadder.ts frameSource*.ts gifEncoder.ts frameSink*.ts workerSink*.ts gifWorker*.ts
                         конвертация в GIF (convert.md)
-    db.ts packOrder.ts pickerMode.ts importHint.ts pageStorage*.ts   хранение (storage.md)
+    db.ts itemKey.ts packOrder.ts pickerMode.ts importHint.ts pageStorage*.ts   хранение (storage.md)
     net.ts gif.ts tgs.ts sources/ zip/ libraryFile/   сеть, проверка данных, файл выгрузки (external-data.md)
     host*.ts builtin*.ts                         контракты окружения, встроенные ключи
     i18n/ userDocs*.ts packTitle.ts              язык интерфейса, ссылки на доку (i18n.md)

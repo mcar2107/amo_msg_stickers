@@ -10,7 +10,8 @@ import type { RecentGifs } from './useRecentGifs.types';
 
 /**
  * Недавно отправленные GIF. Список перечитывается на каждое открытие пикера: отправка
- * закрывает его, и без этого отправленный GIF не поднялся бы наверх. Ответ, пришедший после
+ * закрывает его, и без этого отправленный GIF не поднялся бы наверх. И на смену
+ * `recentRevision` провайдера: импорт файла меняет недавние при открытом пикере. Ответ, пришедший после
  * закрытия или после более свежего чтения, отбрасывается. Так же отбрасывается и сбой уборки:
  * панель после закрытия остаётся смонтированной, и ошибка забытого действия всплыла бы в статусе
  * следующего открытия.
@@ -19,7 +20,7 @@ import type { RecentGifs } from './useRecentGifs.types';
  * @returns недавние GIF, свежие первыми, и их уборка
  */
 export const useRecentGifs = (isOpen: boolean): RecentGifs => {
-  const { showError } = usePicker();
+  const { showError, recentRevision } = usePicker();
   const [recent, setRecent] = useState<RemoteGif[]>([]);
   const requestRef = useRef(0);
 
@@ -44,7 +45,7 @@ export const useRecentGifs = (isOpen: boolean): RecentGifs => {
     return () => {
       requestRef.current += 1;
     };
-  }, [isOpen, reload]);
+  }, [isOpen, reload, recentRevision]);
 
   const remove = useCallback(
     async (gif: RemoteGif) => {

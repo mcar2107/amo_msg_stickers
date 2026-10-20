@@ -9,7 +9,7 @@ import type {
 } from '@core/db.types';
 import { setLocale } from '@core/i18n';
 import type { FeedSection } from '@ui/StickersMode/feedSections';
-import { feedSections } from '@ui/StickersMode/feedSections';
+import { feedSections, isRecentStickerShown } from '@ui/StickersMode/feedSections';
 
 /**
  * Пак с заданным id и названием.
@@ -356,5 +356,38 @@ describe('feedSections', () => {
         })
       ).toEqual(['favorite', 'custom', 'tg:a', 'tg:b']);
     });
+  });
+});
+
+describe('isRecentStickerShown', () => {
+  const stickers = new Set(['a', 'b']);
+  const favoriteKeys = new Set(['l:b']);
+
+  it('стикер библиотеки не из избранного виден', () => {
+    expect(
+      isRecentStickerShown({ kind: 'local', stickerId: 'a' }, stickers, favoriteKeys)
+    ).toBe(true);
+  });
+
+  it('избранный, удалённый из библиотеки и GIF не видны', () => {
+    const gif = {
+      kind: 'remote' as const,
+      gif: {
+        id: 'g',
+        provider: 'giphy' as const,
+        url: 'https://media.giphy.com/g.gif',
+        previewUrl: 'https://media.giphy.com/g-preview.gif',
+        width: 1,
+        height: 1,
+      },
+    };
+
+    expect(
+      isRecentStickerShown({ kind: 'local', stickerId: 'b' }, stickers, favoriteKeys)
+    ).toBe(false);
+    expect(
+      isRecentStickerShown({ kind: 'local', stickerId: 'gone' }, stickers, favoriteKeys)
+    ).toBe(false);
+    expect(isRecentStickerShown(gif, stickers, favoriteKeys)).toBe(false);
   });
 });

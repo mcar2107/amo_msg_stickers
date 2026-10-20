@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
-import type { Pack } from '@core/db.types';
-import type { ImportPlanPack, ImportPlanSticker } from '@core/libraryFile';
+import type { Pack, RecentRec, StickerRec } from '@core/db.types';
+import type {
+  ImportPlanPack,
+  ImportPlanSticker,
+  ManifestGif,
+  ManifestRecent,
+} from '@core/libraryFile';
 import type { ImportLibrary } from '@core/libraryFile/importRecords';
 import { buildImportRecords } from '@core/libraryFile/importRecords';
 
@@ -18,6 +23,16 @@ const CUSTOM_PACK: Pack = {
 };
 
 const OPTIONS = { startedAt: STARTED_AT, customPack: CUSTOM_PACK };
+
+/**
+ * Итог записи без избранного и недавних: импорт только паков.
+ */
+const NO_LISTS = {
+  favoriteCount: 0,
+  recentCount: 0,
+  hasFavoriteStickers: false,
+  hasRecentStickers: false,
+};
 
 /**
  * Стикер плана.
@@ -106,12 +121,34 @@ const library = (
      * Наибольшее время добавления стикеров по пакам.
      */
     lastStickerAt?: [string, number][];
+
+    /**
+     * Ключи избранного.
+     */
+    favoriteKeys?: string[];
+
+    /**
+     * Недавние обоих видов.
+     */
+    recent?: RecentRec[];
+
+    /**
+     * Прочитанные записи стикеров, на которые ссылается избранное плана.
+     */
+    favoriteStickers?: StickerRec[];
   } = {}
 ): ImportLibrary => {
   return {
     packIds: new Set(state.packIds || []),
     stickerIds: new Set(state.stickerIds || []),
     lastStickerAt: new Map(state.lastStickerAt || []),
+    favoriteKeys: new Set(state.favoriteKeys || []),
+    recent: state.recent || [],
+    favoriteStickers: new Map(
+      (state.favoriteStickers || []).map((rec) => {
+        return [rec.id, rec];
+      })
+    ),
   };
 };
 
@@ -126,6 +163,8 @@ describe('buildImportRecords', () => {
             coverId: 'tg:b',
           }),
         ],
+        favorites: [],
+        recent: [],
       },
       library(),
       OPTIONS
@@ -151,13 +190,21 @@ describe('buildImportRecords', () => {
       ['tg:b', 'tg:cats', STARTED_AT + 1],
       ['tg:c', 'tg:cats', STARTED_AT + 2],
     ]);
-    expect(records.written).toEqual({ packIds: ['tg:cats'], stickerCount: 3 });
+    expect(records.written).toEqual({
+      packIds: ['tg:cats'],
+      stickerCount: 3,
+      ...NO_LISTS,
+    });
   });
 
   it('стикер несёт GIF, стороны, эмодзи и подпись из плана', () => {
     const planSticker = sticker('tg:a', { emoji: '😀', width: 120, height: 90 });
     const records = buildImportRecords(
-      { packs: [tgPack('cats', [], { stickers: [planSticker] })] },
+      {
+        packs: [tgPack('cats', [], { stickers: [planSticker] })],
+        favorites: [],
+        recent: [],
+      },
       library(),
       OPTIONS
     );
@@ -178,7 +225,11 @@ describe('buildImportRecords', () => {
   it('стикер без эмодзи и подписи — без их ключей в записи', () => {
     const planSticker = sticker('tg:a');
     const [record] = buildImportRecords(
-      { packs: [tgPack('cats', [], { stickers: [planSticker] })] },
+      {
+        packs: [tgPack('cats', [], { stickers: [planSticker] })],
+        favorites: [],
+        recent: [],
+      },
       library(),
       OPTIONS
     ).stickers;
@@ -189,7 +240,7 @@ describe('buildImportRecords', () => {
 
   it('без времени добавления и использования в файле — время начала и пак без использования', () => {
     const [pack] = buildImportRecords(
-      { packs: [tgPack('cats', ['tg:a'])] },
+      { packs: [tgPack('cats', ['tg:a'])], favorites: [], recent: [] },
       library(),
       OPTIONS
     ).packs;
@@ -216,6 +267,8 @@ describe('buildImportRecords', () => {
             stickers: [sticker('tg:a')],
           },
         ],
+        favorites: [],
+        recent: [],
       },
       library(),
       OPTIONS
@@ -234,6 +287,8 @@ describe('buildImportRecords', () => {
             coverId: 'tg:new2',
           }),
         ],
+        favorites: [],
+        recent: [],
       },
       library({
         packIds: ['tg:cats'],
@@ -252,12 +307,16 @@ describe('buildImportRecords', () => {
       ['tg:new1', 5001],
       ['tg:new2', 5002],
     ]);
-    expect(records.written).toEqual({ packIds: ['tg:cats'], stickerCount: 2 });
+    expect(records.written).toEqual({
+      packIds: ['tg:cats'],
+      stickerCount: 2,
+      ...NO_LISTS,
+    });
   });
 
   it('пак удалён после карточки — создаётся заново', () => {
     const records = buildImportRecords(
-      { packs: [tgPack('cats', ['tg:a', 'tg:b'])] },
+      { packs: [tgPack('cats', ['tg:a', 'tg:b'])], favorites: [], recent: [] },
       library({ packIds: ['tg:dogs'], stickerIds: ['tg:x'] }),
       OPTIONS
     );
@@ -272,7 +331,11 @@ describe('buildImportRecords', () => {
 
   it('стикер появился после карточки — пропускается, обложка — первый оставшийся', () => {
     const records = buildImportRecords(
-      { packs: [tgPack('cats', ['tg:a', 'tg:b', 'tg:c'], { coverId: 'tg:a' })] },
+      {
+        packs: [tgPack('cats', ['tg:a', 'tg:b', 'tg:c'], { coverId: 'tg:a' })],
+        favorites: [],
+        recent: [],
+      },
       library({ packIds: ['tg:dogs'], stickerIds: ['tg:a'] }),
       OPTIONS
     );
@@ -291,7 +354,11 @@ describe('buildImportRecords', () => {
 
   it('обложка не из стикеров пака — первый стикер', () => {
     const [pack] = buildImportRecords(
-      { packs: [tgPack('cats', ['tg:a', 'tg:b'], { coverId: 'tg:gone' })] },
+      {
+        packs: [tgPack('cats', ['tg:a', 'tg:b'], { coverId: 'tg:gone' })],
+        favorites: [],
+        recent: [],
+      },
       library(),
       OPTIONS
     ).packs;
@@ -301,7 +368,11 @@ describe('buildImportRecords', () => {
 
   it('все стикеры пака заняты — пак не создаётся и в итог не входит', () => {
     const records = buildImportRecords(
-      { packs: [tgPack('cats', ['tg:a']), tgPack('dogs', ['tg:d'])] },
+      {
+        packs: [tgPack('cats', ['tg:a']), tgPack('dogs', ['tg:d'])],
+        favorites: [],
+        recent: [],
+      },
       library({ stickerIds: ['tg:a'] }),
       OPTIONS
     );
@@ -311,12 +382,16 @@ describe('buildImportRecords', () => {
         return id;
       })
     ).toEqual(['tg:dogs']);
-    expect(records.written).toEqual({ packIds: ['tg:dogs'], stickerCount: 1 });
+    expect(records.written).toEqual({
+      packIds: ['tg:dogs'],
+      stickerCount: 1,
+      ...NO_LISTS,
+    });
   });
 
   it('«Мои стикеры» из чужого файла — после своих, запись пака не трогается', () => {
     const records = buildImportRecords(
-      { packs: [customPlanPack(['f1', 'f2', 'f3'])] },
+      { packs: [customPlanPack(['f1', 'f2', 'f3'])], favorites: [], recent: [] },
       library({
         packIds: ['custom'],
         stickerIds: ['own1', 'own2'],
@@ -339,7 +414,7 @@ describe('buildImportRecords', () => {
 
   it('«Моих стикеров» нет — запись пикера, а не полей из файла', () => {
     const records = buildImportRecords(
-      { packs: [customPlanPack(['f1'])] },
+      { packs: [customPlanPack(['f1'])], favorites: [], recent: [] },
       library(),
       OPTIONS
     );
@@ -350,7 +425,7 @@ describe('buildImportRecords', () => {
 
   it('пак есть, а его стикеров нет — отсчёт от времени начала', () => {
     const records = buildImportRecords(
-      { packs: [customPlanPack(['f1'])] },
+      { packs: [customPlanPack(['f1'])], favorites: [], recent: [] },
       library({ packIds: ['custom'] }),
       OPTIONS
     );
@@ -367,6 +442,8 @@ describe('buildImportRecords', () => {
           tgPack('cats', ['tg:a', 'tg:b']),
           tgPack('dogs', ['tg:d']),
         ],
+        favorites: [],
+        recent: [],
       },
       library({ packIds: ['tg:dogs'], lastStickerAt: [['tg:dogs', 10]] }),
       OPTIONS
@@ -375,6 +452,7 @@ describe('buildImportRecords', () => {
     expect(records.written).toEqual({
       packIds: ['custom', 'tg:cats', 'tg:dogs'],
       stickerCount: 4,
+      ...NO_LISTS,
     });
     expect(
       records.packs.map(({ id }) => {
@@ -385,7 +463,11 @@ describe('buildImportRecords', () => {
 
   it('повтор id стикера в плане — второй пропускается', () => {
     const records = buildImportRecords(
-      { packs: [tgPack('cats', ['tg:a']), tgPack('dogs', ['tg:a', 'tg:d'])] },
+      {
+        packs: [tgPack('cats', ['tg:a']), tgPack('dogs', ['tg:a', 'tg:d'])],
+        favorites: [],
+        recent: [],
+      },
       library(),
       OPTIONS
     );
@@ -402,7 +484,7 @@ describe('buildImportRecords', () => {
 
   it('повторная загрузка того же файла — ничего не пишется', () => {
     const records = buildImportRecords(
-      { packs: [tgPack('cats', ['tg:a', 'tg:b'])] },
+      { packs: [tgPack('cats', ['tg:a', 'tg:b'])], favorites: [], recent: [] },
       library({
         packIds: ['tg:cats'],
         stickerIds: ['tg:a', 'tg:b'],
@@ -414,7 +496,270 @@ describe('buildImportRecords', () => {
     expect(records).toEqual({
       packs: [],
       stickers: [],
-      written: { packIds: [], stickerCount: 0 },
+      favorites: [],
+      recent: [],
+      recentDeleteKeys: [],
+      written: { packIds: [], stickerCount: 0, ...NO_LISTS },
     });
+  });
+});
+
+/**
+ * GIF из поиска в разделе файла.
+ *
+ * @param id — id у источника
+ * @returns данные GIF
+ */
+const manifestGif = (id: string): ManifestGif => {
+  return {
+    provider: 'giphy',
+    id,
+    url: `https://media.giphy.com/${id}.gif`,
+    previewUrl: `https://media.giphy.com/${id}_s.gif`,
+    width: 100,
+    height: 80,
+  };
+};
+
+/**
+ * Запись стикера в библиотеке.
+ *
+ * @param id — id стикера
+ * @param packId — пак стикера
+ * @returns запись стикера
+ */
+const libraryRec = (id: string, packId: string): StickerRec => {
+  return {
+    id,
+    packId,
+    blob: new Blob([`lib ${id}`], { type: 'image/gif' }),
+    width: 64,
+    height: 64,
+    emoji: '🙂',
+    createdAt: 42,
+  };
+};
+
+/**
+ * Недавний стикер библиотеки.
+ *
+ * @param id — id стикера
+ * @param ts — время отправки
+ * @returns запись недавних
+ */
+const recentSticker = (id: string, ts: number): RecentRec => {
+  return { key: `l:${id}`, ts, item: { kind: 'local', stickerId: id } };
+};
+
+describe('buildImportRecords: избранное и недавние', () => {
+  it('избранный стикер нового пака — снимок из записываемой записи стикера', () => {
+    const records = buildImportRecords(
+      {
+        packs: [tgPack('cats', ['tg:a'])],
+        favorites: [{ kind: 'sticker', id: 'tg:a', ts: 500 }],
+        recent: [],
+      },
+      library(),
+      OPTIONS
+    );
+
+    expect(records.favorites).toEqual([
+      {
+        key: 'l:tg:a',
+        ts: 500,
+        item: { kind: 'local', stickerId: 'tg:a' },
+        sticker: records.stickers[0],
+      },
+    ]);
+    expect(records.written).toMatchObject({
+      favoriteCount: 1,
+      hasFavoriteStickers: true,
+      hasRecentStickers: false,
+    });
+  });
+
+  it('избранный стикер, уже лежащий в библиотеке, — снимок из его записи', () => {
+    const rec = libraryRec('tg:a', 'tg:dogs');
+    const records = buildImportRecords(
+      { packs: [], favorites: [{ kind: 'sticker', id: 'tg:a', ts: 500 }], recent: [] },
+      library({ stickerIds: ['tg:a'], favoriteStickers: [rec] }),
+      OPTIONS
+    );
+
+    expect(records.favorites).toEqual([
+      {
+        key: 'l:tg:a',
+        ts: 500,
+        item: { kind: 'local', stickerId: 'tg:a' },
+        sticker: rec,
+      },
+    ]);
+    expect(records.stickers).toEqual([]);
+  });
+
+  it('снимок удалённого пака — своя картинка из файла, в паки не пишется', () => {
+    const snapshot = sticker('tg:gone', { emoji: '🐱' });
+    const records = buildImportRecords(
+      {
+        packs: [],
+        favorites: [
+          { kind: 'sticker', id: 'tg:gone', ts: 7, packId: 'tg:old', sticker: snapshot },
+        ],
+        recent: [],
+      },
+      library(),
+      OPTIONS
+    );
+
+    expect(records.favorites).toStrictEqual([
+      {
+        key: 'l:tg:gone',
+        ts: 7,
+        item: { kind: 'local', stickerId: 'tg:gone' },
+        sticker: {
+          id: 'tg:gone',
+          packId: 'tg:old',
+          blob: snapshot.blob,
+          width: 100,
+          height: 80,
+          emoji: '🐱',
+          createdAt: STARTED_AT,
+        },
+      },
+    ]);
+    expect(records.stickers).toEqual([]);
+    expect(records.packs).toEqual([]);
+    expect(records.written).toMatchObject({ favoriteCount: 1, stickerCount: 0 });
+  });
+
+  it('снимок с занятым id — запись библиотеки, а не картинка из файла', () => {
+    const rec = libraryRec('tg:gone', 'tg:back');
+    const records = buildImportRecords(
+      {
+        packs: [],
+        favorites: [
+          {
+            kind: 'sticker',
+            id: 'tg:gone',
+            ts: 7,
+            packId: 'tg:old',
+            sticker: sticker('tg:gone'),
+          },
+        ],
+        recent: [],
+      },
+      library({ stickerIds: ['tg:gone'], favoriteStickers: [rec] }),
+      OPTIONS
+    );
+
+    expect(
+      records.favorites.map((fav) => {
+        return 'sticker' in fav ? fav.sticker : null;
+      })
+    ).toEqual([rec]);
+  });
+
+  it('ссылка на стикер, которого нет ни в записи, ни в библиотеке, — пропуск', () => {
+    const records = buildImportRecords(
+      { packs: [], favorites: [{ kind: 'sticker', id: 'tg:lost', ts: 5 }], recent: [] },
+      library(),
+      OPTIONS
+    );
+
+    expect(records.favorites).toEqual([]);
+    expect(records.written).toMatchObject({
+      favoriteCount: 0,
+      hasFavoriteStickers: false,
+    });
+  });
+
+  it('избранное, которое уже есть, не меняется; GIF добавляется без стикерного признака', () => {
+    const records = buildImportRecords(
+      {
+        packs: [tgPack('cats', ['tg:a'])],
+        favorites: [
+          { kind: 'sticker', id: 'tg:a', ts: 900 },
+          { kind: 'gif', ts: 800, gif: manifestGif('old') },
+          { kind: 'gif', ts: 700, gif: manifestGif('new') },
+        ],
+        recent: [],
+      },
+      library({ favoriteKeys: ['l:tg:a', 'r:giphy:old'] }),
+      OPTIONS
+    );
+
+    expect(records.favorites).toEqual([
+      {
+        key: 'r:giphy:new',
+        ts: 700,
+        item: { kind: 'remote', gif: manifestGif('new') },
+      },
+    ]);
+    expect(records.written).toMatchObject({
+      favoriteCount: 1,
+      hasFavoriteStickers: false,
+    });
+  });
+
+  it('недавние сливаются с недавними на момент записи, лишние сверх лимита удаляются', () => {
+    const existing = Array.from({ length: 40 }, (_, index) => {
+      return recentSticker(`tg:old${index}`, 100 + index);
+    });
+    const incoming: ManifestRecent[] = [
+      { kind: 'sticker', id: 'tg:a', ts: 1000 },
+      { kind: 'gif', ts: 50, gif: manifestGif('g') },
+      { kind: 'sticker', id: 'tg:b', ts: 1 },
+    ];
+    const records = buildImportRecords(
+      { packs: [tgPack('cats', ['tg:a', 'tg:b'])], favorites: [], recent: incoming },
+      library({ recent: existing }),
+      OPTIONS
+    );
+
+    expect(
+      records.recent.map(({ key }) => {
+        return key;
+      })
+    ).toEqual(['l:tg:a', 'r:giphy:g']);
+    expect(records.recentDeleteKeys).toEqual(['l:tg:old0']);
+    expect(records.written).toMatchObject({ recentCount: 2, hasRecentStickers: true });
+  });
+
+  it('у повтора остаётся более позднее время, без дубля', () => {
+    const records = buildImportRecords(
+      {
+        packs: [],
+        favorites: [],
+        recent: [
+          { kind: 'gif', ts: 500, gif: manifestGif('g') },
+          { kind: 'sticker', id: 'tg:a', ts: 10 },
+        ],
+      },
+      library({
+        stickerIds: ['tg:a'],
+        recent: [
+          { key: 'r:giphy:g', ts: 100, item: { kind: 'remote', gif: manifestGif('g') } },
+          recentSticker('tg:a', 20),
+        ],
+      }),
+      OPTIONS
+    );
+
+    expect(records.recent).toEqual([
+      { key: 'r:giphy:g', ts: 500, item: { kind: 'remote', gif: manifestGif('g') } },
+    ]);
+    expect(records.recentDeleteKeys).toEqual([]);
+    expect(records.written).toMatchObject({ recentCount: 1, hasRecentStickers: false });
+  });
+
+  it('недавний стикер, которого после записи нет в библиотеке, не добавляется', () => {
+    const records = buildImportRecords(
+      { packs: [], favorites: [], recent: [{ kind: 'sticker', id: 'tg:lost', ts: 10 }] },
+      library(),
+      OPTIONS
+    );
+
+    expect(records.recent).toEqual([]);
+    expect(records.written).toMatchObject({ recentCount: 0, hasRecentStickers: false });
   });
 });

@@ -1,25 +1,40 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import type { Pack, StickerRec } from '@core/db.types';
+import type { Pack, RecentRec, StickerRec } from '@core/db.types';
 import { inspectGif } from '@core/gif';
 import { t } from '@core/i18n';
-import type { FileImportProgress } from '@core/libraryFile';
+import { itemKey } from '@core/itemKey';
+import type {
+  FileImportProgress,
+  ManifestFavorite,
+  ManifestGif,
+  ManifestRecent,
+} from '@core/libraryFile';
 import {
+  fileCardCheckCount,
+  hasFileCardAdds,
   loadFileCard,
   MAX_FILE_STICKERS,
   MAX_STICKER_BYTES,
   prepareImport,
   readLibraryFile,
 } from '@core/libraryFile';
+import { toSendItem } from '@core/libraryFile/mergeRecent';
 import { writeZip } from '@core/zip';
 
+import type { ZipBuildEntry } from './helpers';
 import { buildZip, makeGif } from './helpers';
 
 /**
- * Библиотека, которую видит загрузка через `listPacks` и `listStickerIds`.
+ * Библиотека, которую видит загрузка через `listPacks`, `listStickerIds`, `listFavoriteKeys` и `listAllRecent`.
  */
 const library = vi.hoisted(() => {
-  return { packs: [] as Pack[], stickers: [] as StickerRec[] };
+  return {
+    packs: [] as Pack[],
+    stickers: [] as StickerRec[],
+    favoriteKeys: [] as string[],
+    recent: [] as RecentRec[],
+  };
 });
 
 vi.mock('@core/db', () => {
@@ -33,12 +48,20 @@ vi.mock('@core/db', () => {
         return id;
       });
     }),
+    listFavoriteKeys: vi.fn(async () => {
+      return library.favoriteKeys;
+    }),
+    listAllRecent: vi.fn(async () => {
+      return library.recent;
+    }),
   };
 });
 
 afterEach(() => {
   library.packs = [];
   library.stickers = [];
+  library.favoriteKeys = [];
+  library.recent = [];
 });
 
 /**
@@ -411,6 +434,90 @@ describe('readLibraryFile', () => {
   });
 });
 
+/**
+ * Архив выгрузки с паками, разделами и дополнительными записями — GIF снимков.
+ *
+ * @param packs — паки
+ * @param lists — избранное и недавние описания
+ * @param extraEntries — записи архива поверх
+ * @returns архив
+ */
+const archiveWithLists = async (
+  packs: PackSpec[],
+  lists: Record<string, unknown>,
+  extraEntries: ZipBuildEntry[] = []
+) => {
+  const { entries } = entriesOf(packs, lists);
+  const { bytes } = await buildZip([...entries, ...extraEntries]);
+
+  return new Blob([bytes]);
+};
+
+/**
+ * Файл выгрузки с паками, разделами и дополнительными записями архива — GIF снимков.
+ *
+ * @param packs — паки
+ * @param lists — избранное и недавние описания
+ * @param extraEntries — записи архива поверх
+ * @returns прочитанный файл
+ */
+const fileWithLists = async (
+  packs: PackSpec[],
+  lists: Record<string, unknown>,
+  extraEntries: ZipBuildEntry[] = []
+) => {
+  return readLibraryFile(await archiveWithLists(packs, lists, extraEntries));
+};
+
+describe('readLibraryFile: снимки избранного', () => {
+  const SNAPSHOT_FILE = 'stickers/snapshot.gif';
+
+  /**
+   * Файл с паком и избранным стикером удалённого пака со своим GIF.
+   *
+   * @param snapshotGif — запись GIF снимка; undefined — записи в архиве нет
+   * @returns архив
+   */
+  const fileWithSnapshot = async (snapshotGif?: ZipBuildEntry) => {
+    const favorites = [
+      { kind: 'sticker', id: 'tg:Gachi0', ts: 3 },
+      { kind: 'sticker', id: 'tg:Gone7', ts: 2, file: SNAPSHOT_FILE, packId: 'tg:Gone' },
+    ];
+
+    return archiveWithLists(
+      [tgPack('Gachi', 2)],
+      { favorites },
+      snapshotGif ? [snapshotGif] : []
+    );
+  };
+
+  it('запись GIF снимка лежит в entries по id снимка', async () => {
+    const { manifest, entries } = await readLibraryFile(
+      await fileWithSnapshot({ name: SNAPSHOT_FILE, data: gifOf(9) })
+    );
+
+    expect(manifest.favorites).toHaveLength(2);
+    expect([...entries.keys()]).toEqual(['tg:Gachi0', 'tg:Gachi1', 'tg:Gone7']);
+    expect(entries.get('tg:Gone7')).toMatchObject({ name: SNAPSHOT_FILE });
+  });
+
+  it('снимок без записи в архиве — битый файл', async () => {
+    await expect(readLibraryFile(await fileWithSnapshot())).rejects.toThrow(BROKEN);
+  });
+
+  it('запись GIF снимка больше предела — битый файл', async () => {
+    await expect(
+      readLibraryFile(
+        await fileWithSnapshot({
+          name: SNAPSHOT_FILE,
+          data: new Uint8Array(MAX_STICKER_BYTES + 1),
+          method: 8,
+        })
+      )
+    ).rejects.toThrow(BROKEN);
+  });
+});
+
 describe('loadFileCard', () => {
   it('карточка нового файла: «Мои стикеры» не новый пак, итог — новые паки и стикеры', async () => {
     const card = await cardOf([customPack(3), tgPack('Kotiki', 45)]);
@@ -637,5 +744,242 @@ describe('prepareImport', () => {
     });
 
     await expect(preparing).rejects.toBe(reason);
+  });
+});
+
+/**
+ * @param id — id GIF у GIPHY
+ * @returns GIF из поиска в описании файла
+ */
+const giphyGif = (id: string): ManifestGif => {
+  return {
+    provider: 'giphy',
+    id,
+    url: `https://media.giphy.com/media/${id}/giphy.gif`,
+    previewUrl: `https://media.giphy.com/media/${id}/200w.gif`,
+    width: 200,
+    height: 150,
+  };
+};
+
+/**
+ * @param id — id стикера
+ * @param ts — время
+ * @returns стикер паков файла в разделе
+ */
+const stickerRef = (id: string, ts: number) => {
+  return { kind: 'sticker', id, ts } as const;
+};
+
+/**
+ * @param id — id GIF у GIPHY
+ * @param ts — время
+ * @returns GIF из поиска в разделе
+ */
+const gifItem = (id: string, ts: number) => {
+  return { kind: 'gif', ts, gif: giphyGif(id) } as const;
+};
+
+/**
+ * @param item — элемент раздела файла
+ * @returns ключ элемента в избранном и недавних библиотеки
+ */
+const keyOf = (item: ManifestFavorite | ManifestRecent) => {
+  return itemKey(toSendItem(item));
+};
+
+/**
+ * @param item — элемент недавних файла
+ * @returns та же запись в недавних библиотеки
+ */
+const recentRecOf = (item: ManifestRecent): RecentRec => {
+  return { key: keyOf(item), ts: item.ts, item: toSendItem(item) };
+};
+
+describe('loadFileCard: избранное и недавние', () => {
+  it('избранное объединяется: в карточку — только элементы, которых в избранном нет', async () => {
+    library.favoriteKeys = [
+      keyOf(stickerRef('tg:Gachi0', 1)),
+      keyOf(stickerRef('tg:Gachi1', 1)),
+    ];
+    const libraryFile = await fileWithLists([tgPack('Gachi', 3)], {
+      favorites: [stickerRef('tg:Gachi1', 9), stickerRef('tg:Gachi2', 8)],
+    });
+    const card = await loadFileCard(libraryFile);
+
+    expect(card.newFavorites).toEqual([stickerRef('tg:Gachi2', 8)]);
+    expect(card).toMatchObject({ newFavoriteCount: 1, newStickerCount: 3 });
+  });
+
+  it('недавние — по слиянию: новое и отправленное позже — в карточку, повтор с более ранним временем — нет', async () => {
+    library.recent = [recentRecOf(stickerRef('tg:Gachi0', 100))];
+    const libraryFile = await fileWithLists([tgPack('Gachi', 2)], {
+      recent: [
+        gifItem('g1', 200),
+        stickerRef('tg:Gachi0', 50),
+        stickerRef('tg:Gachi1', 40),
+      ],
+    });
+    const card = await loadFileCard(libraryFile);
+
+    expect(card.newRecentCount).toBe(2);
+  });
+
+  it('повторная загрузка файла с избранным и недавними — всё уже в библиотеке', async () => {
+    const lists = {
+      favorites: [
+        gifItem('g1', 30),
+        stickerRef('tg:Gachi0', 20),
+        {
+          kind: 'sticker',
+          id: 'tg:Gone7',
+          ts: 10,
+          file: 'stickers/snapshot.gif',
+          packId: 'tg:Gone',
+        },
+      ],
+      recent: [stickerRef('tg:Gachi1', 25), gifItem('g2', 15)],
+    };
+    const libraryFile = await fileWithLists([tgPack('Gachi', 2)], lists, [
+      { name: 'stickers/snapshot.gif', data: gifOf(9) },
+    ]);
+    const { manifest } = libraryFile;
+
+    library.packs = [libraryPack('tg:Gachi')];
+    library.stickers = [
+      librarySticker('tg:Gachi0', 'tg:Gachi'),
+      librarySticker('tg:Gachi1', 'tg:Gachi'),
+    ];
+    library.favoriteKeys = (manifest.favorites || []).map(keyOf);
+    library.recent = (manifest.recent || []).map(recentRecOf);
+    const card = await loadFileCard(libraryFile);
+
+    expect(card).toMatchObject({
+      newStickerCount: 0,
+      newFavoriteCount: 0,
+      newRecentCount: 0,
+    });
+    expect(hasFileCardAdds(card)).toBe(false);
+  });
+
+  it('файл только с новой избранной GIF — без паков, в избранное 1, импортировать есть что', async () => {
+    const libraryFile = await fileWithLists([], { favorites: [gifItem('g1', 5)] });
+    const card = await loadFileCard(libraryFile);
+
+    expect(card).toMatchObject({
+      packs: [],
+      newStickerCount: 0,
+      newFavoriteCount: 1,
+      newRecentCount: 0,
+    });
+    expect(hasFileCardAdds(card)).toBe(true);
+  });
+});
+
+describe('prepareImport: снимки избранного', () => {
+  const SNAPSHOT = {
+    kind: 'sticker',
+    id: 'tg:Gone7',
+    ts: 2,
+    file: 'stickers/snapshot.gif',
+    packId: 'tg:Gone',
+    emoji: '🐱',
+  } as const;
+
+  it('GIF снимка проверяется после стикеров паков, ход — по сумме стикеров и снимков', async () => {
+    const snapshotGif = gifOf(9);
+    const libraryFile = await fileWithLists(
+      [tgPack('Gachi', 2)],
+      {
+        favorites: [stickerRef('tg:Gachi0', 3), SNAPSHOT, gifItem('g1', 1)],
+        recent: [gifItem('g2', 4)],
+      },
+      [{ name: SNAPSHOT.file, data: snapshotGif }]
+    );
+    const card = await loadFileCard(libraryFile);
+    const progress: FileImportProgress[] = [];
+    const plan = await prepareImport(libraryFile, card, {
+      onProgress: (p) => {
+        progress.push(p);
+      },
+    });
+    const info = inspectGif(snapshotGif);
+
+    expect(fileCardCheckCount(card)).toBe(3);
+    expect(progress).toEqual(
+      [0, 1, 2, 3].map((done) => {
+        return { done, total: 3 };
+      })
+    );
+    expect(plan.favorites).toEqual([
+      stickerRef('tg:Gachi0', 3),
+      {
+        kind: 'sticker',
+        id: 'tg:Gone7',
+        ts: 2,
+        packId: 'tg:Gone',
+        sticker: expect.objectContaining({
+          id: 'tg:Gone7',
+          emoji: '🐱',
+          width: info?.width,
+          height: info?.height,
+        }),
+      },
+      gifItem('g1', 1),
+    ]);
+    expect(plan.recent).toEqual([gifItem('g2', 4)]);
+  });
+
+  it('избранное, которое уже есть, в план не попадает и не проверяется', async () => {
+    library.favoriteKeys = [keyOf(SNAPSHOT)];
+    const libraryFile = await fileWithLists(
+      [tgPack('Gachi', 1)],
+      { favorites: [SNAPSHOT] },
+      [{ name: SNAPSHOT.file, data: ENCODER.encode('не GIF') }]
+    );
+    const plan = await prepareImport(libraryFile, await loadFileCard(libraryFile));
+
+    expect(plan.favorites).toEqual([]);
+  });
+
+  it('битый GIF снимка останавливает подготовку', async () => {
+    const libraryFile = await fileWithLists(
+      [tgPack('Gachi', 1)],
+      { favorites: [SNAPSHOT] },
+      [{ name: SNAPSHOT.file, data: ENCODER.encode('PNG, а не GIF') }]
+    );
+
+    await expect(
+      prepareImport(libraryFile, await loadFileCard(libraryFile))
+    ).rejects.toThrow(BROKEN);
+  });
+
+  it('отмена между снимками останавливает проверку', async () => {
+    const second = { ...SNAPSHOT, id: 'tg:Gone8', ts: 1, file: 'stickers/snapshot8.gif' };
+
+    library.packs = [libraryPack('tg:Gachi')];
+    library.stickers = [librarySticker('tg:Gachi0', 'tg:Gachi')];
+    const libraryFile = await fileWithLists(
+      [tgPack('Gachi', 1)],
+      { favorites: [SNAPSHOT, second] },
+      [
+        { name: SNAPSHOT.file, data: gifOf(9) },
+        { name: second.file, data: gifOf(10) },
+      ]
+    );
+    const controller = new AbortController();
+    const reason = new Error('отмена');
+    const done: number[] = [];
+
+    const preparing = prepareImport(libraryFile, await loadFileCard(libraryFile), {
+      signal: controller.signal,
+      onProgress: (p) => {
+        done.push(p.done);
+        if (p.done === 1) controller.abort(reason);
+      },
+    });
+
+    await expect(preparing).rejects.toBe(reason);
+    expect(done).toEqual([0, 1]);
   });
 });

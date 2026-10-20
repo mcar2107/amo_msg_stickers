@@ -1,8 +1,10 @@
+import type { RecentRec } from '@core/db.types';
 import type { ZipEntry } from '@core/zip';
 
 import type {
   LibraryManifest,
   ManifestError,
+  ManifestFavorite,
   ManifestPack,
   ManifestSticker,
 } from './manifest.types';
@@ -13,7 +15,8 @@ import type {
 export type FileErrorReason = ManifestError | 'broken' | 'readFailed';
 
 /**
- * Прочитанный файл выгрузки: описание проверено, у каждого стикера есть запись в архиве. GIF ещё не прочитаны.
+ * Прочитанный файл выгрузки: описание проверено, у каждого стикера и снимка избранного есть запись в архиве. GIF ещё
+ * не прочитаны.
  */
 export type LibraryFile = {
   /**
@@ -27,7 +30,7 @@ export type LibraryFile = {
   manifest: LibraryManifest;
 
   /**
-   * Запись архива с GIF по id стикера — для каждого стикера описания.
+   * Запись архива с GIF по id стикера — для каждого стикера паков и каждого избранного стикера со своим GIF.
    */
   entries: Map<string, ZipEntry>;
 };
@@ -45,6 +48,16 @@ export type LibraryState = {
    * Id стикеров библиотеки во всех паках.
    */
   stickerIds: ReadonlySet<string>;
+
+  /**
+   * Ключи избранного библиотеки — `itemKey` элемента.
+   */
+  favoriteKeys: ReadonlySet<string>;
+
+  /**
+   * Недавние библиотеки обоих видов: слияние с файлом сравнивает время и считает лимит по виду.
+   */
+  recent: readonly RecentRec[];
 };
 
 export type FileCardPack = {
@@ -85,7 +98,8 @@ export type FileCard = {
   stickerCount: number;
 
   /**
-   * Стикеров, которых нет в библиотеке. 0 — всё уже в библиотеке, импортировать нечего.
+   * Стикеров, которых нет в библиотеке. Импортировать нечего, только если 0 и здесь, и в избранном, и в недавних
+   * (`hasFileCardAdds`).
    */
   newStickerCount: number;
 
@@ -93,4 +107,21 @@ export type FileCard = {
    * Паков, которые импорт создаст, без «Моих стикеров».
    */
   newPackCount: number;
+
+  /**
+   * Элементы избранного файла, ключей которых нет в избранном библиотеки, в порядке файла. Стикер со своим GIF
+   * (`isManifestSnapshot`) несёт GIF, который подготовка импорта проверяет.
+   */
+  newFavorites: ManifestFavorite[];
+
+  /**
+   * Сколько элементов добавится в избранное.
+   */
+  newFavoriteCount: number;
+
+  /**
+   * Сколько элементов недавних файла встанет в недавние после слияния: новых или отправленных позже, в пределах лимита
+   * своего вида.
+   */
+  newRecentCount: number;
 };

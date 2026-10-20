@@ -76,6 +76,12 @@ export type PickerContextValue = {
   refreshPacks: (options?: RefreshPacksOptions) => Promise<Pack[]>;
 
   /**
+   * Номер версии недавних: растёт, когда недавние меняет не отправка, а импорт файла. Лента недавних перечитывает их на
+   * его смену так же, как на открытие попапа.
+   */
+  recentRevision: number;
+
+  /**
    * Текущий статус; `null` — строка статуса скрыта.
    */
   status: PickerStatus | null;
@@ -319,6 +325,16 @@ export type FileImportOptions = {
     motion: SectionMotion,
     options?: SectionScrollOptions
   ) => void;
+
+  /**
+   * Перечитывает избранное: импорт добавляет в него.
+   */
+  refreshFavorites: () => Promise<void>;
+
+  /**
+   * Просит ленты перечитать недавние: импорт добавляет в них.
+   */
+  refreshRecent: () => void;
 };
 
 export type LibraryExportState = {
@@ -326,6 +342,12 @@ export type LibraryExportState = {
    * Идёт выгрузка: «Выгрузить пак» и «Выгрузить библиотеку» недоступны до её конца.
    */
   isExporting: boolean;
+
+  /**
+   * Идёт выгрузка библиотеки, а не пака: рядом с «Выгрузить библиотеку» о ней говорится и тогда, когда хода нет —
+   * в файле нет стикеров или сборка до них ещё не дошла.
+   */
+  isLibraryExporting: boolean;
 
   /**
    * Ход выгрузки библиотеки по стикерам — рядом с «Выгрузить библиотеку»; `null` — библиотека не выгружается, в том

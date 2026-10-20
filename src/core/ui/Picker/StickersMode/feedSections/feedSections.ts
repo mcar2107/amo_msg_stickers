@@ -2,8 +2,10 @@ import { CUSTOM_PACK_ID, itemKey } from '@core/db';
 import {
   type FavoriteRec,
   isStickerFavorite,
+  type LocalSendItem,
   type Pack,
   type RecentRec,
+  type SendItem,
   type StickerRec,
   type StickersByPack,
 } from '@core/db.types';
@@ -12,7 +14,7 @@ import { packTitle } from '@core/packTitle';
 import { stickerCellName } from '@ui/cellName';
 import { FAVORITE_SECTION_ID, RECENT_SECTION_ID } from '@ui/usePickerView';
 
-import type { FeedSection, FeedSticker } from './feedSections.types';
+import type { FeedSection, FeedSticker, StickerIdLookup } from './feedSections.types';
 
 /**
  * Сколько недавних стикеров показывает раздел «Недавние». Записанных недавних больше (`RECENT_LIMIT`
@@ -95,6 +97,28 @@ const favoriteStickers = (
 };
 
 /**
+ * Видна ли запись недавних в разделе «Недавние»: это стикер, который есть в библиотеке и не в избранном. Избранное
+ * сверяется по ключу элемента, а не по ключу записи недавних: «в избранном ли» узнаётся у любой ячейки по её элементу.
+ * Тем же условием итог импорта файла решает, будет ли раздел в ленте.
+ *
+ * @param item — элемент записи недавних
+ * @param stickers — есть ли стикер в библиотеке по id
+ * @param favoriteKeys — ключи элементов избранного
+ * @returns true — стикер библиотеки, который раздел покажет
+ */
+export const isRecentStickerShown = (
+  item: SendItem,
+  stickers: StickerIdLookup,
+  favoriteKeys: ReadonlySet<string>
+): item is LocalSendItem => {
+  return (
+    item.kind === 'local' &&
+    stickers.has(item.stickerId) &&
+    !favoriteKeys.has(itemKey(item))
+  );
+};
+
+/**
  * Стикеры недавних в порядке записей, не больше `RECENT_STICKERS_SHOWN`. Запись, чей стикер удалён из
  * библиотеки или есть в избранном, не показывается и места не занимает, а записи GIF сюда не попадают:
  * у них своя лента.
@@ -114,11 +138,11 @@ const recentStickers = (
   for (const { key, item } of recent) {
     if (items.length >= RECENT_STICKERS_SHOWN) break;
 
-    const sticker = item.kind === 'local' ? byId.get(item.stickerId) : undefined;
+    const sticker = isRecentStickerShown(item, byId, favoriteKeys)
+      ? byId.get(item.stickerId)
+      : undefined;
 
-    if (sticker && !favoriteKeys.has(itemKey(item))) {
-      items.push(feedSticker(key, sticker));
-    }
+    if (sticker) items.push(feedSticker(key, sticker));
   }
 
   return items;

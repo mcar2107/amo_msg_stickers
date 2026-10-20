@@ -1,5 +1,12 @@
-import { CUSTOM_PACK_ID, listPacks, listStickerIds } from '@core/db';
+import {
+  CUSTOM_PACK_ID,
+  listAllRecent,
+  listFavoriteKeys,
+  listPacks,
+  listStickerIds,
+} from '@core/db';
 import { t } from '@core/i18n';
+import { itemKey } from '@core/itemKey';
 import type { ZipEntry } from '@core/zip';
 import {
   findZipRoot,
@@ -17,8 +24,9 @@ import {
   MAX_STICKER_BYTES,
   MAX_ZIP_ENTRIES,
 } from './limits';
-import type { LibraryManifest } from './manifest.types';
-import { parseManifest } from './manifest.types';
+import type { LibraryManifest, ManifestSticker } from './manifest.types';
+import { isManifestSnapshot, parseManifest } from './manifest.types';
+import { mergeRecent, toSendItem } from './mergeRecent';
 import type {
   FileCard,
   FileCardPack,
@@ -189,7 +197,8 @@ const parseManifestText = (text: string): LibraryManifest => {
 
 /**
  * Читает описание файла выгрузки, не читая GIF и не трогая базу: zip, `manifest.json`, его гарды и то, что каждый
- * стикер ссылается на запись архива не больше предела GIF. Узнаёт файл по содержимому, а не по расширению и типу.
+ * стикер паков и каждый избранный стикер со своим GIF ссылается на запись архива не больше предела GIF. Узнаёт файл
+ * по содержимому, а не по расширению и типу.
  *
  * Ошибки — на языке интерфейса: «Это не файл amo stickers», битый файл, файл новее, слишком большой файл, ошибки в
  * описании, пустой файл и «не удалось прочитать» — файл изменили на диске после выбора.
@@ -211,13 +220,25 @@ export const readLibraryFile = async (file: Blob): Promise<LibraryFile> => {
   const manifest = parseManifestText(await readManifestText(file, manifestEntry));
   const entries = new Map<string, ZipEntry>();
 
-  for (const { stickers } of manifest.packs) {
-    for (const { id, file: path } of stickers) {
-      const entry = directory.entries.get(`${root}${path}`);
+  /**
+   * @param sticker — стикер пака или избранный стикер со своим GIF
+   */
+  const addEntry = ({ id, file: path }: Pick<ManifestSticker, 'id' | 'file'>) => {
+    const entry = directory.entries.get(`${root}${path}`);
 
-      if (!entry || entry.uncompressedSize > MAX_STICKER_BYTES) throw fileError('broken');
-      entries.set(id, entry);
-    }
+    if (!entry || entry.uncompressedSize > MAX_STICKER_BYTES) throw fileError('broken');
+    entries.set(id, entry);
+  };
+
+  for (const { stickers } of manifest.packs) {
+    for (const sticker of stickers) addEntry(sticker);
+  }
+
+  /**
+   * Id снимка не пересекается с id стикеров паков — это проверил разбор описания, — и записи лежат в одной карте.
+   */
+  for (const item of manifest.favorites || []) {
+    if (isManifestSnapshot(item)) addEntry(item);
   }
 
   return { file, manifest, entries };
@@ -225,6 +246,9 @@ export const readLibraryFile = async (file: Blob): Promise<LibraryFile> => {
 
 /**
  * Сверяет описание с библиотекой без чтения GIF: дёшево, поэтому повторяется при возврате на сегмент и по «Импорт».
+ *
+ * Элемент избранного, который в избранном уже есть, не добавляется и не считается. Недавние считаются тем же слиянием,
+ * что запись импорта, поэтому карточка обещает ровно то, что запишется.
  *
  * @param manifest — описание файла
  * @param library — состояние библиотеки
@@ -234,7 +258,7 @@ export const compareWithLibrary = (
   manifest: LibraryManifest,
   library: LibraryState
 ): FileCard => {
-  const { packIds, stickerIds } = library;
+  const { packIds, stickerIds, favoriteKeys, recent } = library;
   let stickerCount = 0;
   let newStickerCount = 0;
   let newPackCount = 0;
@@ -253,7 +277,30 @@ export const compareWithLibrary = (
     return { pack, isInLibrary, isNew, newStickers };
   });
 
-  return { packs, stickerCount, newStickerCount, newPackCount };
+  const newFavorites = (manifest.favorites || []).filter((item) => {
+    return !favoriteKeys.has(itemKey(toSendItem(item)));
+  });
+  const { added: recentAdded } = mergeRecent(recent, manifest.recent || []);
+
+  return {
+    packs,
+    stickerCount,
+    newStickerCount,
+    newPackCount,
+    newFavorites,
+    newFavoriteCount: newFavorites.length,
+    newRecentCount: recentAdded.length,
+  };
+};
+
+/**
+ * @param card — карточка файла
+ * @returns true — импорт что-то добавит: стикеры, избранное или недавние; false — всё уже в библиотеке
+ */
+export const hasFileCardAdds = (card: FileCard): boolean => {
+  const { newStickerCount, newFavoriteCount, newRecentCount } = card;
+
+  return newStickerCount + newFavoriteCount + newRecentCount > 0;
 };
 
 /**
@@ -263,7 +310,12 @@ export const compareWithLibrary = (
  * @returns карточка «что добавится»
  */
 export const loadFileCard = async (libraryFile: LibraryFile): Promise<FileCard> => {
-  const [packs, stickerIds] = await Promise.all([listPacks(), listStickerIds()]);
+  const [packs, stickerIds, favoriteKeys, recent] = await Promise.all([
+    listPacks(),
+    listStickerIds(),
+    listFavoriteKeys(),
+    listAllRecent(),
+  ]);
 
   return compareWithLibrary(libraryFile.manifest, {
     packIds: new Set(
@@ -272,5 +324,7 @@ export const loadFileCard = async (libraryFile: LibraryFile): Promise<FileCard> 
       })
     ),
     stickerIds: new Set(stickerIds),
+    favoriteKeys: new Set(favoriteKeys),
+    recent,
   });
 };

@@ -11,10 +11,29 @@ import {
   type StickersByPack,
 } from './db.types';
 import { LocalizedError, t } from './i18n';
+import {
+  CUSTOM_PACK_ID,
+  favoriteRecord,
+  itemKey,
+  keepNewestByKind,
+  LOCAL_KEY_PREFIX,
+  recentKindOf,
+  REMOTE_KEY_PREFIX,
+} from './itemKey';
 import type { ImportPlan } from './libraryFile';
 
-export const CUSTOM_PACK_ID = 'custom';
-const RECENT_LIMIT = 40;
+/**
+ * Ключи и вид элементов, запись избранного и id своего пака живут в `itemKey.ts` без импорта базы: их берёт и разбор
+ * файла выгрузки, который база сама импортирует. Реэкспорт — для UI и тестов, которые берут их вместе с базой из
+ * `@core/db`.
+ */
+export {
+  CUSTOM_PACK_ID,
+  favoriteRecord,
+  itemKey,
+  RECENT_LIMIT,
+  recentKindOf,
+} from './itemKey';
 
 const DB_NAME = 'amo-stickers';
 const DB_VERSION = 2;
@@ -29,11 +48,6 @@ const STORE = {
 type StoreName = (typeof STORE)[keyof typeof STORE];
 
 const PACK_ID_INDEX = 'packId';
-
-/**
- * Начало ключа стикера библиотеки у недавних и избранного.
- */
-const LOCAL_KEY_PREFIX = 'l:';
 
 /**
  * Состояние открытия базы на вкладку. Запрос `indexedDB.open` один: запросы к базе стоят в общей очереди, и повтор
@@ -448,32 +462,69 @@ export const deletePack = async (packId: string) => {
 };
 
 /**
- * Записывает импорт из файла одной транзакцией: сверка с библиотекой и запись идут в колбэках её запросов, без
- * ожидания чего-либо вне базы, — иначе транзакция закоммитилась бы между чтением и записью. Поэтому библиотека сверяется
- * в момент записи, а сбой (квота, закрытие вкладки) оставляет её как до импорта. Отменить запись нельзя: выданные
- * запросы коммитятся.
+ * Id стикеров, записи которых нужны избранному плана: и ссылки, и снимки — снимок с занятым id берёт запись библиотеки.
  *
  * @param plan — проверенный план импорта
- * @returns что записано на самом деле: паки, в которые добавлены стикеры, и число стикеров; отклоняется ошибкой
- * упавшего запроса или транзакции при сбое или прерывании
+ * @returns id стикеров избранного плана
+ */
+const favoriteStickerIds = (plan: ImportPlan): string[] => {
+  return plan.favorites.reduce<string[]>((acc, item) => {
+    if (item.kind === 'sticker') acc.push(item.id);
+
+    return acc;
+  }, []);
+};
+
+/**
+ * Чтений `writeImport`, которые идут всегда, независимо от плана: ключи паков, ключи стикеров, ключи избранного и
+ * записи недавних. К ним добавляются чтения по плану — стикеры каждого его пака и записи стикеров избранного.
+ */
+const FIXED_IMPORT_READS = 4;
+
+/**
+ * Записывает импорт из файла одной транзакцией на паки, стикеры, избранное и недавние: сверка с библиотекой и запись
+ * идут в колбэках её запросов, без ожидания чего-либо вне базы, — иначе транзакция закоммитилась бы между чтением и
+ * записью. Поэтому библиотека, избранное и недавние сверяются в момент записи, а сбой (квота, закрытие вкладки)
+ * оставляет их все как до импорта. Отменить запись нельзя: выданные запросы коммитятся.
+ *
+ * @param plan — проверенный план импорта
+ * @returns что записано на самом деле: паки, в которые добавлены стикеры, число стикеров, избранного и недавних;
+ * отклоняется ошибкой упавшего запроса или транзакции при сбое или прерывании
  */
 export const writeImport = async (plan: ImportPlan): Promise<ImportWritten> => {
   const db = await openDb();
   const startedAt = Date.now();
   const customPack = customPackRecord();
-  const tx = db.transaction([STORE.packs, STORE.stickers], 'readwrite');
+  const tx = db.transaction(
+    [STORE.packs, STORE.stickers, STORE.favorites, STORE.recent],
+    'readwrite'
+  );
   const packs = tx.objectStore(STORE.packs);
   const stickers = tx.objectStore(STORE.stickers);
+  const favorites = tx.objectStore(STORE.favorites);
+  const recent = tx.objectStore(STORE.recent);
+  const stickerIdsToRead = favoriteStickerIds(plan);
   const library: ImportLibrary = {
     packIds: new Set(),
     stickerIds: new Set(),
     lastStickerAt: new Map(),
+    favoriteKeys: new Set(),
+    recent: [],
+    favoriteStickers: new Map(),
   };
-  let written: ImportWritten = { packIds: [], stickerCount: 0 };
-  let pendingReads = 2 + plan.packs.length;
+  let written: ImportWritten = {
+    packIds: [],
+    stickerCount: 0,
+    favoriteCount: 0,
+    recentCount: 0,
+    hasFavoriteStickers: false,
+    hasRecentStickers: false,
+  };
+  let pendingReads = FIXED_IMPORT_READS + plan.packs.length + stickerIdsToRead.length;
 
   /**
-   * Записи строятся по последнему прочитанному: до него состояние библиотеки неполное.
+   * Записи строятся по последнему прочитанному: до него состояние библиотеки неполное. Удаление недавних сверх лимита
+   * идёт после всех записей.
    */
   const handleRead = () => {
     pendingReads -= 1;
@@ -482,6 +533,9 @@ export const writeImport = async (plan: ImportPlan): Promise<ImportWritten> => {
 
     for (const pack of records.packs) packs.put(pack);
     for (const sticker of records.stickers) stickers.put(sticker);
+    for (const favorite of records.favorites) favorites.put(favorite);
+    for (const rec of records.recent) recent.put(rec);
+    for (const key of records.recentDeleteKeys) recent.delete(key);
     ({ written } = records);
   };
 
@@ -499,6 +553,23 @@ export const writeImport = async (plan: ImportPlan): Promise<ImportWritten> => {
     handleRead();
   };
 
+  const favoriteKeys = favorites.getAllKeys();
+
+  favoriteKeys.onsuccess = () => {
+    for (const key of stringKeys(favoriteKeys.result)) library.favoriteKeys.add(key);
+    handleRead();
+  };
+
+  const recentRecords = recent.getAll();
+
+  recentRecords.onsuccess = () => {
+    /**
+     * Каст — как у `promisify`: в хранилище недавних пишут только функции этого модуля.
+     */
+    library.recent = recentRecords.result as RecentRec[];
+    handleRead();
+  };
+
   for (const { id: packId } of plan.packs) {
     const packStickers = stickers.index(PACK_ID_INDEX).getAll(packId);
 
@@ -513,6 +584,20 @@ export const writeImport = async (plan: ImportPlan): Promise<ImportWritten> => {
           library.lastStickerAt.set(packId, createdAt);
       }
 
+      handleRead();
+    };
+  }
+
+  for (const id of stickerIdsToRead) {
+    const sticker = stickers.get(id);
+
+    sticker.onsuccess = () => {
+      /**
+       * Каст — как у `promisify`: в хранилище стикеров пишут только put-функции этого модуля.
+       */
+      const rec = sticker.result as StickerRec | undefined;
+
+      if (rec) library.favoriteStickers.set(id, rec);
       handleRead();
     };
   }
@@ -535,55 +620,6 @@ export const deleteSticker = async (id: string) => {
 };
 
 /**
- * Один ключ на элемент у недавних и избранного: «в избранном ли» узнаётся у любой ячейки по её элементу.
- *
- * @param item — элемент
- * @returns `l:<id стикера>` у стикера библиотеки, `r:<источник>:<id>` у GIF из поиска
- */
-export const itemKey = (item: SendItem): string => {
-  switch (item.kind) {
-    case 'local': {
-      return `${LOCAL_KEY_PREFIX}${item.stickerId}`;
-    }
-
-    case 'remote': {
-      return `r:${item.gif.provider}:${item.gif.id}`;
-    }
-
-    default: {
-      const unknownItem: never = item;
-
-      throw new Error(`Unknown send item: ${JSON.stringify(unknownItem)}`);
-    }
-  }
-};
-
-/**
- * Вид выводится из самого элемента, а не хранится отдельным полем: записи, сохранённые до
- * разделения недавних, попадают каждая в свой вид без миграции базы.
- *
- * @param item — отправленный элемент
- * @returns вид недавних
- */
-export const recentKindOf = (item: SendItem): RecentKind => {
-  switch (item.kind) {
-    case 'local': {
-      return 'sticker';
-    }
-
-    case 'remote': {
-      return 'gif';
-    }
-
-    default: {
-      const unknownItem: never = item;
-
-      throw new Error(`Unknown send item: ${JSON.stringify(unknownItem)}`);
-    }
-  }
-};
-
-/**
  * @param records — записи недавних в любом порядке
  * @param kind — вид недавних
  * @returns записи этого вида от новых к старым
@@ -601,6 +637,14 @@ export const recentOfKind = (records: RecentRec[], kind: RecentKind): RecentRec[
 };
 
 /**
+ * @param rec — запись недавних
+ * @returns её вид
+ */
+const recentOfRecord = (rec: RecentRec) => {
+  return recentKindOf(rec.item);
+};
+
+/**
  * Лимит считается по виду: поток отправленных GIF не вытесняет стикеры, и наоборот.
  *
  * @param records — все записи недавних
@@ -608,8 +652,10 @@ export const recentOfKind = (records: RecentRec[], kind: RecentKind): RecentRec[
  * @returns ключи самых старых записей этого вида сверх лимита
  */
 export const recentOverflow = (records: RecentRec[], kind: RecentKind): string[] => {
-  return recentOfKind(records, kind).reduce<string[]>((acc, { key }, index) => {
-    if (index >= RECENT_LIMIT) acc.push(key);
+  const { overflow } = keepNewestByKind(records, recentOfRecord);
+
+  return overflow.reduce<string[]>((acc, rec) => {
+    if (recentOfRecord(rec) === kind) acc.push(rec.key);
 
     return acc;
   }, []);
@@ -641,6 +687,15 @@ export const listRecent = async (kind: RecentKind): Promise<RecentRec[]> => {
   return recentOfKind(all, kind);
 };
 
+/**
+ * Недавние обоих видов одним чтением: сверке файла нужны их ключи и время, а записей не больше двух лимитов.
+ *
+ * @returns записи недавних в любом порядке
+ */
+export const listAllRecent = async (): Promise<RecentRec[]> => {
+  return promisify<RecentRec[]>((await store(STORE.recent)).getAll());
+};
+
 export const clearRecent = async (kind: RecentKind) => {
   const all = await promisify<RecentRec[]>((await store(STORE.recent)).getAll());
 
@@ -658,38 +713,6 @@ export const deleteRecent = async (item: SendItem) => {
 };
 
 /**
- * @param item — элемент
- * @param sticker — снимок записи стикера; обязателен у стикера библиотеки
- * @param ts — время добавления (мс)
- * @returns запись избранного
- */
-export const favoriteRecord = (
-  item: SendItem,
-  sticker: StickerRec | undefined,
-  ts: number
-): FavoriteRec => {
-  const key = itemKey(item);
-
-  switch (item.kind) {
-    case 'local': {
-      if (!sticker) throw new Error(`Favorite sticker without snapshot: ${key}`);
-
-      return { key, ts, item, sticker };
-    }
-
-    case 'remote': {
-      return { key, ts, item };
-    }
-
-    default: {
-      const unknownItem: never = item;
-
-      throw new Error(`Unknown send item: ${JSON.stringify(unknownItem)}`);
-    }
-  }
-};
-
-/**
  * @param records — записи избранного в любом порядке
  * @returns новый список от новых к старым
  */
@@ -702,6 +725,17 @@ export const favoritesNewestFirst = (records: FavoriteRec[]): FavoriteRec[] => {
 export const listFavorites = async (): Promise<FavoriteRec[]> => {
   return favoritesNewestFirst(
     await promisify<FavoriteRec[]>((await store(STORE.favorites)).getAll())
+  );
+};
+
+/**
+ * Ключи избранного без чтения записей: сверке с файлом снимки с GIF не нужны.
+ *
+ * @returns ключи элементов избранного в любом порядке
+ */
+export const listFavoriteKeys = async (): Promise<string[]> => {
+  return stringKeys(
+    await promisify<IDBValidKey[]>((await store(STORE.favorites)).getAllKeys())
   );
 };
 
@@ -757,15 +791,47 @@ export const getFavoriteSticker = async (
 };
 
 /**
+ * Граница выводится из префикса, а не пишется рядом литералом: сменится префикс — диапазон сменится вместе с ним.
+ *
+ * @param prefix — начало ключей, например `r:`
+ * @returns диапазон всех ключей, начинающихся с префикса: от него до префикса с последним символом, сдвинутым на
+ * следующий код (`r:` → `r;`), не включая верхнюю границу
+ */
+const prefixRange = (prefix: string) => {
+  const last = prefix.charCodeAt(prefix.length - 1);
+  const upper = `${prefix.slice(0, -1)}${String.fromCharCode(last + 1)}`;
+
+  return IDBKeyRange.bound(prefix, upper, false, true);
+};
+
+/**
  * Считает по диапазону ключей, а не чтением записей: снимки стикеров не достаются из базы ради числа.
  *
  * @returns число избранных стикеров библиотеки, без GIF
  */
 export const countFavoriteStickers = async (): Promise<number> => {
-  /**
-   * `;` — следующий за `:` символ: диапазон берёт все ключи, начинающиеся с префикса.
-   */
-  const range = IDBKeyRange.bound(LOCAL_KEY_PREFIX, 'l;', false, true);
+  const range = prefixRange(LOCAL_KEY_PREFIX);
 
   return promisify<number>((await store(STORE.favorites)).count(range));
+};
+
+/**
+ * Есть ли что выгружать в файл библиотеки. Недавние стикеры не считаются: без стикеров библиотеки их нет и в файле, а
+ * со стикерами число уже не ноль. Считает по ключам одной транзакцией, без чтения блобов и снимков.
+ *
+ * @returns сумма стикеров, записей избранного и недавних GIF
+ */
+export const countExportable = async (): Promise<number> => {
+  const db = await openDb();
+  const tx = db.transaction([STORE.stickers, STORE.favorites, STORE.recent]);
+  const remoteRange = prefixRange(REMOTE_KEY_PREFIX);
+  const counts = await Promise.all([
+    promisify<number>(tx.objectStore(STORE.stickers).count()),
+    promisify<number>(tx.objectStore(STORE.favorites).count()),
+    promisify<number>(tx.objectStore(STORE.recent).count(remoteRange)),
+  ]);
+
+  return counts.reduce((sum, count) => {
+    return sum + count;
+  }, 0);
 };

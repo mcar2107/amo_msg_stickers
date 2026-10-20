@@ -33,8 +33,12 @@ An `.amostickers` file is created only when you export a pack or the librar
 as a regular browser download. amo stickers doesn’t send it anywhere — only you can forward it.
 
 The file has stickers (ready GIFs), their emoji and captions, pack names and Telegram set names. A whole library export
-also has when each pack was added and when a sticker was last sent from it; a single pack export doesn’t. GIF keys, the
-bot token, recent items, favorites and settings aren’t in the file: whoever you give the file to sees only its contents.
+also has when each pack was added and when a sticker was last sent from it, favorites (for a sticker — its GIF or a link
+to the pack sticker, for a GIF — a link to the file and the title) and recent stickers and GIFs with their send time;
+a single pack export has none of these. GIF keys, the bot token and settings aren’t in the file.
+
+The library file is personal: whoever you give it to will see your favorites and send history. To share stickers without
+them, use a pack file — “Export pack” in the pack menu.
 
 ## What is sent and where
 

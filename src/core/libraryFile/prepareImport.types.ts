@@ -1,4 +1,9 @@
-import type { ManifestSource } from './manifest.types';
+import type {
+  ManifestGifItem,
+  ManifestRecent,
+  ManifestSource,
+  ManifestStickerRef,
+} from './manifest.types';
 
 /**
  * Проверенный стикер плана импорта.
@@ -81,26 +86,57 @@ export type ImportPlanPack = {
 };
 
 /**
- * План импорта: паки в порядке файла, только те, в которые добавляется хоть один стикер.
+ * Избранный стикер со своим GIF, проверенным так же, как GIF стикера пака.
+ */
+export type ImportPlanSnapshot = ManifestStickerRef & {
+  /**
+   * Пак, к которому принадлежал стикер: `custom` или `tg:<имя набора>`.
+   */
+  packId: string;
+
+  /**
+   * Проверенный стикер снимка, id — тот же, что у элемента.
+   */
+  sticker: ImportPlanSticker;
+};
+
+/**
+ * Элемент избранного плана: стикер паков файла, снимок со своим GIF или GIF из поиска.
+ */
+export type ImportPlanFavorite =
+  ManifestStickerRef | ImportPlanSnapshot | ManifestGifItem;
+
+/**
+ * План импорта: паки в порядке файла, только те, в которые добавляется хоть один стикер, избранное и недавние.
  */
 export type ImportPlan = {
   /**
    * Паки плана.
    */
   packs: ImportPlanPack[];
+
+  /**
+   * Избранное файла, которого не было в избранном при сверке, в порядке файла.
+   */
+  favorites: ImportPlanFavorite[];
+
+  /**
+   * Недавние файла целиком: запись сливает их с недавними, какими они будут в момент записи.
+   */
+  recent: ManifestRecent[];
 };
 
 /**
- * Ход проверки стикеров.
+ * Ход проверки стикеров паков и GIF снимков избранного.
  */
 export type FileImportProgress = {
   /**
-   * Сколько стикеров проверено.
+   * Сколько стикеров и снимков проверено.
    */
   done: number;
 
   /**
-   * Сколько стикеров проверяется всего.
+   * Сколько стикеров и снимков проверяется всего.
    */
   total: number;
 };
@@ -110,12 +146,12 @@ export type FileImportProgress = {
  */
 export type PrepareImportOptions = {
   /**
-   * Отмена: проверяется перед каждым стикером. undefined — без отмены.
+   * Отмена: проверяется перед каждым стикером и снимком. undefined — без отмены.
    */
   signal?: AbortSignal;
 
   /**
-   * Колбэк на ход проверки: до первого стикера и после каждого.
+   * Колбэк на ход проверки: до первого стикера и после каждого стикера и снимка.
    */
   onProgress?: (progress: FileImportProgress) => void;
 };
