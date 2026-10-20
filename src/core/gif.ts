@@ -82,13 +82,21 @@ const skipSubBlocks = (bytes: Uint8Array, from: number) => {
 };
 
 /**
+ * Сигнатура читается индексами, без `subarray` / `slice`: в Firefox байты из `Blob` в
+ * изолированном мире userscript-а — массив мира страницы, и species-методы на нём бросают
+ * `Permission denied to access property "constructor"`.
+ *
  * @param bytes — файл
  * @returns true, если файл начинается с сигнатуры GIF87a или GIF89a
  */
 const hasGifSignature = (bytes: Uint8Array) => {
-  return GIF_SIGNATURES.includes(
-    String.fromCharCode(...bytes.subarray(0, SIGNATURE_BYTES))
-  );
+  let signature = '';
+
+  for (let index = 0; index < SIGNATURE_BYTES; index++) {
+    signature += String.fromCharCode(bytes[index] || 0);
+  }
+
+  return GIF_SIGNATURES.includes(signature);
 };
 
 /**

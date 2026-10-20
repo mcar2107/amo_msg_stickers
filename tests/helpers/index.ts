@@ -1,5 +1,6 @@
 export * from './chunkedStream';
 export * from './countingEventTarget';
+export * from './deniedConstructor';
 export * from './fakeCanvasContext';
 export * from './fakeDocument';
 export * from './fakeFiber';

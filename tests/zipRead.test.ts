@@ -9,6 +9,7 @@ import {
   countingDecompression,
   DITTO_ARCHIVE,
   FIXTURE_MANIFEST,
+  withDeniedConstructor,
   ZIP_R_ARCHIVE,
 } from './helpers';
 
@@ -130,6 +131,43 @@ describe('readZipDirectory и readZipEntry', () => {
     await expect(readNamed(archive, directory, 'stickers/0.gif')).resolves.toEqual(
       GIF_SMALL
     );
+  });
+
+  it('читает stored-архив, когда `constructor` байтов из `Blob` недоступен', async () => {
+    const { bytes } = await buildZip([
+      { name: 'manifest.json', data: utf8('{}') },
+      { name: 'stickers/0.gif', data: GIF_SMALL },
+    ]);
+    const archive = blobOf(bytes);
+
+    await expect(
+      withDeniedConstructor(async () => {
+        return new Uint8Array(1).subarray(0);
+      })
+    ).rejects.toThrow('Permission denied');
+
+    const { names, manifest, gif } = await withDeniedConstructor(async () => {
+      const directory = await readZipDirectory(archive, LIMITS);
+
+      const read = async (name: string) => {
+        const entry = directory.entries.get(name);
+
+        if (!entry) throw new Error(`нет записи ${name}`);
+
+        return (await readZipEntry(archive, entry, { maxBytes: MAX_BYTES })).bytes;
+      };
+
+      return {
+        names: [...directory.entries.keys()],
+        manifest: await read('manifest.json'),
+        gif: await read('stickers/0.gif'),
+      };
+    });
+
+    expect(new Uint8Array(1).subarray(0)).toHaveLength(1);
+    expect(names).toEqual(['manifest.json', 'stickers/0.gif']);
+    expect(manifest).toEqual(utf8('{}'));
+    expect(gif).toEqual(GIF_SMALL);
   });
 
   it('читает deflate с data descriptor и extra только в локальном заголовке', async () => {

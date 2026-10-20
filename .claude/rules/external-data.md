@@ -7,6 +7,7 @@ paths:
   - "/src/core/sources/**"
   - "/src/core/zip/**"
   - "/src/core/libraryFile/**"
+  - "/src/core/sender.ts"
   - "/src/core/builtin*.ts"
   - "/src/extension/background.ts"
   - "/src/extension/fetchResponse.ts"
@@ -40,6 +41,18 @@ paths:
 - **Telegram** — `resolveTelegramSet`: битая ссылка и нет токена — ошибка без запроса, набор проходит гард и идёт и в
   карточку, и в `importTelegramSet`. `file_path` без `..`: иначе URL схлопнется, и запрос с токеном уйдёт в другой метод
   Bot API. `.tgs` — ≤ 8 МБ распакованным и `isLottieJson`; GIF из поиска — `inspectGif`.
+
+## Байты из `Blob` в изолированном мире userscript-а
+
+Над `new Uint8Array(await blob.arrayBuffer())` в коде изолированного мира (`src/core`, `src/shared`, `src/userscript`)
+не звать species-методы типизированного массива — `subarray`, `slice`, `map`, `filter`. В Firefox + Tampermonkey такой
+массив — объект мира страницы, species-метод читает у него `constructor` и бросает `Permission denied to access property
+"constructor"`. Индексы, `length`, `buffer`, `byteOffset`, `DataView`, итерация и `TextDecoder.decode` работают.
+
+- Срез без копии — `new Uint8Array(bytes.buffer, bytes.byteOffset + start, length)`; несколько байтов — индексами.
+- Не затронуты: чанки `ReadableStream` (`net.ts`), Worker (`gifEncoder.ts`), мир страницы (`src/page`), SW.
+- Тест держит правило отравленным `constructor`: `denyConstructor` на экземпляр, `withDeniedConstructor` на
+  `Uint8Array.prototype` вокруг кода, который сам читает `Blob` (`tests/helpers/deniedConstructor.ts`).
 
 ## Встроенные токен Telegram и ключ KLIPY
 
