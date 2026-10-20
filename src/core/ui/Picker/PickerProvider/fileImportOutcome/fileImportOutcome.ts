@@ -98,7 +98,8 @@ const importedSection = async (
 
 /**
  * Итог импорта файла. Дождавшийся импорта на экране «Добавить стикеры» попадает к добавленному в ленте, ушедший с
- * экрана за время импорта уже смотрит что-то своё — лента и режим не двигаются, итог виден только в статусе.
+ * экрана за время импорта или перечитывания после него уже смотрит что-то своё — лента и режим не двигаются, итог виден
+ * только в статусе.
  *
  * Избранное и недавние перечитываются при любом экране: импорт меняет обе ленты, и без этого добавленное появилось бы
  * только после следующего открытия попапа.
@@ -118,7 +119,7 @@ export const finishFileImport = async (
   options: FinishFileImportOptions
 ): Promise<void> => {
   const {
-    screen,
+    getScreen,
     written,
     scrollToSection,
     showStatus,
@@ -130,9 +131,14 @@ export const finishFileImport = async (
   refreshRecent();
   const isFavoritesFresh = await refreshFavoritesQuietly(refreshFavorites);
   const sectionId =
-    screen === 'add' ? await importedSection(options, isFavoritesFresh) : null;
+    getScreen() === 'add' ? await importedSection(options, isFavoritesFresh) : null;
 
-  if (sectionId) scrollToSection(sectionId, 'instant', { shouldFocusTab: true });
+  /**
+   * Экран — ещё раз после проверки «Недавних»: ушедший с экрана, пока она шла, уже смотрит что-то своё.
+   */
+  if (sectionId && getScreen() === 'add') {
+    scrollToSection(sectionId, 'instant', { shouldFocusTab: true });
+  }
 
   showStatus(
     !stickerCount && favoriteCount + recentCount

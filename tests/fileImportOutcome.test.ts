@@ -15,7 +15,11 @@ import {
 import type { ImportErrorTarget } from '@ui/PickerProvider/finishImport';
 import type { FileImportRun } from '@ui/PickerProvider/runFileImport';
 import { runFileImport } from '@ui/PickerProvider/runFileImport';
-import type { SectionMotion, SectionScrollOptions } from '@ui/usePickerView';
+import type {
+  PickerScreen,
+  SectionMotion,
+  SectionScrollOptions,
+} from '@ui/usePickerView';
 
 /**
  * Паки в порядке ленты: «Мои стикеры» первыми, затем паки Telegram по использованию.
@@ -113,13 +117,23 @@ const viewCallbacks = (isRecentShown = true) => {
   };
 };
 
+/**
+ * @param screen — экран, который увидит итог импорта
+ * @returns геттер экрана, как у провайдера
+ */
+const onScreen = (screen: PickerScreen | null) => {
+  return () => {
+    return screen;
+  };
+};
+
 describe('finishFileImport', () => {
   it('экран «Добавить стикеры» открыт — мгновенный переход к первому разделу ленты с фокусом на его вкладку, затем статус', async () => {
     const callbacks = viewCallbacks();
 
     await finishFileImport({
       ...callbacks,
-      screen: 'add',
+      getScreen: onScreen('add'),
       packs: FEED_PACKS,
       written: WRITTEN,
     });
@@ -138,7 +152,7 @@ describe('finishFileImport', () => {
 
       await finishFileImport({
         ...callbacks,
-        screen,
+        getScreen: onScreen(screen),
         packs: FEED_PACKS,
         written: { ...WRITTEN, hasFavoriteStickers: true },
       });
@@ -152,12 +166,55 @@ describe('finishFileImport', () => {
     }
   });
 
+  it('ушёл с экрана, пока перечитывалось избранное, — перехода нет, только статус', async () => {
+    const callbacks = viewCallbacks();
+    let screen: PickerScreen | null = 'add';
+
+    callbacks.refreshFavorites.mockImplementationOnce(async () => {
+      screen = null;
+    });
+
+    await finishFileImport({
+      ...callbacks,
+      getScreen: () => {
+        return screen;
+      },
+      packs: FEED_PACKS,
+      written: WRITTEN,
+    });
+
+    expect(callbacks.scrollToSection).not.toHaveBeenCalled();
+    expect(callbacks.showStatus).toHaveBeenCalledWith('Добавлено стикеров: 7');
+  });
+
+  it('ушёл с экрана, пока проверялись «Недавние», — перехода нет', async () => {
+    const callbacks = viewCallbacks();
+    let screen: PickerScreen | null = 'add';
+
+    callbacks.isRecentShown.mockImplementationOnce(async () => {
+      screen = 'settings';
+
+      return true;
+    });
+
+    await finishFileImport({
+      ...callbacks,
+      getScreen: () => {
+        return screen;
+      },
+      packs: FEED_PACKS,
+      written: { ...WRITTEN, hasRecentStickers: true },
+    });
+
+    expect(callbacks.scrollToSection).not.toHaveBeenCalled();
+  });
+
   it('добавлены избранные стикеры — к «Избранному», даже если добавлены и недавние', async () => {
     const callbacks = viewCallbacks();
 
     await finishFileImport({
       ...callbacks,
-      screen: 'add',
+      getScreen: onScreen('add'),
       packs: FEED_PACKS,
       written: { ...WRITTEN, hasFavoriteStickers: true, hasRecentStickers: true },
     });
@@ -171,7 +228,7 @@ describe('finishFileImport', () => {
 
     await finishFileImport({
       ...callbacks,
-      screen: 'add',
+      getScreen: onScreen('add'),
       packs: FEED_PACKS,
       written: { ...WRITTEN, hasRecentStickers: true },
     });
@@ -184,7 +241,7 @@ describe('finishFileImport', () => {
 
     await finishFileImport({
       ...callbacks,
-      screen: 'add',
+      getScreen: onScreen('add'),
       packs: FEED_PACKS,
       written: { ...WRITTEN, hasRecentStickers: true },
     });
@@ -197,7 +254,7 @@ describe('finishFileImport', () => {
 
     await finishFileImport({
       ...callbacks,
-      screen: 'add',
+      getScreen: onScreen('add'),
       packs: FEED_PACKS,
       written: { ...WRITTEN, packIds: [], stickerCount: 0, favoriteCount: 1 },
     });
@@ -215,7 +272,7 @@ describe('finishFileImport', () => {
 
     await finishFileImport({
       ...callbacks,
-      screen: null,
+      getScreen: onScreen(null),
       packs: FEED_PACKS,
       written: { ...WRITTEN, packIds: [], stickerCount: 0, recentCount: 2 },
     });
@@ -231,7 +288,7 @@ describe('finishFileImport', () => {
 
     await finishFileImport({
       ...callbacks,
-      screen: 'add',
+      getScreen: onScreen('add'),
       packs: FEED_PACKS,
       written: { ...WRITTEN, hasFavoriteStickers: true },
     });
@@ -247,7 +304,7 @@ describe('finishFileImport', () => {
 
     await finishFileImport({
       ...callbacks,
-      screen: 'add',
+      getScreen: onScreen('add'),
       packs: FEED_PACKS,
       written: { ...WRITTEN, packIds: [], stickerCount: 0 },
     });
@@ -263,13 +320,13 @@ describe('finishFileImport', () => {
 
     await finishFileImport({
       ...callbacks,
-      screen: null,
+      getScreen: onScreen(null),
       packs: FEED_PACKS,
       written: WRITTEN,
     });
     await finishFileImport({
       ...callbacks,
-      screen: null,
+      getScreen: onScreen(null),
       packs: FEED_PACKS,
       written: { ...WRITTEN, packIds: [], stickerCount: 0, favoriteCount: 1 },
     });

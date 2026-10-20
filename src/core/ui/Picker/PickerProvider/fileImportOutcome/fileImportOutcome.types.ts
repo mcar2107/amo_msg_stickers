@@ -30,9 +30,10 @@ export type FileImportFailure = {
 
 export type FinishFileImportOptions = {
   /**
-   * Экран поверх режима в момент завершения импорта; `null` — экрана нет.
+   * Экран поверх режима сейчас; `null` — экрана нет. Геттер, а не значение: итог ждёт перечитывания базы, и за это время
+   * пользователь может уйти с экрана.
    */
-  screen: PickerScreen | null;
+  getScreen: () => PickerScreen | null;
 
   /**
    * Паки библиотеки после импорта в порядке ленты.

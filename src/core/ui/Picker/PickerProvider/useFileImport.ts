@@ -292,7 +292,9 @@ export const useFileImport = (options: FileImportOptions): FileImportState => {
         setCard(null);
         setError(null);
         void finishFileImport({
-          screen: screenRef.current,
+          getScreen: () => {
+            return screenRef.current;
+          },
           packs,
           written,
           scrollToSection,
