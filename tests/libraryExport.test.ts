@@ -639,6 +639,48 @@ describe('exportLibrary — избранное и недавние', () => {
     expect(JSON.stringify(manifest)).not.toContain('evil');
   });
 
+  /**
+   * Поля GIF, которые загрузка не примет: каждое по отдельности выбрасывает GIF из файла.
+   */
+  const unreadableGifs: [string, Partial<RemoteGif>][] = [
+    ['превью вне политики', { previewUrl: 'https://evil.example/a_s.gif' }],
+    ['id длиннее 128', { id: 'x'.repeat(129) }],
+    ['ширина 0', { width: 0 }],
+    [
+      'чужой источник',
+      {
+        /**
+         * Каст — запись базы не того вида, от которой фильтр и защищает: тип источника её не допускает.
+         */
+        provider: 'tenor' as RemoteGif['provider'],
+      },
+    ],
+  ];
+
+  it.each(unreadableGifs)('избранная GIF: %s — не выгружается', async (_name, fields) => {
+    seedLibrary();
+    library.favorites = [
+      favoriteGif(remoteGif('bad', fields), 2),
+      favoriteGif(remoteGif('ok'), 1),
+    ];
+    const { manifest } = await readArchive((await exportLibrary({ now: NOW })).blob);
+
+    expect(manifest).toMatchObject({ favorites: [{ kind: 'gif', gif: { id: 'ok' } }] });
+    expect((manifest as ManifestSections).favorites).toHaveLength(1);
+  });
+
+  it.each(unreadableGifs)('недавняя GIF: %s — не выгружается', async (_name, fields) => {
+    seedLibrary();
+    library.recent = [
+      recentGif(remoteGif('bad', fields), 2),
+      recentGif(remoteGif('ok'), 1),
+    ];
+    const { manifest } = await readArchive((await exportLibrary({ now: NOW })).blob);
+
+    expect(manifest).toMatchObject({ recent: [{ kind: 'gif', gif: { id: 'ok' } }] });
+    expect((manifest as ManifestSections).recent).toHaveLength(1);
+  });
+
   it('библиотека только с избранными GIF выгружается', async () => {
     library.favorites = [
       favoriteGif(remoteGif('a'), 3),
