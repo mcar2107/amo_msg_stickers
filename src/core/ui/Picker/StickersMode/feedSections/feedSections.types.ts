@@ -67,3 +67,8 @@ export type FeedSection = {
    */
   hint: string;
 };
+
+/**
+ * Есть ли стикер в библиотеке по id: множество id или стикеры по id — подходит и то, и другое.
+ */
+export type StickerIdLookup = Pick<ReadonlySet<string>, 'has'>;

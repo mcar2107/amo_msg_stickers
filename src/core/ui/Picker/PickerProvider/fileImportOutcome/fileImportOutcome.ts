@@ -3,6 +3,7 @@ import { t } from '@core/i18n';
 import type { FileImportProgress } from '@core/libraryFile';
 import type { FileImportStage } from '@ui/PickerProvider';
 import { errorMessage } from '@ui/PickerProvider/errorMessage';
+import { isRecentStickerShown } from '@ui/StickersMode/feedSections';
 import { FAVORITE_SECTION_ID, RECENT_SECTION_ID } from '@ui/usePickerView';
 
 import type {
@@ -32,9 +33,8 @@ export const firstAddedSection = (
 };
 
 /**
- * Покажет ли лента стикеров раздел «Недавние»: в нём только стикеры, которые есть в библиотеке и не в избранном, — то
- * же условие, что у разделов ленты (`StickersMode/feedSections/`). Запрос перехода к разделу, которого в ленте нет,
- * ждал бы его появления и сдвинул бы ленту позже, посреди чужого действия.
+ * Покажет ли лента стикеров раздел «Недавние» — по тому же условию, что сама лента (`isRecentStickerShown`). Запрос
+ * перехода к разделу, которого в ленте нет, ждал бы его появления и сдвинул бы ленту позже, посреди чужого действия.
  *
  * @param recent — записи недавних стикеров
  * @param stickerIds — id стикеров библиотеки
@@ -49,8 +49,8 @@ export const isRecentSectionShown = (
   const ids = new Set(stickerIds);
   const favorites = new Set(favoriteKeys);
 
-  return recent.some(({ key, item }) => {
-    return item.kind === 'local' && ids.has(item.stickerId) && !favorites.has(key);
+  return recent.some(({ item }) => {
+    return isRecentStickerShown(item, ids, favorites);
   });
 };
 
