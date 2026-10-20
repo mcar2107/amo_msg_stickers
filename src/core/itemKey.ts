@@ -16,6 +16,11 @@ export const RECENT_LIMIT = 40;
 export const LOCAL_KEY_PREFIX = 'l:';
 
 /**
+ * Начало ключа GIF из поиска у недавних и избранного: за ним — источник и id GIF.
+ */
+export const REMOTE_KEY_PREFIX = 'r:';
+
+/**
  * Один ключ на элемент у недавних и избранного: «в избранном ли» узнаётся у любой ячейки по её элементу.
  *
  * @param item — элемент
@@ -28,7 +33,7 @@ export const itemKey = (item: SendItem): string => {
     }
 
     case 'remote': {
-      return `r:${item.gif.provider}:${item.gif.id}`;
+      return `${REMOTE_KEY_PREFIX}${item.gif.provider}:${item.gif.id}`;
     }
 
     default: {

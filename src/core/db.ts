@@ -17,6 +17,7 @@ import {
   LOCAL_KEY_PREFIX,
   RECENT_LIMIT,
   recentKindOf,
+  REMOTE_KEY_PREFIX,
 } from './itemKey';
 import type { ImportPlan } from './libraryFile';
 
@@ -829,7 +830,7 @@ export const countExportable = async (): Promise<number> => {
   /**
    * `;` — следующий за `:` символ: диапазон берёт все ключи недавних GIF `r:<источник>:<id>`.
    */
-  const remoteRange = IDBKeyRange.bound('r:', 'r;', false, true);
+  const remoteRange = IDBKeyRange.bound(REMOTE_KEY_PREFIX, 'r;', false, true);
   const counts = await Promise.all([
     promisify<number>(tx.objectStore(STORE.stickers).count()),
     promisify<number>(tx.objectStore(STORE.favorites).count()),
