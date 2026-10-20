@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { GIF_HEADER_BYTES, gifScreenSize, inspectGif } from '@core/gif';
 
-import { makeGif } from './helpers';
+import { denyConstructor, makeGif } from './helpers';
 
 const TEXT = new TextEncoder();
 
@@ -92,5 +92,25 @@ describe('gifScreenSize', () => {
     gif[offset + 1] = 0;
 
     expect(gifScreenSize(gif)).toBeNull();
+  });
+});
+
+describe('байты из мира страницы: `constructor` недоступен', () => {
+  it('inspectGif разбирает GIF так же, как обычный', () => {
+    expect(inspectGif(denyConstructor(makeGif(300, 70, 2)))).toEqual({
+      width: 300,
+      height: 70,
+      frames: 2,
+    });
+  });
+
+  it('gifScreenSize читает стороны и отклоняет не GIF', () => {
+    expect(gifScreenSize(denyConstructor(makeGif(70, 300)))).toEqual({
+      width: 70,
+      height: 300,
+    });
+    expect(
+      gifScreenSize(denyConstructor(TEXT.encode('<!doctype html><html>')))
+    ).toBeNull();
   });
 });

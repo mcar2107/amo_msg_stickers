@@ -269,10 +269,15 @@ export const readZipDirectory = async (
 
     if (startDisk !== 0) throw broken('Многодисковый архив');
 
+    /**
+     * Представление над тем же буфером, а не `subarray`: в Firefox байты из `Blob` в
+     * изолированном мире userscript-а — массив мира страницы, и species-методы на нём бросают.
+     */
     const name = decodeName(
-      central.subarray(
-        cursor + CENTRAL_HEADER_SIZE,
-        cursor + CENTRAL_HEADER_SIZE + nameLength
+      new Uint8Array(
+        central.buffer,
+        central.byteOffset + cursor + CENTRAL_HEADER_SIZE,
+        nameLength
       )
     );
 
