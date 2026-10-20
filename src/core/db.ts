@@ -23,8 +23,9 @@ import {
 import type { ImportPlan } from './libraryFile';
 
 /**
- * Ключи и вид элементов, запись избранного и id своего пака живут в `itemKey.ts` без импорта базы: их берёт и разбор файла выгрузки,
- * который база сама импортирует. Реэкспорт — для UI и тестов, которые берут их вместе с базой из `@core/db`.
+ * Ключи и вид элементов, запись избранного и id своего пака живут в `itemKey.ts` без импорта базы: их берёт и разбор
+ * файла выгрузки, который база сама импортирует. Реэкспорт — для UI и тестов, которые берут их вместе с базой из
+ * `@core/db`.
  */
 export {
   CUSTOM_PACK_ID,
@@ -790,15 +791,26 @@ export const getFavoriteSticker = async (
 };
 
 /**
+ * Граница выводится из префикса, а не пишется рядом литералом: сменится префикс — диапазон сменится вместе с ним.
+ *
+ * @param prefix — начало ключей, например `r:`
+ * @returns диапазон всех ключей, начинающихся с префикса: от него до префикса с последним символом, сдвинутым на
+ * следующий код (`r:` → `r;`), не включая верхнюю границу
+ */
+const prefixRange = (prefix: string) => {
+  const last = prefix.charCodeAt(prefix.length - 1);
+  const upper = `${prefix.slice(0, -1)}${String.fromCharCode(last + 1)}`;
+
+  return IDBKeyRange.bound(prefix, upper, false, true);
+};
+
+/**
  * Считает по диапазону ключей, а не чтением записей: снимки стикеров не достаются из базы ради числа.
  *
  * @returns число избранных стикеров библиотеки, без GIF
  */
 export const countFavoriteStickers = async (): Promise<number> => {
-  /**
-   * `;` — следующий за `:` символ: диапазон берёт все ключи, начинающиеся с префикса.
-   */
-  const range = IDBKeyRange.bound(LOCAL_KEY_PREFIX, 'l;', false, true);
+  const range = prefixRange(LOCAL_KEY_PREFIX);
 
   return promisify<number>((await store(STORE.favorites)).count(range));
 };
@@ -812,10 +824,7 @@ export const countFavoriteStickers = async (): Promise<number> => {
 export const countExportable = async (): Promise<number> => {
   const db = await openDb();
   const tx = db.transaction([STORE.stickers, STORE.favorites, STORE.recent]);
-  /**
-   * `;` — следующий за `:` символ: диапазон берёт все ключи недавних GIF `r:<источник>:<id>`.
-   */
-  const remoteRange = IDBKeyRange.bound(REMOTE_KEY_PREFIX, 'r;', false, true);
+  const remoteRange = prefixRange(REMOTE_KEY_PREFIX);
   const counts = await Promise.all([
     promisify<number>(tx.objectStore(STORE.stickers).count()),
     promisify<number>(tx.objectStore(STORE.favorites).count()),
