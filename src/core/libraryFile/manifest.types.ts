@@ -842,16 +842,15 @@ export const parseManifest = (value: unknown): ManifestParse => {
     return { error: 'invalid' };
   }
 
-  const packs = parsedPacks.filter(({ stickers }) => {
-    return stickers.length > 0;
-  });
-  const stickerIds = new Set(
-    packs.flatMap(({ stickers }) => {
-      return stickers.map(({ id }) => {
-        return id;
-      });
-    })
-  );
+  const packs: ManifestPack[] = [];
+  const stickerIds = new Set<string>();
+
+  for (const pack of parsedPacks) {
+    if (!pack.stickers.length) continue;
+    packs.push(pack);
+    for (const { id } of pack.stickers) stickerIds.add(id);
+  }
+
   const favorites = parsedFavorites.filter((item) => {
     return isKept(item, stickerIds);
   });
