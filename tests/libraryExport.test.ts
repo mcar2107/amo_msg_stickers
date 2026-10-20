@@ -655,6 +655,16 @@ describe('exportLibrary — избранное и недавние', () => {
     expect((await readLibraryFile(result.blob)).manifest.favorites).toHaveLength(3);
   });
 
+  it('библиотека только с GIF выгружается без хода', async () => {
+    library.favorites = [favoriteGif(remoteGif('a'), 2)];
+    library.recent = [recentGif(remoteGif('b'), 1)];
+    const onProgress = vi.fn();
+
+    await exportLibrary({ now: NOW, onProgress });
+
+    expect(onProgress).not.toHaveBeenCalled();
+  });
+
   it('только недавний стикер удалённого пака — выгружать нечего', async () => {
     library.recent = [recentSticker('tg:gone', 1)];
 

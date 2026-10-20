@@ -426,7 +426,10 @@ export const exportLibrary = async (
   const text = JSON.stringify(manifest);
 
   checkManifest(text, isLibrary);
-  onProgress?.({ done: 0, total });
+  /**
+   * Без стикеров (библиотека только с GIF) хода нет: «0/0» в статусе и рядом с кнопкой ничего не говорит.
+   */
+  if (total) onProgress?.({ done: 0, total });
   const manifestEntry = {
     name: MANIFEST_FILE,
     data: new Blob([text], { type: 'application/json' }),
