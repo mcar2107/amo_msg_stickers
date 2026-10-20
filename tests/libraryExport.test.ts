@@ -1,13 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import type {
-  FavoriteRec,
-  Pack,
-  RecentKind,
-  RecentRec,
-  RemoteGif,
-  StickerRec,
-} from '@core/db.types';
+import type { FavoriteRec, Pack, RecentRec, RemoteGif, StickerRec } from '@core/db.types';
 import { t } from '@core/i18n';
 import type { ExportProgress } from '@core/libraryFile';
 import {
@@ -85,12 +78,11 @@ vi.mock('@core/db', () => {
     listFavorites: vi.fn(async () => {
       return [...library.favorites].sort(newestFirst);
     }),
-    listRecent: vi.fn(async (kind: RecentKind) => {
-      return library.recent
-        .filter(({ item }) => {
-          return (item.kind === 'local' ? 'sticker' : 'gif') === kind;
-        })
-        .sort(newestFirst);
+    /**
+     * Порядок базы не обещан: от старых к новым, чтобы выгрузка сортировала сама.
+     */
+    listAllRecent: vi.fn(async () => {
+      return [...library.recent].sort(newestFirst).reverse();
     }),
   };
 });

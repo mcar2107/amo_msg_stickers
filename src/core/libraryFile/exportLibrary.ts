@@ -1,9 +1,9 @@
 import {
   getPack,
+  listAllRecent,
   listAllStickers,
   listFavorites,
   listPacks,
-  listRecent,
   listStickers,
 } from '@core/db';
 import type { FavoriteRec, RecentRec, RemoteGif, StickerRec } from '@core/db.types';
@@ -113,12 +113,8 @@ const loadPacks = async (packId: string | undefined): Promise<ExportPack[]> => {
  */
 const loadLists = async (isLibrary: boolean): Promise<ExportLists> => {
   if (!isLibrary) return { favorites: [], recent: [] };
-  const [favorites, recentStickers, recentGifs] = await Promise.all([
-    listFavorites(),
-    listRecent('sticker'),
-    listRecent('gif'),
-  ]);
-  const recent = [...recentStickers, ...recentGifs].sort((a, b) => {
+  const [favorites, allRecent] = await Promise.all([listFavorites(), listAllRecent()]);
+  const recent = allRecent.sort((a, b) => {
     return b.ts - a.ts;
   });
 
