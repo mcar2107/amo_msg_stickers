@@ -197,15 +197,21 @@ const toManifestRecent = (
  */
 const buildSections = (packs: ExportPack[], lists: ExportLists): ExportSections => {
   const exportedIds = new Set<string>();
+  /**
+   * Снимки нумеруются после GIF стикеров паков: номер первого — число записей, которые `buildManifest` выдаёт пакам, а
+   * не число разных id.
+   */
+  let firstSnapshotFile = 0;
 
   for (const { stickers } of packs) {
+    firstSnapshotFile += stickers.length;
     for (const { id } of stickers) exportedIds.add(id);
   }
 
   const snapshots: ZipWriteEntry[] = [];
 
   const favorites = lists.favorites.reduce<ManifestFavorite[]>((acc, rec) => {
-    const item = toManifestFavorite(rec, exportedIds, snapshots, exportedIds.size);
+    const item = toManifestFavorite(rec, exportedIds, snapshots, firstSnapshotFile);
 
     if (item) acc.push(item);
 
