@@ -47,9 +47,9 @@ You can leave the screen — the chosen file and the card stay, and the i
 - **It only adds.** Your packs and stickers stay as they are: a pack you already have gets only the stickers it doesn’t
   have yet, at the end. Where new packs go — in the [FAQ](../faq#pack-order).
 - **Custom stickers** from the file, including someone else’s file, go to “My stickers”.
-- **Favorites and recent items** from the file are added to yours: nothing of yours is removed, and what’s already
-  in favorites doesn’t change. Recent keeps the 40 latest stickers and the 40 latest GIFs, and an item that’s in both
-  gets the later send time.
+- **Favorites and recent items** from the file are added to yours: nothing is removed from your favorites,
+  and what’s already in favorites doesn’t change. Recent keeps the 40 latest stickers and the 40 latest GIFs — older
+  ones are dropped — and an item that’s in both gets the later send time.
 - **Loading the same file again** doesn’t create duplicates — in packs, favorites or recent: the card says “Everything
   in this file is already in your library”.
 - **Captions and emoji** are kept, and a pack from Telegram keeps its “Copy link”.
