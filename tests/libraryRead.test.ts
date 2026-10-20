@@ -434,6 +434,41 @@ describe('readLibraryFile', () => {
   });
 });
 
+/**
+ * Архив выгрузки с паками, разделами и дополнительными записями — GIF снимков.
+ *
+ * @param packs — паки
+ * @param lists — избранное и недавние описания
+ * @param extraEntries — записи архива поверх
+ * @returns архив
+ */
+const archiveWithLists = async (
+  packs: PackSpec[],
+  lists: Record<string, unknown>,
+  extraEntries: ZipBuildEntry[] = []
+) => {
+  const { entries } = entriesOf(packs, lists);
+  const { bytes } = await buildZip([...entries, ...extraEntries]);
+
+  return new Blob([bytes]);
+};
+
+/**
+ * Файл выгрузки с паками, разделами и дополнительными записями архива — GIF снимков.
+ *
+ * @param packs — паки
+ * @param lists — избранное и недавние описания
+ * @param extraEntries — записи архива поверх
+ * @returns прочитанный файл
+ */
+const fileWithLists = async (
+  packs: PackSpec[],
+  lists: Record<string, unknown>,
+  extraEntries: ZipBuildEntry[] = []
+) => {
+  return readLibraryFile(await archiveWithLists(packs, lists, extraEntries));
+};
+
 describe('readLibraryFile: снимки избранного', () => {
   const SNAPSHOT_FILE = 'stickers/snapshot.gif';
 
@@ -444,21 +479,16 @@ describe('readLibraryFile: снимки избранного', () => {
    * @returns архив
    */
   const fileWithSnapshot = async (snapshotGif?: ZipBuildEntry) => {
-    const { entries } = entriesOf([tgPack('Gachi', 2)], {
-      favorites: [
-        { kind: 'sticker', id: 'tg:Gachi0', ts: 3 },
-        {
-          kind: 'sticker',
-          id: 'tg:Gone7',
-          ts: 2,
-          file: SNAPSHOT_FILE,
-          packId: 'tg:Gone',
-        },
-      ],
-    });
-    const { bytes } = await buildZip(snapshotGif ? [...entries, snapshotGif] : entries);
+    const favorites = [
+      { kind: 'sticker', id: 'tg:Gachi0', ts: 3 },
+      { kind: 'sticker', id: 'tg:Gone7', ts: 2, file: SNAPSHOT_FILE, packId: 'tg:Gone' },
+    ];
 
-    return new Blob([bytes]);
+    return archiveWithLists(
+      [tgPack('Gachi', 2)],
+      { favorites },
+      snapshotGif ? [snapshotGif] : []
+    );
   };
 
   it('запись GIF снимка лежит в entries по id снимка', async () => {
@@ -764,25 +794,6 @@ const keyOf = (item: ManifestFavorite | ManifestRecent) => {
  */
 const recentRecOf = (item: ManifestRecent): RecentRec => {
   return { key: keyOf(item), ts: item.ts, item: toSendItem(item) };
-};
-
-/**
- * Файл выгрузки с паками, разделами и дополнительными записями архива — GIF снимков.
- *
- * @param packs — паки
- * @param lists — избранное и недавние описания
- * @param extraEntries — записи архива поверх
- * @returns прочитанный файл
- */
-const fileWithLists = async (
-  packs: PackSpec[],
-  lists: Record<string, unknown>,
-  extraEntries: ZipBuildEntry[] = []
-) => {
-  const { entries } = entriesOf(packs, lists);
-  const { bytes } = await buildZip([...entries, ...extraEntries]);
-
-  return readLibraryFile(new Blob([bytes]));
 };
 
 describe('loadFileCard: избранное и недавние', () => {
