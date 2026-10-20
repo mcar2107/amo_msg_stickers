@@ -1,5 +1,5 @@
 import type { FavoriteRec, Pack, StickerRec } from '@core/db.types';
-import { itemKey } from '@core/itemKey';
+import { favoriteRecord } from '@core/itemKey';
 import type {
   ImportPlan,
   ImportPlanFavorite,
@@ -89,19 +89,18 @@ const snapshotRecord = (snapshot: ImportPlanSnapshot, startedAt: number): Sticke
  * @returns запись избранного; undefined — у ссылки нет записи стикера (его удалили после карточки), показывать и
  * отправлять было бы нечего
  */
-const favoriteRecord = (
+const planFavoriteRecord = (
   item: ImportPlanFavorite,
   written: ReadonlyMap<string, StickerRec>,
   library: ImportLibrary,
   startedAt: number
 ): FavoriteRec | undefined => {
   const sendItem = toSendItem(item);
-  const key = itemKey(sendItem);
   const { ts } = item;
 
   switch (sendItem.kind) {
     case 'remote': {
-      return { key, ts, item: sendItem };
+      return favoriteRecord(sendItem, undefined, ts);
     }
 
     case 'local': {
@@ -111,7 +110,7 @@ const favoriteRecord = (
         library.favoriteStickers.get(stickerId) ||
         (isPlanSnapshot(item) ? snapshotRecord(item, startedAt) : undefined);
 
-      return sticker && { key, ts, item: sendItem, sticker };
+      return sticker && favoriteRecord(sendItem, sticker, ts);
     }
 
     default: {
@@ -141,7 +140,7 @@ const favoriteRecords = (
   const takenKeys = new Set(library.favoriteKeys);
 
   return favorites.reduce<FavoriteRec[]>((acc, item) => {
-    const rec = favoriteRecord(item, written, library, startedAt);
+    const rec = planFavoriteRecord(item, written, library, startedAt);
 
     if (rec && !takenKeys.has(rec.key)) {
       takenKeys.add(rec.key);

@@ -13,6 +13,7 @@ import {
 import { LocalizedError, t } from './i18n';
 import {
   CUSTOM_PACK_ID,
+  favoriteRecord,
   itemKey,
   LOCAL_KEY_PREFIX,
   RECENT_LIMIT,
@@ -22,10 +23,16 @@ import {
 import type { ImportPlan } from './libraryFile';
 
 /**
- * Ключи и вид элементов и id своего пака живут в `itemKey.ts` без импорта базы: их берёт и разбор файла выгрузки,
+ * Ключи и вид элементов, запись избранного и id своего пака живут в `itemKey.ts` без импорта базы: их берёт и разбор файла выгрузки,
  * который база сама импортирует. Реэкспорт — для UI и тестов, которые берут их вместе с базой из `@core/db`.
  */
-export { CUSTOM_PACK_ID, itemKey, RECENT_LIMIT, recentKindOf } from './itemKey';
+export {
+  CUSTOM_PACK_ID,
+  favoriteRecord,
+  itemKey,
+  RECENT_LIMIT,
+  recentKindOf,
+} from './itemKey';
 
 const DB_NAME = 'amo-stickers';
 const DB_VERSION = 2;
@@ -692,38 +699,6 @@ export const clearRecent = async (kind: RecentKind) => {
 
 export const deleteRecent = async (item: SendItem) => {
   await promisify((await store(STORE.recent, 'readwrite')).delete(itemKey(item)));
-};
-
-/**
- * @param item — элемент
- * @param sticker — снимок записи стикера; обязателен у стикера библиотеки
- * @param ts — время добавления (мс)
- * @returns запись избранного
- */
-export const favoriteRecord = (
-  item: SendItem,
-  sticker: StickerRec | undefined,
-  ts: number
-): FavoriteRec => {
-  const key = itemKey(item);
-
-  switch (item.kind) {
-    case 'local': {
-      if (!sticker) throw new Error(`Favorite sticker without snapshot: ${key}`);
-
-      return { key, ts, item, sticker };
-    }
-
-    case 'remote': {
-      return { key, ts, item };
-    }
-
-    default: {
-      const unknownItem: never = item;
-
-      throw new Error(`Unknown send item: ${JSON.stringify(unknownItem)}`);
-    }
-  }
 };
 
 /**

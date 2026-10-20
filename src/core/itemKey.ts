@@ -1,4 +1,4 @@
-import type { RecentKind, SendItem } from './db.types';
+import type { FavoriteRec, RecentKind, SendItem, StickerRec } from './db.types';
 
 /**
  * Id «Моих стикеров». Живёт здесь, а не в базе: его берёт и разбор файла выгрузки, который база сама импортирует.
@@ -59,6 +59,41 @@ export const recentKindOf = (item: SendItem): RecentKind => {
 
     case 'remote': {
       return 'gif';
+    }
+
+    default: {
+      const unknownItem: never = item;
+
+      throw new Error(`Unknown send item: ${JSON.stringify(unknownItem)}`);
+    }
+  }
+};
+
+/**
+ * Одна сборка записи избранного и для отметки в пикере, и для импорта из файла: здесь, а не в базе, потому что импорт
+ * строит записи без импорта базы.
+ *
+ * @param item — элемент
+ * @param sticker — снимок записи стикера; обязателен у стикера библиотеки
+ * @param ts — время добавления (мс)
+ * @returns запись избранного
+ */
+export const favoriteRecord = (
+  item: SendItem,
+  sticker: StickerRec | undefined,
+  ts: number
+): FavoriteRec => {
+  const key = itemKey(item);
+
+  switch (item.kind) {
+    case 'local': {
+      if (!sticker) throw new Error(`Favorite sticker without snapshot: ${key}`);
+
+      return { key, ts, item, sticker };
+    }
+
+    case 'remote': {
+      return { key, ts, item };
     }
 
     default: {
