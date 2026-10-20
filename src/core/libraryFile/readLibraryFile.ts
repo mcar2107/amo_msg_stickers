@@ -280,7 +280,7 @@ export const compareWithLibrary = (
   const newFavorites = (manifest.favorites || []).filter((item) => {
     return !favoriteKeys.has(itemKey(toSendItem(item)));
   });
-  const { added: recentAdds } = mergeRecent(recent, manifest.recent || []);
+  const { added: recentAdded } = mergeRecent(recent, manifest.recent || []);
 
   return {
     packs,
@@ -288,9 +288,8 @@ export const compareWithLibrary = (
     newStickerCount,
     newPackCount,
     newFavorites,
-    recentAdds,
     newFavoriteCount: newFavorites.length,
-    newRecentCount: recentAdds.length,
+    newRecentCount: recentAdded.length,
   };
 };
 

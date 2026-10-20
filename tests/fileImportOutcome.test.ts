@@ -49,7 +49,6 @@ const cardWith = (
     newStickerCount,
     newPackCount: 0,
     newFavorites: [],
-    recentAdds: [],
     newFavoriteCount: lists.newFavoriteCount || 0,
     newRecentCount: lists.newRecentCount || 0,
   };

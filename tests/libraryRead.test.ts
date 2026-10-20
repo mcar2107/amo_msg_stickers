@@ -811,7 +811,6 @@ describe('loadFileCard: избранное и недавние', () => {
     });
     const card = await loadFileCard(libraryFile);
 
-    expect(card.recentAdds).toEqual([gifItem('g1', 200), stickerRef('tg:Gachi1', 40)]);
     expect(card.newRecentCount).toBe(2);
   });
 

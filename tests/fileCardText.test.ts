@@ -134,7 +134,6 @@ describe('fileCardSummary', () => {
       newStickerCount,
       newPackCount,
       newFavorites: [],
-      recentAdds: [],
       newFavoriteCount,
       newRecentCount,
     };

@@ -6,7 +6,6 @@ import type {
   ManifestError,
   ManifestFavorite,
   ManifestPack,
-  ManifestRecent,
   ManifestSticker,
 } from './manifest.types';
 
@@ -116,18 +115,13 @@ export type FileCard = {
   newFavorites: ManifestFavorite[];
 
   /**
-   * Элементы недавних файла, которые после слияния встанут в недавние: новые или отправленные позже, в пределах лимита
-   * своего вида.
-   */
-  recentAdds: ManifestRecent[];
-
-  /**
    * Сколько элементов добавится в избранное.
    */
   newFavoriteCount: number;
 
   /**
-   * Сколько элементов добавится в недавние или поднимется в них.
+   * Сколько элементов недавних файла встанет в недавние после слияния: новых или отправленных позже, в пределах лимита
+   * своего вида.
    */
   newRecentCount: number;
 };
