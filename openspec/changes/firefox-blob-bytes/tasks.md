@@ -13,4 +13,4 @@
 ## 3. Проверка
 
 - [x] 3.1 `pnpm lint` и `pnpm test` зелёные
-- [ ] 3.2 Живой Firefox + Tampermonkey на стенде (`pnpm harness`, userscript из `pnpm build` установлен в Tampermonkey; Firefox и установку запускает пользователь, управление по BiDi): свой стикер и GIF из выдачи KLIPY отправляются без `Permission denied`, файл `.amostickers` загружается и показывает карточку
+- [x] 3.2 Живой Firefox + Tampermonkey на стенде (`pnpm harness`, userscript из `pnpm build` установлен в Tampermonkey; Firefox и установку запускает пользователь, управление по BiDi): свой стикер и GIF из выдачи KLIPY отправляются без `Permission denied`, файл `.amostickers` загружается и показывает карточку

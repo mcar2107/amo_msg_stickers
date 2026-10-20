@@ -16,3 +16,10 @@
 Аудит: ok с первого круга. Мутации (возврат subarray в gif.ts и zipRead.ts) роняют 3 новых теста с `Permission denied`. pnpm lint и pnpm test (1916) зелёные; ast-grep subarray — только net.ts:173 и gifEncoder.ts:107.
 Долг: в `paths:` правила external-data.md нет src/core/sender.ts, где зовётся Blob.arrayBuffer() (строки 90, 158), — правило не подгрузится при правке sender.ts. Под отравленным прототипом проверено только stored-чтение zip; deflate-каталог идёт тем же кодом.
 Отступлений нет. Сквозная работа в Firefox — только в 3.2.
+
+### Живая проверка
+
+Firefox 157.0.1 + Tampermonkey 5.5.0, профиль /tmp/ff138prof, управление по BiDi; стенд — копия dev/harness.html без тега userscript-а на localhost:3000, сборка из HEAD 3a4b5cd с дописанным @match localhost:3000. В тестовой копии бандла shadow root пикера открыт (`mode: "open"`, версия 1.2.1) — иначе BiDi до пикера не дотягивается; код отправки и разбора байтов тот же.
+Проба probe138 в той же вкладке подтверждает окружение бага: `subarray`/`slice` над байтами Blob бросают `Permission denied to access property "constructor"`.
+Итог: GIF из выдачи KLIPY отправлена; свой стикер из GIF (256×192, 1705 КБ) сохранён и отправлен; pack.amostickers (stored, 9 записей) разобран, карточка «Котики, новый пак, стикеров: 8», импорт прошёл, стикер из пака отправлен. Ошибок в консоли страницы нет.
+Долг аудита G1 закрыт: src/core/sender.ts добавлен в paths правила external-data.md.

@@ -7,6 +7,7 @@ paths:
   - "/src/core/sources/**"
   - "/src/core/zip/**"
   - "/src/core/libraryFile/**"
+  - "/src/core/sender.ts"
   - "/src/core/builtin*.ts"
   - "/src/extension/background.ts"
   - "/src/extension/fetchResponse.ts"
