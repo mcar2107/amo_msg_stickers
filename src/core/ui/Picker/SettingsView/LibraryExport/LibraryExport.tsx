@@ -6,7 +6,7 @@ import { LinkButton } from '@ui/LinkButton';
 import { usePicker } from '@ui/PickerProvider';
 import { SCREEN_FOCUS_ID, usePickerView } from '@ui/usePickerView';
 
-import type { LibraryNoteState } from './LibraryExport.types';
+import { libraryNoteText } from './libraryNoteText';
 import { useExportableCount } from './useExportableCount';
 
 const GROUP_ID = 'settings-group-library';
@@ -20,24 +20,6 @@ const GROUP_TITLE_CLASS = 'm-0 font-primary text-xsm font-semibold';
 const NOTE_CLASS = 'm-0 text-xs leading-[1.4] text-cadetGray-30 dark:text-gray-70';
 
 /**
- * Текст рядом с кнопкой: ход выгрузки библиотеки важнее причины недоступности — пока она идёт, выгружать есть что. Выгрузка
- * пака из меню хода здесь не показывает (он в строке статуса), но недоступную кнопку объясняет: иначе скринридер
- * прочитал бы «недоступна» без причины.
- *
- * @param state — идёт ли выгрузка, ход выгрузки библиотеки и сколько в библиотеке того, что попадёт в файл
- * @returns текст; пустая строка — пояснять нечего
- */
-const noteText = (state: LibraryNoteState) => {
-  const { isExporting, progress, exportableCount } = state;
-
-  if (progress) return t('settings.library.progress', progress);
-  if (isExporting) return t('settings.library.packExporting');
-  if (exportableCount === 0) return t('settings.library.empty');
-
-  return '';
-};
-
-/**
  * Группа «Библиотека» «Настроек»: что выгружается, кнопка и рядом — ход выгрузки или почему выгружать нечего. Выгрузку
  * держит провайдер, поэтому уход с экрана её не обрывает, а вернувшийся видит недоступную кнопку и ход. Пока идёт любая
  * выгрузка — пака из меню или библиотеки, — кнопка недоступна: вторая выгрузка не начинается.
@@ -47,11 +29,16 @@ const noteText = (state: LibraryNoteState) => {
  */
 export const LibraryExport: FC = () => {
   const {
-    libraryExport: { isExporting, libraryProgress, exportAll },
+    libraryExport: { isExporting, isLibraryExporting, libraryProgress, exportAll },
   } = usePicker();
   const { openScreen } = usePickerView();
   const exportableCount = useExportableCount();
-  const note = noteText({ isExporting, progress: libraryProgress, exportableCount });
+  const note = libraryNoteText({
+    isExporting,
+    isLibraryExporting,
+    progress: libraryProgress,
+    exportableCount,
+  });
 
   const handleExportClick = () => {
     void exportAll();

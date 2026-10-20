@@ -16,11 +16,12 @@ import { runLibraryExport } from './runLibraryExport';
  * Занятость держит `ref`, а не только состояние: два нажатия в одном кадре видят её до перерисовки.
  *
  * @param options — статусы провайдера
- * @returns признак идущей выгрузки, ход выгрузки библиотеки и её запуск
+ * @returns признаки идущей выгрузки и выгрузки библиотеки, ход выгрузки библиотеки и её запуск
  */
 export const useLibraryExport = (options: LibraryExportOptions): LibraryExportState => {
   const { showStatus, showError } = options;
   const [isExporting, setIsExporting] = useState(false);
+  const [isLibraryExporting, setIsLibraryExporting] = useState(false);
   const [libraryProgress, setLibraryProgress] = useState<ExportProgress | null>(null);
   const exportingRef = useRef(false);
 
@@ -30,6 +31,7 @@ export const useLibraryExport = (options: LibraryExportOptions): LibraryExportSt
 
       exportingRef.current = true;
       setIsExporting(true);
+      setIsLibraryExporting(target.kind === 'library');
 
       /**
        * Ход библиотеки нужен и группе «Библиотека» «Настроек» рядом с кнопкой, а не только строке статуса: сборка
@@ -58,6 +60,7 @@ export const useLibraryExport = (options: LibraryExportOptions): LibraryExportSt
       } finally {
         exportingRef.current = false;
         setIsExporting(false);
+        setIsLibraryExporting(false);
         setLibraryProgress(null);
       }
     },
@@ -76,6 +79,6 @@ export const useLibraryExport = (options: LibraryExportOptions): LibraryExportSt
   }, [start]);
 
   return useMemo(() => {
-    return { isExporting, libraryProgress, exportPack, exportAll };
-  }, [isExporting, libraryProgress, exportPack, exportAll]);
+    return { isExporting, isLibraryExporting, libraryProgress, exportPack, exportAll };
+  }, [isExporting, isLibraryExporting, libraryProgress, exportPack, exportAll]);
 };

@@ -10,6 +10,11 @@ export type LibraryNoteState = {
   isExporting: boolean;
 
   /**
+   * Идёт выгрузка именно библиотеки — в том числе пока у неё нет хода.
+   */
+  isLibraryExporting: boolean;
+
+  /**
    * Ход выгрузки библиотеки; `null` — библиотека не выгружается.
    */
   progress: ExportProgress | null;

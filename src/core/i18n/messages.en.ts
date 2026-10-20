@@ -66,6 +66,7 @@ export const EN: Messages = {
   'settings.library.export': 'Export library',
   'settings.library.empty': 'Nothing to export: no stickers, favorites, or recent GIFs',
   'settings.library.progress': 'Exporting: {done}/{total}',
+  'settings.library.exporting': 'Exporting…',
   'settings.library.packExporting': 'A pack is being exported — wait for it to finish',
   'settings.library.import': 'Load from file',
   'settings.gif.oneKey': 'One of the two keys is enough to search GIFs. {docs}',

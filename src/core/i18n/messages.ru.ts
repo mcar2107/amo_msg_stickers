@@ -65,6 +65,7 @@ export const RU = {
   'settings.library.empty':
     'Выгружать нечего: нет ни стикеров, ни избранного, ни недавних GIF',
   'settings.library.progress': 'Выгрузка: {done}/{total}',
+  'settings.library.exporting': 'Выгрузка…',
   'settings.library.packExporting': 'Идёт выгрузка пака — дождитесь её конца',
   'settings.library.import': 'Загрузить из файла',
   'settings.gif.oneKey': 'Для поиска GIF хватит одного ключа из двух. {docs}',
