@@ -49,6 +49,9 @@ export const EN: Messages = {
   'add.file.packAdds': 'Stickers to add: {count} of {total}',
   'add.file.packPresent': 'Already in your library',
   'add.file.summary': 'New packs: {packs}, stickers: {stickers}',
+  'add.file.listsSummary': 'Adds to favorites: {favorites}, to recent: {recent}',
+  'add.file.favoritesSummary': 'Adds to favorites: {favorites}',
+  'add.file.recentSummary': 'Adds to recent: {recent}',
   'add.file.allInLibrary': 'Everything in this file is already in your library',
   'add.file.checking': 'Checking stickers…',
   'add.file.progress': '{done}/{total}',
@@ -59,10 +62,11 @@ export const EN: Messages = {
   'settings.group.telegram': 'Telegram',
   'settings.group.library': 'Library',
   'settings.library.hint':
-    'All packs and custom stickers in one .amostickers file — load it in another browser or send it to a colleague.',
+    'All packs, favorites, and send history in one .amostickers file — to move them to another browser. To share stickers with someone, use “Export pack” in the pack menu.',
   'settings.library.export': 'Export library',
-  'settings.library.empty': 'Nothing to export: your library has no stickers',
+  'settings.library.empty': 'Nothing to export: no stickers, favorites, or recent GIFs',
   'settings.library.progress': 'Exporting: {done}/{total}',
+  'settings.library.exporting': 'Exporting…',
   'settings.library.packExporting': 'A pack is being exported — wait for it to finish',
   'settings.library.import': 'Load from file',
   'settings.gif.oneKey': 'One of the two keys is enough to search GIFs. {docs}',
@@ -132,10 +136,12 @@ export const EN: Messages = {
   'status.exportLibraryProgress': 'Exporting library: {done}/{total}',
   'status.exportDone': 'Pack “{title}” exported',
   'status.exportLibraryDone': 'Library exported, stickers: {count}',
+  'status.exportLibraryDoneNoStickers': 'Library exported',
   'status.exportFailed': 'Export failed: {message}',
   'status.fileImportProgress': 'Checking file: {done}/{total}',
   'status.fileImportWriting': 'Saving…',
   'status.fileImportDone': 'Stickers added: {count}',
+  'status.fileImportListsDone': 'Favorites and recent added',
   'status.fileImportFailed': 'File import: {message}',
   'status.sending': 'Sending…',
   'status.sendFailed': 'Failed to send',
@@ -192,11 +198,14 @@ export const EN: Messages = {
   'error.libraryFile.packTooBig':
     'The pack doesn’t fit in one file: up to {max} stickers and under 4 GB',
   'error.libraryFile.packExportEmpty': 'The pack has no stickers',
-  'error.libraryFile.libraryExportEmpty': 'Your library has no stickers',
+  'error.libraryFile.libraryExportEmpty':
+    'Your library has no stickers, favorites, or recent GIFs',
   'error.libraryFile.exportInvalid':
     'A library record is damaged, and the file couldn’t be read back',
   'error.libraryFile.gifTooBig':
     'Pack “{title}” has a sticker larger than {size} MB, which can’t be read back',
+  'error.libraryFile.favoriteGifTooBig':
+    'A favorite sticker is larger than {size} MB, which can’t be read back',
   'error.libraryFile.writeFailed': 'Couldn’t save to the library: {message}',
   'error.libraryFile.quota': 'Not enough browser storage — the library is unchanged',
   'error.net.notAllowed': 'URL is not on the allowed list',

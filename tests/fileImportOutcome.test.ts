@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import type { Pack } from '@core/db.types';
+import type { Pack, RecentRec } from '@core/db.types';
 import { EN, setLocale, t } from '@core/i18n';
 import type { FileCard, ImportPlan, LibraryFile } from '@core/libraryFile';
 import { FORMAT_NAME } from '@core/libraryFile';
@@ -10,11 +10,16 @@ import {
   fileImportStatus,
   finishFileImport,
   firstAddedSection,
+  isRecentSectionShown,
 } from '@ui/PickerProvider/fileImportOutcome';
 import type { ImportErrorTarget } from '@ui/PickerProvider/finishImport';
 import type { FileImportRun } from '@ui/PickerProvider/runFileImport';
 import { runFileImport } from '@ui/PickerProvider/runFileImport';
-import type { SectionMotion, SectionScrollOptions } from '@ui/usePickerView';
+import type {
+  PickerScreen,
+  SectionMotion,
+  SectionScrollOptions,
+} from '@ui/usePickerView';
 
 /**
  * Паки в порядке ленты: «Мои стикеры» первыми, затем паки Telegram по использованию.
@@ -32,17 +37,36 @@ const LIBRARY_FILE: LibraryFile = {
 };
 
 /**
- * Карточка с заданным числом новых стикеров: ход импорта читает только его.
+ * Карточка с заданным числом новых стикеров, избранного и недавних: ход импорта читает только их.
  *
  * @param newStickerCount — стикеров, которых нет в библиотеке
+ * @param lists — сколько добавится в избранное и в недавние
  * @returns карточка
  */
-const cardWith = (newStickerCount: number): FileCard => {
-  return { packs: [], stickerCount: newStickerCount, newStickerCount, newPackCount: 0 };
+const cardWith = (
+  newStickerCount: number,
+  lists: Partial<Pick<FileCard, 'newFavoriteCount' | 'newRecentCount'>> = {}
+): FileCard => {
+  return {
+    packs: [],
+    stickerCount: newStickerCount,
+    newStickerCount,
+    newPackCount: 0,
+    newFavorites: [],
+    newFavoriteCount: lists.newFavoriteCount || 0,
+    newRecentCount: lists.newRecentCount || 0,
+  };
 };
 
-const PLAN: ImportPlan = { packs: [] };
-const WRITTEN: ImportWritten = { packIds: ['tg:cats', 'custom'], stickerCount: 7 };
+const PLAN: ImportPlan = { packs: [], favorites: [], recent: [] };
+const WRITTEN: ImportWritten = {
+  packIds: ['tg:cats', 'custom'],
+  stickerCount: 7,
+  favoriteCount: 0,
+  recentCount: 0,
+  hasFavoriteStickers: false,
+  hasRecentStickers: false,
+};
 
 afterEach(() => {
   setLocale('ru');
@@ -61,11 +85,12 @@ describe('firstAddedSection', () => {
 });
 
 /**
- * Колбэки провайдера с общим журналом: порядок перехода и статуса важен.
+ * Колбэки провайдера с общим журналом: порядок перечитывания, перехода и статуса важен.
  *
+ * @param isRecentShown — покажет ли лента «Недавние» после импорта
  * @returns колбэки и журнал
  */
-const viewCallbacks = () => {
+const viewCallbacks = (isRecentShown = true) => {
   const calls: string[] = [];
 
   return {
@@ -80,72 +105,282 @@ const viewCallbacks = () => {
     showStatus: vi.fn((text: string) => {
       calls.push(`status ${text}`);
     }),
+    refreshFavorites: vi.fn(async () => {
+      calls.push('refresh favorites');
+    }),
+    refreshRecent: vi.fn(() => {
+      calls.push('refresh recent');
+    }),
+    isRecentShown: vi.fn(async () => {
+      return isRecentShown;
+    }),
+  };
+};
+
+/**
+ * @param screen — экран, который увидит итог импорта
+ * @returns геттер экрана, как у провайдера
+ */
+const onScreen = (screen: PickerScreen | null) => {
+  return () => {
+    return screen;
   };
 };
 
 describe('finishFileImport', () => {
-  it('экран «Добавить стикеры» открыт — мгновенный переход к первому разделу ленты с фокусом на его вкладку, затем статус', () => {
-    const { calls, scrollToSection, showStatus } = viewCallbacks();
+  it('экран «Добавить стикеры» открыт — мгновенный переход к первому разделу ленты с фокусом на его вкладку, затем статус', async () => {
+    const callbacks = viewCallbacks();
 
-    finishFileImport({
-      screen: 'add',
+    await finishFileImport({
+      ...callbacks,
+      getScreen: onScreen('add'),
       packs: FEED_PACKS,
       written: WRITTEN,
-      scrollToSection,
-      showStatus,
     });
 
-    expect(calls).toEqual([
+    expect(callbacks.calls).toEqual([
+      'refresh recent',
+      'refresh favorites',
       'scroll custom instant focus-tab',
       'status Добавлено стикеров: 7',
     ]);
   });
 
-  it('другой экран или режим — только статус, пользователь остаётся на месте', () => {
+  it('другой экран или режим — избранное и недавние перечитаны, перехода нет, только статус', async () => {
     for (const screen of ['settings', null] as const) {
-      const { calls, scrollToSection, showStatus } = viewCallbacks();
+      const callbacks = viewCallbacks();
 
-      finishFileImport({
-        screen,
+      await finishFileImport({
+        ...callbacks,
+        getScreen: onScreen(screen),
         packs: FEED_PACKS,
-        written: WRITTEN,
-        scrollToSection,
-        showStatus,
+        written: { ...WRITTEN, hasFavoriteStickers: true },
       });
 
-      expect(scrollToSection).not.toHaveBeenCalled();
-      expect(calls).toEqual(['status Добавлено стикеров: 7']);
+      expect(callbacks.scrollToSection).not.toHaveBeenCalled();
+      expect(callbacks.calls).toEqual([
+        'refresh recent',
+        'refresh favorites',
+        'status Добавлено стикеров: 7',
+      ]);
     }
   });
 
-  it('ничего не записано — перехода нет, статус с нулём', () => {
-    const { calls, scrollToSection, showStatus } = viewCallbacks();
+  it('ушёл с экрана, пока перечитывалось избранное, — перехода нет, только статус', async () => {
+    const callbacks = viewCallbacks();
+    let screen: PickerScreen | null = 'add';
 
-    finishFileImport({
-      screen: 'add',
-      packs: FEED_PACKS,
-      written: { packIds: [], stickerCount: 0 },
-      scrollToSection,
-      showStatus,
+    callbacks.refreshFavorites.mockImplementationOnce(async () => {
+      screen = null;
     });
 
-    expect(calls).toEqual(['status Добавлено стикеров: 0']);
-  });
-
-  it('на английском — английский статус', () => {
-    setLocale('en');
-
-    const { showStatus, scrollToSection } = viewCallbacks();
-
-    finishFileImport({
-      screen: null,
+    await finishFileImport({
+      ...callbacks,
+      getScreen: () => {
+        return screen;
+      },
       packs: FEED_PACKS,
       written: WRITTEN,
-      scrollToSection,
-      showStatus,
     });
 
-    expect(showStatus).toHaveBeenCalledWith('Stickers added: 7');
+    expect(callbacks.scrollToSection).not.toHaveBeenCalled();
+    expect(callbacks.showStatus).toHaveBeenCalledWith('Добавлено стикеров: 7');
+  });
+
+  it('ушёл с экрана, пока проверялись «Недавние», — перехода нет', async () => {
+    const callbacks = viewCallbacks();
+    let screen: PickerScreen | null = 'add';
+
+    callbacks.isRecentShown.mockImplementationOnce(async () => {
+      screen = 'settings';
+
+      return true;
+    });
+
+    await finishFileImport({
+      ...callbacks,
+      getScreen: () => {
+        return screen;
+      },
+      packs: FEED_PACKS,
+      written: { ...WRITTEN, hasRecentStickers: true },
+    });
+
+    expect(callbacks.scrollToSection).not.toHaveBeenCalled();
+  });
+
+  it('добавлены избранные стикеры — к «Избранному», даже если добавлены и недавние', async () => {
+    const callbacks = viewCallbacks();
+
+    await finishFileImport({
+      ...callbacks,
+      getScreen: onScreen('add'),
+      packs: FEED_PACKS,
+      written: { ...WRITTEN, hasFavoriteStickers: true, hasRecentStickers: true },
+    });
+
+    expect(callbacks.calls).toContain('scroll favorite instant focus-tab');
+    expect(callbacks.isRecentShown).not.toHaveBeenCalled();
+  });
+
+  it('добавлены недавние стикеры, и раздел будет показан, — к «Недавним»', async () => {
+    const callbacks = viewCallbacks(true);
+
+    await finishFileImport({
+      ...callbacks,
+      getScreen: onScreen('add'),
+      packs: FEED_PACKS,
+      written: { ...WRITTEN, hasRecentStickers: true },
+    });
+
+    expect(callbacks.calls).toContain('scroll recent instant focus-tab');
+  });
+
+  it('недавние стикеры добавлены, но раздела не будет — к первому паку с добавленными стикерами', async () => {
+    const callbacks = viewCallbacks(false);
+
+    await finishFileImport({
+      ...callbacks,
+      getScreen: onScreen('add'),
+      packs: FEED_PACKS,
+      written: { ...WRITTEN, hasRecentStickers: true },
+    });
+
+    expect(callbacks.calls).toContain('scroll custom instant focus-tab');
+  });
+
+  it('в избранное добавлены только GIF — не к «Избранному»: стикеров нет, статус «Избранное и недавние добавлены»', async () => {
+    const callbacks = viewCallbacks();
+
+    await finishFileImport({
+      ...callbacks,
+      getScreen: onScreen('add'),
+      packs: FEED_PACKS,
+      written: { ...WRITTEN, packIds: [], stickerCount: 0, favoriteCount: 1 },
+    });
+
+    expect(callbacks.scrollToSection).not.toHaveBeenCalled();
+    expect(callbacks.calls).toEqual([
+      'refresh recent',
+      'refresh favorites',
+      `status ${t('status.fileImportListsDone')}`,
+    ]);
+  });
+
+  it('стикеров нет, а недавние подняты — статус «Избранное и недавние добавлены»', async () => {
+    const callbacks = viewCallbacks();
+
+    await finishFileImport({
+      ...callbacks,
+      getScreen: onScreen(null),
+      packs: FEED_PACKS,
+      written: { ...WRITTEN, packIds: [], stickerCount: 0, recentCount: 2 },
+    });
+
+    expect(callbacks.showStatus).toHaveBeenCalledWith(t('status.fileImportListsDone'));
+  });
+
+  it('сбой перечитывания избранного — не к «Избранному», которого лента может не показать; сбой — в консоль', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const callbacks = viewCallbacks();
+
+    callbacks.refreshFavorites.mockRejectedValueOnce(new Error('db'));
+
+    await finishFileImport({
+      ...callbacks,
+      getScreen: onScreen('add'),
+      packs: FEED_PACKS,
+      written: { ...WRITTEN, hasFavoriteStickers: true },
+    });
+
+    expect(callbacks.calls).toContain('scroll custom instant focus-tab');
+    expect(callbacks.showStatus).toHaveBeenCalledWith('Добавлено стикеров: 7');
+    expect(warn).toHaveBeenCalled();
+    warn.mockRestore();
+  });
+
+  it('ничего не записано — перехода нет, статус с нулём', async () => {
+    const callbacks = viewCallbacks();
+
+    await finishFileImport({
+      ...callbacks,
+      getScreen: onScreen('add'),
+      packs: FEED_PACKS,
+      written: { ...WRITTEN, packIds: [], stickerCount: 0 },
+    });
+
+    expect(callbacks.scrollToSection).not.toHaveBeenCalled();
+    expect(callbacks.showStatus).toHaveBeenCalledWith('Добавлено стикеров: 0');
+  });
+
+  it('на английском — английский статус', async () => {
+    setLocale('en');
+
+    const callbacks = viewCallbacks();
+
+    await finishFileImport({
+      ...callbacks,
+      getScreen: onScreen(null),
+      packs: FEED_PACKS,
+      written: WRITTEN,
+    });
+    await finishFileImport({
+      ...callbacks,
+      getScreen: onScreen(null),
+      packs: FEED_PACKS,
+      written: { ...WRITTEN, packIds: [], stickerCount: 0, favoriteCount: 1 },
+    });
+
+    expect(callbacks.showStatus.mock.calls).toEqual([
+      ['Stickers added: 7'],
+      [EN['status.fileImportListsDone']],
+    ]);
+  });
+});
+
+/**
+ * Запись недавнего стикера.
+ *
+ * @param stickerId — id стикера
+ * @returns запись недавних
+ */
+const recentSticker = (stickerId: string): RecentRec => {
+  return { key: `l:${stickerId}`, ts: 1, item: { kind: 'local', stickerId } };
+};
+
+describe('isRecentSectionShown', () => {
+  it('есть недавний стикер библиотеки не из избранного — раздел будет', () => {
+    expect(
+      isRecentSectionShown([recentSticker('a'), recentSticker('b')], ['b'], ['l:a'])
+    ).toBe(true);
+  });
+
+  it('недавние — только избранные, удалённые из библиотеки или GIF — раздела не будет', () => {
+    const gif: RecentRec = {
+      key: 'r:giphy:1',
+      ts: 1,
+      item: {
+        kind: 'remote',
+        gif: {
+          provider: 'giphy',
+          id: '1',
+          title: '',
+          url: 'https://media.giphy.com/1.gif',
+          previewUrl: 'https://media.giphy.com/1s.gif',
+          width: 1,
+          height: 1,
+        },
+      },
+    };
+
+    expect(
+      isRecentSectionShown(
+        [recentSticker('a'), recentSticker('gone'), gif],
+        ['a'],
+        ['l:a']
+      )
+    ).toBe(false);
+    expect(isRecentSectionShown([], ['a'], [])).toBe(false);
   });
 });
 
@@ -347,6 +582,20 @@ describe('runFileImport', () => {
 
     expect(write).not.toHaveBeenCalled();
     expect(calls).toEqual(['start', 'card 0', 'finish']);
+  });
+
+  it('стикеры уже в библиотеке, но добавится избранное или недавние — проверка и запись идут', async () => {
+    for (const lists of [{ newFavoriteCount: 1 }, { newRecentCount: 1 }]) {
+      const { write, start } = fileRun({
+        loadCard: async () => {
+          return cardWith(0, lists);
+        },
+      });
+
+      await start();
+
+      expect(write).toHaveBeenCalledWith(PLAN);
+    }
   });
 
   it('отмена во время проверки — onCancel, записи нет', async () => {

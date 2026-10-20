@@ -1,6 +1,7 @@
-import { CUSTOM_PACK_ID } from '@core/db';
+import { CUSTOM_PACK_ID, itemKey, keepNewestByKind } from '@core/itemKey';
+import { isAllowedUrl } from '@core/net';
 import { SET_NAME_RE } from '@core/sources';
-import { isObject } from '@shared/guards';
+import { isDimension, isObject } from '@shared/guards';
 
 import {
   clampGraphemes,
@@ -8,10 +9,15 @@ import {
   FORMAT_VERSION,
   MAX_CAPTION_GRAPHEMES,
   MAX_EMOJI_GRAPHEMES,
+  MAX_FILE_FAVORITES,
+  MAX_FILE_RECENT,
   MAX_FILE_STICKERS,
+  MAX_GIF_ID_LENGTH,
   MAX_SET_NAME_LENGTH,
   MAX_TITLE_GRAPHEMES,
+  MAX_URL_LENGTH,
 } from './limits';
+import { toSendItem } from './mergeRecent';
 
 /**
  * Префикс id пака и стикера Telegram. Свой, а не `TG_ID_PREFIX` из `sources/telegram.ts`: тот модуль тянет
@@ -98,6 +104,116 @@ export type ManifestPack = {
   stickers: ManifestSticker[];
 };
 
+/**
+ * GIF из поиска — то, что нужно для её показа и отправки.
+ */
+export type ManifestGif = {
+  /**
+   * Сервис, из поиска которого пришла GIF.
+   */
+  provider: 'giphy' | 'klipy';
+
+  /**
+   * Id GIF у источника, до `MAX_GIF_ID_LENGTH` символов.
+   */
+  id: string;
+
+  /**
+   * Название GIF, урезанное до предела формата. undefined — названия нет.
+   */
+  title?: string;
+
+  /**
+   * Ссылка на GIF для отправки — `https` на хост сетевой политики.
+   */
+  url: string;
+
+  /**
+   * Ссылка на превью для ленты — `https` на хост сетевой политики.
+   */
+  previewUrl: string;
+
+  /**
+   * Ширина GIF в пикселях.
+   */
+  width: number;
+
+  /**
+   * Высота GIF в пикселях.
+   */
+  height: number;
+};
+
+/**
+ * Стикер раздела, который лежит в одном из паков файла.
+ */
+export type ManifestStickerRef = {
+  /**
+   * Вид элемента.
+   */
+  kind: 'sticker';
+
+  /**
+   * Id стикера одного из паков файла.
+   */
+  id: string;
+
+  /**
+   * Время добавления в избранное или последней отправки (мс).
+   */
+  ts: number;
+};
+
+/**
+ * Избранный стикер со своим GIF: в библиотеке его нет, и в паки файла он не попал.
+ */
+export type ManifestStickerSnapshot = ManifestStickerRef & {
+  /**
+   * Путь GIF стикера в архиве от каталога описания.
+   */
+  file: string;
+
+  /**
+   * Пак, к которому принадлежал стикер: `custom` или `tg:<имя набора>`, того же вида, что id стикера.
+   */
+  packId: string;
+
+  /**
+   * Эмодзи стикера, урезанный до предела формата. undefined — эмодзи нет.
+   */
+  emoji?: string;
+
+  /**
+   * Подпись своего стикера, урезанная до предела формата. undefined — подписи нет.
+   */
+  caption?: string;
+};
+
+/**
+ * GIF из поиска в разделе.
+ */
+export type ManifestGifItem = {
+  /**
+   * Вид элемента.
+   */
+  kind: 'gif';
+
+  /**
+   * Время добавления в избранное или последней отправки (мс).
+   */
+  ts: number;
+
+  /**
+   * Данные GIF.
+   */
+  gif: ManifestGif;
+};
+
+export type ManifestFavorite =
+  ManifestStickerRef | ManifestStickerSnapshot | ManifestGifItem;
+
+export type ManifestRecent = ManifestStickerRef | ManifestGifItem;
+
 export type LibraryManifest = {
   /**
    * Признак формата.
@@ -113,6 +229,27 @@ export type LibraryManifest = {
    * Паки в порядке файла — порядке ленты на момент выгрузки; без пустых паков.
    */
   packs: ManifestPack[];
+
+  /**
+   * Избранное, от новых к старым; ссылки только на стикеры паков файла. undefined — избранного в файле нет.
+   */
+  favorites?: ManifestFavorite[];
+
+  /**
+   * Недавние обоих видов от новых к старым, не больше `RECENT_LIMIT` каждого вида; стикеры — только из паков файла.
+   * undefined — недавних в файле нет.
+   */
+  recent?: ManifestRecent[];
+};
+
+/**
+ * @param item — элемент избранного
+ * @returns true — стикер несёт свой GIF
+ */
+export const isManifestSnapshot = (
+  item: ManifestFavorite
+): item is ManifestStickerSnapshot => {
+  return 'file' in item;
 };
 
 /**
@@ -121,8 +258,9 @@ export type LibraryManifest = {
  * - `notOurs` — не описание amo stickers (нет признака формата);
  * - `tooNew` — версия формата новее той, что знает эта сборка;
  * - `invalid` — нарушены поля, их типы, id или повторы;
- * - `tooBig` — стикеров больше `MAX_FILE_STICKERS`;
- * - `empty` — ни одного стикера.
+ * - `tooBig` — стикеров (вместе со снимками избранного) больше `MAX_FILE_STICKERS`, избранного больше
+ *   `MAX_FILE_FAVORITES` или недавних больше `MAX_FILE_RECENT`;
+ * - `empty` — ни одного стикера, избранного и недавнего.
  */
 export type ManifestError = 'notOurs' | 'tooNew' | 'invalid' | 'tooBig' | 'empty';
 
@@ -187,6 +325,50 @@ const optionalTime = (value: object, key: string) => {
 };
 
 /**
+ * Обязательное время элемента раздела.
+ *
+ * @param value — элемент из JSON
+ * @returns время; null — поля нет или оно не время
+ */
+const requiredTime = (value: object) => {
+  const ts = optionalTime(value, 'ts');
+
+  return ts === undefined ? null : ts;
+};
+
+/**
+ * Id стикера по источнику пака: свой стикер не может занять id стикера Telegram, и наоборот.
+ */
+const STICKER_ID_RE: Record<ManifestSource, RegExp> = {
+  telegram: TELEGRAM_STICKER_ID_RE,
+  custom: CUSTOM_STICKER_ID_RE,
+};
+
+/**
+ * @param id — id пака
+ * @returns true — `tg:` и имя набора по правилу имени Telegram
+ */
+const isTelegramPackId = (id: string) => {
+  const name = id.slice(TELEGRAM_PREFIX.length);
+
+  return (
+    id.startsWith(TELEGRAM_PREFIX) &&
+    name.length <= MAX_SET_NAME_LENGTH &&
+    SET_NAME_RE.test(name)
+  );
+};
+
+/**
+ * @param id — id пака из JSON
+ * @returns источник пака по id; null — id не пака amo stickers
+ */
+const sourceOfPackId = (id: unknown): ManifestSource | null => {
+  if (id === CUSTOM_PACK_ID) return 'custom';
+
+  return typeof id === 'string' && isTelegramPackId(id) ? 'telegram' : null;
+};
+
+/**
  * @param value — стикер из JSON
  * @param source — источник его пака: от него зависит вид id
  * @returns стикер; null — нарушены поля или id не того вида
@@ -195,9 +377,8 @@ const parseSticker = (value: unknown, source: ManifestSource): ManifestSticker |
   if (!isObject(value)) return null;
   const id = field(value, 'id');
   const file = field(value, 'file');
-  const idPattern = source === 'telegram' ? TELEGRAM_STICKER_ID_RE : CUSTOM_STICKER_ID_RE;
 
-  if (typeof id !== 'string' || !idPattern.test(id)) return null;
+  if (typeof id !== 'string' || !STICKER_ID_RE[source].test(id)) return null;
   if (typeof file !== 'string' || !file) return null;
   const emoji = optionalText(value, 'emoji', MAX_EMOJI_GRAPHEMES);
   const caption = optionalText(value, 'caption', MAX_CAPTION_GRAPHEMES);
@@ -229,18 +410,13 @@ const parseSource = (value: object, id: string) => {
     }
 
     case 'telegram': {
-      const name = id.slice(TELEGRAM_PREFIX.length);
       const sourceRef = field(value, 'sourceRef');
 
-      if (
-        !id.startsWith(TELEGRAM_PREFIX) ||
-        name.length > MAX_SET_NAME_LENGTH ||
-        !SET_NAME_RE.test(name)
-      ) {
+      if (!isTelegramPackId(id)) return null;
+
+      if (sourceRef !== undefined && sourceRef !== id.slice(TELEGRAM_PREFIX.length)) {
         return null;
       }
-
-      if (sourceRef !== undefined && sourceRef !== name) return null;
 
       return { source, sourceRef };
     }
@@ -300,43 +476,298 @@ const parsePack = (value: unknown): ManifestPack | null => {
 };
 
 /**
- * Число стикеров в описании до разбора полей: предел проверяется раньше, чем разбирается каждый стикер.
+ * Ссылка GIF из файла: по ней пикер ходит в сеть, поэтому — только адрес сетевой политики.
+ *
+ * @param value — GIF из JSON
+ * @param key — имя поля
+ * @returns ссылка; null — не строка, длиннее предела или вне политики
+ */
+const allowedUrl = (value: object, key: string) => {
+  const url = field(value, key);
+
+  return typeof url === 'string' && url.length <= MAX_URL_LENGTH && isAllowedUrl(url)
+    ? url
+    : null;
+};
+
+/**
+ * Им же выгрузка отбирает GIF из базы: GIF, которую загрузка не примет, в файл не пишется и не роняет выгрузку — одна
+ * запись не того вида не должна лишать человека переноса всей библиотеки.
+ *
+ * @param value — GIF из JSON или из записи базы
+ * @returns GIF с урезанным названием; null — нарушены поля
+ */
+export const parseGif = (value: unknown): ManifestGif | null => {
+  if (!isObject(value)) return null;
+  const provider = field(value, 'provider');
+  const id = field(value, 'id');
+  const title = optionalText(value, 'title', MAX_TITLE_GRAPHEMES);
+  const url = allowedUrl(value, 'url');
+  const previewUrl = allowedUrl(value, 'previewUrl');
+  const width = field(value, 'width');
+  const height = field(value, 'height');
+
+  if (provider !== 'giphy' && provider !== 'klipy') return null;
+  if (typeof id !== 'string' || !id || id.length > MAX_GIF_ID_LENGTH) return null;
+  if (title === null || url === null || previewUrl === null) return null;
+  if (!isDimension(width) || !isDimension(height)) return null;
+
+  return {
+    provider,
+    id,
+    ...(title === undefined ? {} : { title }),
+    url,
+    previewUrl,
+    width,
+    height,
+  };
+};
+
+/**
+ * @param value — элемент раздела из JSON
+ * @param ts — его время
+ * @returns GIF раздела; null — нарушены поля GIF
+ */
+const parseGifItem = (value: object, ts: number): ManifestGifItem | null => {
+  const gif = parseGif(field(value, 'gif'));
+
+  return gif ? { kind: 'gif', ts, gif } : null;
+};
+
+/**
+ * Ссылка на стикер принимается с id любого вида: есть ли стикер в паках файла, проверяется после разбора паков.
+ *
+ * @param value — элемент раздела из JSON
+ * @param ts — его время
+ * @returns ссылка на стикер; null — id не стикера amo stickers
+ */
+const parseStickerRef = (value: object, ts: number): ManifestStickerRef | null => {
+  const id = field(value, 'id');
+
+  if (typeof id !== 'string') return null;
+  if (!TELEGRAM_STICKER_ID_RE.test(id) && !CUSTOM_STICKER_ID_RE.test(id)) return null;
+
+  return { kind: 'sticker', id, ts };
+};
+
+/**
+ * @param value — элемент избранного из JSON
+ * @param ts — его время
+ * @returns стикер со своим GIF; null — нарушены поля или вид id стикера не тот, что у пака
+ */
+const parseSnapshot = (value: object, ts: number): ManifestStickerSnapshot | null => {
+  const packId = field(value, 'packId');
+  const source = sourceOfPackId(packId);
+
+  if (!source || typeof packId !== 'string') return null;
+  const sticker = parseSticker(value, source);
+
+  if (!sticker) return null;
+  const { id, file, emoji, caption } = sticker;
+
+  return {
+    kind: 'sticker',
+    id,
+    ts,
+    file,
+    packId,
+    ...(emoji === undefined ? {} : { emoji }),
+    ...(caption === undefined ? {} : { caption }),
+  };
+};
+
+/**
+ * Новый вид элемента — ошибка, а не пропуск: его принесёт только новая версия формата.
+ *
+ * @param value — элемент избранного из JSON
+ * @returns элемент избранного; null — нарушены поля или вид
+ */
+const parseFavorite = (value: unknown): ManifestFavorite | null => {
+  if (!isObject(value)) return null;
+  const ts = requiredTime(value);
+
+  if (ts === null) return null;
+  const kind = field(value, 'kind');
+
+  switch (kind) {
+    case 'sticker': {
+      return field(value, 'file') === undefined
+        ? parseStickerRef(value, ts)
+        : parseSnapshot(value, ts);
+    }
+
+    case 'gif': {
+      return parseGifItem(value, ts);
+    }
+
+    default: {
+      return null;
+    }
+  }
+};
+
+/**
+ * Недавний стикер своего GIF не несёт: стикер, которого нет в паках, не показывается в недавних и не переносится.
+ *
+ * @param value — недавний элемент из JSON
+ * @returns недавний элемент; null — нарушены поля или вид
+ */
+const parseRecent = (value: unknown): ManifestRecent | null => {
+  if (!isObject(value)) return null;
+  const ts = requiredTime(value);
+
+  if (ts === null) return null;
+  const kind = field(value, 'kind');
+
+  switch (kind) {
+    case 'sticker': {
+      return parseStickerRef(value, ts);
+    }
+
+    case 'gif': {
+      return parseGifItem(value, ts);
+    }
+
+    default: {
+      return null;
+    }
+  }
+};
+
+/**
+ * Раздел целиком: один нарушенный элемент — ошибка файла.
+ *
+ * @param raw — раздел из JSON
+ * @param parseItem — разбор элемента
+ * @returns элементы в порядке файла, пустой массив — раздела нет; null — раздел не массив или элемент нарушен
+ */
+const parseSection = <T>(raw: unknown, parseItem: (value: unknown) => T | null) => {
+  if (raw === undefined) return [];
+  if (!Array.isArray(raw)) return null;
+  const items: T[] = [];
+
+  for (const value of raw) {
+    const item = parseItem(value);
+
+    if (item === null) return null;
+    items.push(item);
+  }
+
+  return items;
+};
+
+/**
+ * Число стикеров в описании до разбора полей: предел проверяется раньше, чем разбирается каждый стикер. Избранный
+ * стикер со своим GIF — тоже стикер файла.
  *
  * @param packs — паки из JSON
- * @returns сумма длин массивов `stickers`
+ * @param favorites — избранное из JSON
+ * @returns сумма длин массивов `stickers` и число элементов избранного с `file`
  */
-const countStickers = (packs: unknown[]) => {
-  return packs.reduce<number>((total, pack) => {
+const countStickers = (packs: unknown[], favorites: unknown) => {
+  const packStickers = packs.reduce<number>((total, pack) => {
     const stickers = isObject(pack) ? field(pack, 'stickers') : undefined;
 
     return total + (Array.isArray(stickers) ? stickers.length : 0);
   }, 0);
+
+  if (!Array.isArray(favorites)) return packStickers;
+
+  return favorites.reduce<number>((total, item) => {
+    return isObject(item) && field(item, 'file') !== undefined ? total + 1 : total;
+  }, packStickers);
 };
 
 /**
  * Повторы пака, стикера или ссылки на один GIF во всём файле — ошибка: иначе один GIF лёг бы под двумя id, а стикер —
- * в два пака.
+ * в два пака. Избранный стикер со своим GIF — в тех же множествах: стикер, который есть в паке файла, своего GIF не
+ * несёт.
  *
  * @param packs — разобранные паки
+ * @param favorites — разобранное избранное
  * @returns true — повторов нет
  */
-const isUnique = (packs: ManifestPack[]) => {
+const isUnique = (packs: ManifestPack[], favorites: ManifestFavorite[]) => {
   const packIds = new Set<string>();
   const stickerIds = new Set<string>();
   const files = new Set<string>();
+
+  /**
+   * @param sticker — стикер пака или снимок избранного
+   * @returns true — ни id, ни GIF ещё не заняты
+   */
+  const take = ({ id, file }: Pick<ManifestSticker, 'id' | 'file'>) => {
+    if (stickerIds.has(id) || files.has(file)) return false;
+    stickerIds.add(id);
+    files.add(file);
+
+    return true;
+  };
 
   for (const { id, stickers } of packs) {
     if (packIds.has(id)) return false;
     packIds.add(id);
 
     for (const sticker of stickers) {
-      if (stickerIds.has(sticker.id) || files.has(sticker.file)) return false;
-      stickerIds.add(sticker.id);
-      files.add(sticker.file);
+      if (!take(sticker)) return false;
     }
   }
 
+  for (const item of favorites) {
+    if (isManifestSnapshot(item) && !take(item)) return false;
+  }
+
   return true;
+};
+
+/**
+ * Повтор элемента в разделе — ошибка: в библиотеке элемент лежит в разделе один раз, и повтор значит, что описание
+ * правили руками или оно повреждено.
+ *
+ * @param items — элементы раздела
+ * @returns true — ключи элементов не повторяются
+ */
+const hasUniqueKeys = (items: (ManifestFavorite | ManifestRecent)[]) => {
+  const keys = new Set<string>();
+
+  for (const item of items) {
+    const key = itemKey(toSendItem(item));
+
+    if (keys.has(key)) return false;
+    keys.add(key);
+  }
+
+  return true;
+};
+
+/**
+ * Стикеры без своего GIF вне паков файла отбрасываются без ошибки — как обложка не из пака: файл собран из библиотеки,
+ * где такой стикер уже удалён.
+ *
+ * @param item — элемент раздела
+ * @param stickerIds — id стикеров паков файла
+ * @returns true — элемент переносится
+ */
+const isKept = (item: ManifestFavorite, stickerIds: ReadonlySet<string>) => {
+  return item.kind === 'gif' || isManifestSnapshot(item) || stickerIds.has(item.id);
+};
+
+/**
+ * Недавних каждого вида — не больше, чем держит библиотека; остаются самые поздние по времени, а не первые по массиву:
+ * порядок файла не доверенный.
+ *
+ * @param recent — недавние после разбора
+ * @param stickerIds — id стикеров паков файла
+ * @returns недавние от новых к старым, без стикеров вне паков файла
+ */
+const keptRecent = (recent: ManifestRecent[], stickerIds: ReadonlySet<string>) => {
+  const candidates = recent.filter((item) => {
+    return isKept(item, stickerIds);
+  });
+
+  return keepNewestByKind(candidates, (item) => {
+    return item.kind;
+  }).kept;
 };
 
 /**
@@ -344,8 +775,9 @@ const isUnique = (packs: ManifestPack[]) => {
  * сохранить то, чего не прочитает.
  *
  * Строки длиннее предела урезаются, неизвестные поля игнорируются, обложка не из стикеров пака отбрасывается, пустые
- * паки выбрасываются. Ссылки `file` на записи архива здесь не проверяются — только то, что это непустая строка без
- * повторов.
+ * паки выбрасываются. Избранное и недавние — без стикеров вне паков файла, недавних — не больше `RECENT_LIMIT`
+ * каждого вида; раздела без элементов в описании нет. Ссылки `file` на записи архива здесь не проверяются — только
+ * то, что это непустая строка без повторов.
  *
  * @param value — `manifest.json` после `JSON.parse`
  * @returns описание в пределах формата или причина отказа
@@ -363,8 +795,22 @@ export const parseManifest = (value: unknown): ManifestParse => {
   }
 
   if (version > FORMAT_VERSION) return { error: 'tooNew' };
+  const rawFavorites = field(value, 'favorites');
+
   if (!Array.isArray(rawPacks)) return { error: 'invalid' };
-  if (countStickers(rawPacks) > MAX_FILE_STICKERS) return { error: 'tooBig' };
+  if (countStickers(rawPacks, rawFavorites) > MAX_FILE_STICKERS)
+    return { error: 'tooBig' };
+
+  if (Array.isArray(rawFavorites) && rawFavorites.length > MAX_FILE_FAVORITES) {
+    return { error: 'tooBig' };
+  }
+
+  const rawRecent = field(value, 'recent');
+
+  if (Array.isArray(rawRecent) && rawRecent.length > MAX_FILE_RECENT) {
+    return { error: 'tooBig' };
+  }
+
   const parsedPacks: ManifestPack[] = [];
 
   for (const raw of rawPacks) {
@@ -374,16 +820,46 @@ export const parseManifest = (value: unknown): ManifestParse => {
     parsedPacks.push(pack);
   }
 
+  const parsedFavorites = parseSection(rawFavorites, parseFavorite);
+  const parsedRecent = parseSection(rawRecent, parseRecent);
+
+  if (!parsedFavorites || !parsedRecent) return { error: 'invalid' };
+
   /**
-   * Повторы — до отбрасывания пустых паков: пустой повтор пака тоже значит, что описание правили руками или оно
-   * повреждено.
+   * Повторы — до отбрасывания пустых паков и ссылок без стикера: пустой повтор пака или повтор ссылки тоже значит, что
+   * описание правили руками или оно повреждено.
    */
-  if (!isUnique(parsedPacks)) return { error: 'invalid' };
-  const packs = parsedPacks.filter(({ stickers }) => {
-    return stickers.length > 0;
+  if (
+    !isUnique(parsedPacks, parsedFavorites) ||
+    !hasUniqueKeys(parsedFavorites) ||
+    !hasUniqueKeys(parsedRecent)
+  ) {
+    return { error: 'invalid' };
+  }
+
+  const packs: ManifestPack[] = [];
+  const stickerIds = new Set<string>();
+
+  for (const pack of parsedPacks) {
+    if (!pack.stickers.length) continue;
+    packs.push(pack);
+    for (const { id } of pack.stickers) stickerIds.add(id);
+  }
+
+  const favorites = parsedFavorites.filter((item) => {
+    return isKept(item, stickerIds);
   });
+  const recent = keptRecent(parsedRecent, stickerIds);
 
-  if (!packs.length) return { error: 'empty' };
+  if (!packs.length && !favorites.length && !recent.length) return { error: 'empty' };
 
-  return { manifest: { format: FORMAT_NAME, version, packs } };
+  return {
+    manifest: {
+      format: FORMAT_NAME,
+      version,
+      packs,
+      ...(favorites.length ? { favorites } : {}),
+      ...(recent.length ? { recent } : {}),
+    },
+  };
 };

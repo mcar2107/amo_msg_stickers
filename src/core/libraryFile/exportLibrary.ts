@@ -1,5 +1,13 @@
-import { getPack, listAllStickers, listPacks, listStickers } from '@core/db';
-import type { StickerRec } from '@core/db.types';
+import {
+  getPack,
+  listAllRecent,
+  listAllStickers,
+  listFavorites,
+  listPacks,
+  listStickers,
+} from '@core/db';
+import type { FavoriteRec, RecentRec, StickerRec } from '@core/db.types';
+import { isStickerFavorite } from '@core/db.types';
 import { t } from '@core/i18n';
 import { BYTES_IN_MB } from '@core/net';
 import { orderPacks } from '@core/packOrder';
@@ -8,7 +16,13 @@ import type { ZipWriteEntry } from '@core/zip';
 import { writeZip, ZipError } from '@core/zip';
 
 import { libraryFileName, packFileName } from './exportFileName';
-import type { ExportOptions, ExportPack, LibraryExport } from './exportLibrary.types';
+import type {
+  ExportLists,
+  ExportOptions,
+  ExportPack,
+  ExportSections,
+  LibraryExport,
+} from './exportLibrary.types';
 import {
   clampGraphemes,
   FORMAT_NAME,
@@ -20,8 +34,14 @@ import {
   MAX_STICKER_BYTES,
   MAX_TITLE_GRAPHEMES,
 } from './limits';
-import type { LibraryManifest, ManifestPack, ManifestSticker } from './manifest.types';
-import { parseManifest } from './manifest.types';
+import type {
+  LibraryManifest,
+  ManifestFavorite,
+  ManifestPack,
+  ManifestRecent,
+  ManifestSticker,
+} from './manifest.types';
+import { parseGif, parseManifest } from './manifest.types';
 
 /**
  * Каталог GIF в архиве. Имена записей — только ASCII: архиватор macOS не распаковывает запись с не-ASCII именем.
@@ -81,17 +101,158 @@ const loadPacks = async (packId: string | undefined): Promise<ExportPack[]> => {
 };
 
 /**
- * Пределы формата до сборки архива: файл, который не прочитать, не сохраняется вовсе.
+ * Избранное и недавние — только у выгрузки библиотеки: выгрузку пака пересылают другим людям, и она не раскрывает, что
+ * человек отправлял и отмечал.
+ *
+ * @param isLibrary — выгружается вся библиотека
+ * @returns избранное и недавние обоих видов от новых к старым; у выгрузки пака — пустые
+ */
+const loadLists = async (isLibrary: boolean): Promise<ExportLists> => {
+  if (!isLibrary) return { favorites: [], recent: [] };
+  const [favorites, allRecent] = await Promise.all([listFavorites(), listAllRecent()]);
+  const recent = allRecent.sort((a, b) => {
+    return b.ts - a.ts;
+  });
+
+  return { favorites, recent };
+};
+
+/**
+ * @param rec — запись избранного
+ * @param exportedIds — id стикеров паков файла
+ * @param snapshots — записи GIF снимков; снимок дописывает сюда свою
+ * @param firstFile — номер первого GIF снимков в архиве
+ * @returns элемент избранного; null — GIF, которую загрузка не примет
+ */
+const toManifestFavorite = (
+  rec: FavoriteRec,
+  exportedIds: ReadonlySet<string>,
+  snapshots: ZipWriteEntry[],
+  firstFile: number
+): ManifestFavorite | null => {
+  const { ts } = rec;
+
+  if (!isStickerFavorite(rec)) {
+    const gif = parseGif(rec.item.gif);
+
+    return gif ? { kind: 'gif', ts, gif } : null;
+  }
+
+  const { stickerId } = rec.item;
+
+  if (exportedIds.has(stickerId)) return { kind: 'sticker', id: stickerId, ts };
+  const file = `${STICKERS_DIR}${firstFile + snapshots.length}.gif`;
+
+  snapshots.push({ name: file, data: rec.sticker.blob });
+  const { emoji, caption } = toManifestSticker(rec.sticker, file);
+
+  return {
+    kind: 'sticker',
+    id: stickerId,
+    ts,
+    file,
+    packId: rec.sticker.packId,
+    ...(emoji === undefined ? {} : { emoji }),
+    ...(caption === undefined ? {} : { caption }),
+  };
+};
+
+/**
+ * @param rec — запись недавних
+ * @param exportedIds — id стикеров паков файла
+ * @returns недавний элемент; null — стикер не выгружается или GIF, которую загрузка не примет
+ */
+const toManifestRecent = (
+  rec: RecentRec,
+  exportedIds: ReadonlySet<string>
+): ManifestRecent | null => {
+  const { ts, item } = rec;
+
+  switch (item.kind) {
+    case 'local': {
+      return exportedIds.has(item.stickerId)
+        ? { kind: 'sticker', id: item.stickerId, ts }
+        : null;
+    }
+
+    case 'remote': {
+      const gif = parseGif(item.gif);
+
+      return gif ? { kind: 'gif', ts, gif } : null;
+    }
+
+    default: {
+      throw new Error(`Неизвестный вид элемента: ${String(item satisfies never)}`);
+    }
+  }
+};
+
+/**
+ * Избранный стикер, который выгружается в паке файла, — ссылка на него, а не второй GIF; остальные несут свой GIF после
+ * стикеров паков. Недавний стикер — только выгружаемый: без него он не показывается и на новом месте.
  *
  * @param packs — паки выгрузки
- * @param isLibrary — выгружается вся библиотека
- * @returns число стикеров
+ * @param lists — избранное и недавние
+ * @returns разделы описания и записи GIF снимков
  */
-const checkLimits = (packs: ExportPack[], isLibrary: boolean) => {
-  let count = 0;
+const buildSections = (packs: ExportPack[], lists: ExportLists): ExportSections => {
+  const exportedIds = new Set<string>();
+  /**
+   * Снимки нумеруются после GIF стикеров паков: номер первого — число записей, которые `buildManifest` выдаёт пакам, а
+   * не число разных id.
+   */
+  let firstSnapshotFile = 0;
+
+  for (const { stickers } of packs) {
+    firstSnapshotFile += stickers.length;
+    for (const { id } of stickers) exportedIds.add(id);
+  }
+
+  const snapshots: ZipWriteEntry[] = [];
+
+  const favorites = lists.favorites.reduce<ManifestFavorite[]>((acc, rec) => {
+    const item = toManifestFavorite(rec, exportedIds, snapshots, firstSnapshotFile);
+
+    if (item) acc.push(item);
+
+    return acc;
+  }, []);
+
+  const recent = lists.recent.reduce<ManifestRecent[]>((acc, rec) => {
+    const item = toManifestRecent(rec, exportedIds);
+
+    if (item) acc.push(item);
+
+    return acc;
+  }, []);
+
+  return { favorites, recent, snapshots };
+};
+
+/**
+ * Пределы формата до сборки архива: файл, который не прочитать, не сохраняется вовсе. Снимки избранного — такие же
+ * стикеры файла: они в пределе числа и веса.
+ *
+ * @param packs — паки выгрузки
+ * @param sections — разделы описания и GIF снимков
+ * @param isLibrary — выгружается вся библиотека
+ * @returns число стикеров вместе со снимками
+ */
+const checkLimits = (
+  packs: ExportPack[],
+  sections: ExportSections,
+  isLibrary: boolean
+) => {
+  const { favorites, recent, snapshots } = sections;
+  let count = snapshots.length;
 
   for (const { stickers } of packs) count += stickers.length;
-  if (!count) throw emptyError(isLibrary);
+
+  /**
+   * Недавний стикер и ссылка избранного без стикеров паков не пишутся, поэтому непустые разделы при нуле стикеров —
+   * это GIF.
+   */
+  if (!count && !favorites.length && !recent.length) throw emptyError(isLibrary);
   if (count > MAX_FILE_STICKERS) throw tooBigError(isLibrary);
 
   for (const { pack, stickers } of packs) {
@@ -107,6 +268,16 @@ const checkLimits = (packs: ExportPack[], isLibrary: boolean) => {
         })
       );
     }
+  }
+
+  const isSnapshotTooHeavy = snapshots.some(({ data }) => {
+    return data.size > MAX_STICKER_BYTES;
+  });
+
+  if (isSnapshotTooHeavy) {
+    throw new Error(
+      t('error.libraryFile.favoriteGifTooBig', { size: MAX_STICKER_BYTES / BYTES_IN_MB })
+    );
   }
 
   return count;
@@ -142,13 +313,20 @@ const toManifestSticker = (sticker: StickerRec, file: string): ManifestSticker =
 
 /**
  * Описание и записи GIF архива. Время пака — только в выгрузке библиотеки: выгрузку пака пересылают другим людям, и
- * она не раскрывает, когда из пака отправляли. Обложка — только стикер, который есть в паке.
+ * она не раскрывает, когда из пака отправляли. Обложка — только стикер, который есть в паке. Пустой раздел не пишется:
+ * его отсутствие и пустота читаются одинаково.
  *
  * @param packs — паки выгрузки
+ * @param sections — разделы описания и GIF снимков
  * @param isLibrary — выгружается вся библиотека
- * @returns описание и записи GIF в порядке описания
+ * @returns описание и записи GIF в порядке описания: стикеры паков, затем снимки
  */
-const buildManifest = (packs: ExportPack[], isLibrary: boolean) => {
+const buildManifest = (
+  packs: ExportPack[],
+  sections: ExportSections,
+  isLibrary: boolean
+) => {
+  const { favorites, recent, snapshots } = sections;
   const entries: ZipWriteEntry[] = [];
 
   const manifestPacks = packs.map<ManifestPack>(({ pack, stickers }) => {
@@ -181,9 +359,11 @@ const buildManifest = (packs: ExportPack[], isLibrary: boolean) => {
     format: FORMAT_NAME,
     version: FORMAT_VERSION,
     packs: manifestPacks,
+    ...(favorites.length ? { favorites } : {}),
+    ...(recent.length ? { recent } : {}),
   };
 
-  return { manifest, entries };
+  return { manifest, entries: [...entries, ...snapshots] };
 };
 
 /**
@@ -224,28 +404,32 @@ const checkManifest = (text: string, isLibrary: boolean) => {
 };
 
 /**
- * Выгружает пак или всю библиотеку в файл `.amostickers`, ничего не записывая в базу: время использования паков и
- * недавние не меняются. Пределы формата проверяются до сборки архива — неполный файл не собирается. Настроек
- * (ключей, токена), недавних и режима попапа в файле нет.
+ * Выгружает пак или всю библиотеку в файл `.amostickers`, ничего не записывая в базу: время использования паков,
+ * избранное и недавние не меняются. Пределы формата проверяются до сборки архива — неполный файл не собирается.
+ * Настроек (ключей, токена) и режима попапа в файле нет; избранное и недавние — только у библиотеки.
  *
- * Ошибки — на языке интерфейса: выгружать нечего, файл больше предела формата, GIF больше предела с названием пака,
- * запись базы, которую не прочитает загрузка.
+ * Ошибки — на языке интерфейса: выгружать нечего, файл больше предела формата, GIF больше предела с названием пака или
+ * в избранном, запись базы, которую не прочитает загрузка.
  *
  * @param options — пак, момент выгрузки и ход
- * @returns архив, имя файла и число стикеров
+ * @returns архив, имя файла и число стикеров вместе со снимками избранного
  */
 export const exportLibrary = async (
   options: ExportOptions = {}
 ): Promise<LibraryExport> => {
   const { packId, now = new Date(), onProgress } = options;
   const isLibrary = packId === undefined;
-  const packs = await loadPacks(packId);
-  const total = checkLimits(packs, isLibrary);
-  const { manifest, entries } = buildManifest(packs, isLibrary);
+  const [packs, lists] = await Promise.all([loadPacks(packId), loadLists(isLibrary)]);
+  const sections = buildSections(packs, lists);
+  const total = checkLimits(packs, sections, isLibrary);
+  const { manifest, entries } = buildManifest(packs, sections, isLibrary);
   const text = JSON.stringify(manifest);
 
   checkManifest(text, isLibrary);
-  onProgress?.({ done: 0, total });
+  /**
+   * Без стикеров (библиотека только с GIF) хода нет: «0/0» в статусе и рядом с кнопкой ничего не говорит.
+   */
+  if (total) onProgress?.({ done: 0, total });
   const manifestEntry = {
     name: MANIFEST_FILE,
     data: new Blob([text], { type: 'application/json' }),

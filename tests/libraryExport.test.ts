@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import type { Pack, StickerRec } from '@core/db.types';
+import type { FavoriteRec, Pack, RecentRec, RemoteGif, StickerRec } from '@core/db.types';
 import { t } from '@core/i18n';
 import type { ExportProgress } from '@core/libraryFile';
 import {
@@ -10,6 +10,7 @@ import {
   MAX_CAPTION_GRAPHEMES,
   MAX_FILE_STICKERS,
   MAX_STICKER_BYTES,
+  MAX_TITLE_GRAPHEMES,
   packFileName,
   prepareImport,
   readLibraryFile,
@@ -23,7 +24,12 @@ import { makeGif } from './helpers';
  * Библиотека, которую видит выгрузка через функции `db.ts`.
  */
 const library = vi.hoisted(() => {
-  return { packs: [] as Pack[], stickers: [] as StickerRec[] };
+  return {
+    packs: [] as Pack[],
+    stickers: [] as StickerRec[],
+    favorites: [] as FavoriteRec[],
+    recent: [] as RecentRec[],
+  };
 });
 
 /**
@@ -36,6 +42,10 @@ const writes = vi.hoisted(() => {
 vi.mock('@core/db', () => {
   const byCreatedAt = (a: StickerRec, b: StickerRec) => {
     return a.createdAt - b.createdAt;
+  };
+
+  const newestFirst = (a: Pick<RecentRec, 'ts'>, b: Pick<RecentRec, 'ts'>) => {
+    return b.ts - a.ts;
   };
 
   return {
@@ -65,12 +75,23 @@ vi.mock('@core/db', () => {
 
       return groups;
     }),
+    listFavorites: vi.fn(async () => {
+      return [...library.favorites].sort(newestFirst);
+    }),
+    /**
+     * Порядок базы не обещан: от старых к новым, чтобы выгрузка сортировала сама.
+     */
+    listAllRecent: vi.fn(async () => {
+      return [...library.recent].sort(newestFirst).reverse();
+    }),
   };
 });
 
 afterEach(() => {
   library.packs = [];
   library.stickers = [];
+  library.favorites = [];
+  library.recent = [];
   vi.clearAllMocks();
 });
 
@@ -227,6 +248,8 @@ describe('exportLibrary — библиотека', () => {
     const card = compareWithLibrary(libraryFile.manifest, {
       packIds: new Set(),
       stickerIds: new Set(),
+      favoriteKeys: new Set(),
+      recent: [],
     });
     const plan = await prepareImport(libraryFile, card);
     const summary = plan.packs.map(({ stickers, ...pack }) => {
@@ -409,6 +432,342 @@ describe('exportLibrary — библиотека', () => {
   });
 });
 
+/**
+ * Разделы сырого `manifest.json` — без гарда, чтобы сравнить с прочитанным.
+ */
+type ManifestSections = Partial<Record<'favorites' | 'recent', unknown[]>>;
+
+/**
+ * @param id — id GIF у источника
+ * @param fields — поля, которыми GIF отличается
+ * @returns GIF из поиска
+ */
+const remoteGif = (id: string, fields: Partial<RemoteGif> = {}): RemoteGif => {
+  return {
+    id,
+    provider: 'giphy',
+    title: id,
+    url: `https://media.giphy.com/${id}.gif`,
+    previewUrl: `https://media.giphy.com/${id}_s.gif`,
+    width: 100,
+    height: 80,
+    ...fields,
+  };
+};
+
+/**
+ * @param gif — GIF из поиска
+ * @param ts — время добавления
+ * @returns запись избранной GIF
+ */
+const favoriteGif = (gif: RemoteGif, ts: number): FavoriteRec => {
+  return { key: `r:${gif.provider}:${gif.id}`, ts, item: { kind: 'remote', gif } };
+};
+
+/**
+ * @param snapshot — запись стикера на момент добавления
+ * @param ts — время добавления
+ * @returns запись избранного стикера
+ */
+const favoriteSticker = (snapshot: StickerRec, ts: number): FavoriteRec => {
+  return {
+    key: `l:${snapshot.id}`,
+    ts,
+    item: { kind: 'local', stickerId: snapshot.id },
+    sticker: snapshot,
+  };
+};
+
+/**
+ * @param stickerId — id стикера библиотеки
+ * @param ts — время отправки
+ * @returns запись недавнего стикера
+ */
+const recentSticker = (stickerId: string, ts: number): RecentRec => {
+  return { key: `l:${stickerId}`, ts, item: { kind: 'local', stickerId } };
+};
+
+/**
+ * @param gif — GIF из поиска
+ * @param ts — время отправки
+ * @returns запись недавней GIF
+ */
+const recentGif = (gif: RemoteGif, ts: number): RecentRec => {
+  return { key: `r:${gif.provider}:${gif.id}`, ts, item: { kind: 'remote', gif } };
+};
+
+/**
+ * Библиотека из `seedLibrary` с избранным и недавними: избранный стикер пака, снимки стикеров удалённого пака и
+ * удалённого своего, избранная GIF; недавние — стикер пака, стикер удалённого пака и две GIF.
+ */
+const seedLists = () => {
+  const catSticker = library.stickers.find(({ id }) => {
+    return id === 'tg:c1';
+  });
+
+  if (!catSticker) throw new Error('нет tg:c1');
+  library.favorites = [
+    favoriteSticker(catSticker, 50),
+    favoriteSticker(
+      sticker({ id: 'tg:gone', packId: 'tg:Gone', createdAt: 9, emoji: '👋' }),
+      40
+    ),
+    favoriteSticker(
+      sticker({ id: 'zz9', packId: 'custom', createdAt: 10, caption: 'привет' }),
+      35
+    ),
+    favoriteGif(remoteGif('fav', { title: 'т'.repeat(200) }), 30),
+  ];
+  library.recent = [
+    recentSticker('tg:c2', 20),
+    recentSticker('tg:gone2', 25),
+    recentGif(remoteGif('r1', { provider: 'klipy', title: undefined }), 15),
+    recentGif(remoteGif('r2'), 22),
+  ];
+};
+
+describe('exportLibrary — избранное и недавние', () => {
+  it('пишет ссылки, снимки со своим GIF после стикеров паков и GIF', async () => {
+    seedLibrary();
+    seedLists();
+    const result = await exportLibrary({ now: NOW });
+    const { manifest, names } = await readArchive(result.blob);
+
+    expect(result.stickerCount).toBe(6);
+    expect(names).toEqual([
+      'manifest.json',
+      'stickers/0.gif',
+      'stickers/1.gif',
+      'stickers/2.gif',
+      'stickers/3.gif',
+      'stickers/4.gif',
+      'stickers/5.gif',
+    ]);
+    expect(manifest).toMatchObject({
+      favorites: [
+        { kind: 'sticker', id: 'tg:c1', ts: 50 },
+        {
+          kind: 'sticker',
+          id: 'tg:gone',
+          ts: 40,
+          file: 'stickers/4.gif',
+          packId: 'tg:Gone',
+          emoji: '👋',
+        },
+        {
+          kind: 'sticker',
+          id: 'zz9',
+          ts: 35,
+          file: 'stickers/5.gif',
+          packId: 'custom',
+          caption: 'привет',
+        },
+        {
+          kind: 'gif',
+          ts: 30,
+          gif: {
+            provider: 'giphy',
+            id: 'fav',
+            title: 'т'.repeat(MAX_TITLE_GRAPHEMES),
+            url: 'https://media.giphy.com/fav.gif',
+            previewUrl: 'https://media.giphy.com/fav_s.gif',
+            width: 100,
+            height: 80,
+          },
+        },
+      ],
+      recent: [
+        { kind: 'gif', ts: 22, gif: { provider: 'giphy', id: 'r2' } },
+        { kind: 'sticker', id: 'tg:c2', ts: 20 },
+        { kind: 'gif', ts: 15, gif: { provider: 'klipy', id: 'r1' } },
+      ],
+    });
+
+    expect((manifest as ManifestSections).favorites?.[0]).toEqual({
+      kind: 'sticker',
+      id: 'tg:c1',
+      ts: 50,
+    });
+    expect(JSON.stringify(manifest)).not.toContain('tg:gone2');
+    expect(JSON.stringify(manifest)).not.toContain('"title":null');
+  });
+
+  it('выгрузил → прочитал: те же избранное, недавние и GIF снимков', async () => {
+    seedLibrary();
+    seedLists();
+    const { blob } = await exportLibrary({ now: NOW });
+    const { manifest: written } = await readArchive(blob);
+    const libraryFile = await readLibraryFile(blob);
+
+    const { favorites, recent } = written as ManifestSections;
+
+    expect(libraryFile.manifest.favorites).toEqual(favorites);
+    expect(libraryFile.manifest.recent).toEqual(recent);
+
+    const snapshot = libraryFile.entries.get('tg:gone');
+
+    if (!snapshot) throw new Error('нет записи снимка');
+    const { blob: gif } = await readZipEntry(blob, snapshot, { maxBytes: 1_000_000 });
+
+    expect(gif.size).toBe(makeGif(13, 14).byteLength);
+  });
+
+  it('ход и итог считают и снимки', async () => {
+    seedLibrary();
+    seedLists();
+    const progress: ExportProgress[] = [];
+
+    await exportLibrary({
+      now: NOW,
+      onProgress: (step) => {
+        progress.push(step);
+      },
+    });
+
+    expect(progress.at(-1)).toEqual({ done: 6, total: 6 });
+  });
+
+  it('GIF, которую не прочитает загрузка, не выгружается', async () => {
+    seedLibrary();
+    library.favorites = [
+      favoriteGif(remoteGif('evil', { url: 'https://evil.example/a.gif' }), 2),
+      favoriteGif(remoteGif('ok'), 1),
+    ];
+    const { manifest } = await readArchive((await exportLibrary({ now: NOW })).blob);
+
+    expect(manifest).toMatchObject({ favorites: [{ kind: 'gif', gif: { id: 'ok' } }] });
+    expect(JSON.stringify(manifest)).not.toContain('evil');
+  });
+
+  /**
+   * Поля GIF, которые загрузка не примет: каждое по отдельности выбрасывает GIF из файла.
+   */
+  const unreadableGifs: [string, Partial<RemoteGif>][] = [
+    ['превью вне политики', { previewUrl: 'https://evil.example/a_s.gif' }],
+    ['id длиннее 128', { id: 'x'.repeat(129) }],
+    ['ширина 0', { width: 0 }],
+    [
+      'чужой источник',
+      {
+        /**
+         * Каст — запись базы не того вида, от которой фильтр и защищает: тип источника её не допускает.
+         */
+        provider: 'tenor' as RemoteGif['provider'],
+      },
+    ],
+  ];
+
+  it.each(unreadableGifs)('избранная GIF: %s — не выгружается', async (_name, fields) => {
+    seedLibrary();
+    library.favorites = [
+      favoriteGif(remoteGif('bad', fields), 2),
+      favoriteGif(remoteGif('ok'), 1),
+    ];
+    const { manifest } = await readArchive((await exportLibrary({ now: NOW })).blob);
+
+    expect(manifest).toMatchObject({ favorites: [{ kind: 'gif', gif: { id: 'ok' } }] });
+    expect((manifest as ManifestSections).favorites).toHaveLength(1);
+  });
+
+  it.each(unreadableGifs)('недавняя GIF: %s — не выгружается', async (_name, fields) => {
+    seedLibrary();
+    library.recent = [
+      recentGif(remoteGif('bad', fields), 2),
+      recentGif(remoteGif('ok'), 1),
+    ];
+    const { manifest } = await readArchive((await exportLibrary({ now: NOW })).blob);
+
+    expect(manifest).toMatchObject({ recent: [{ kind: 'gif', gif: { id: 'ok' } }] });
+    expect((manifest as ManifestSections).recent).toHaveLength(1);
+  });
+
+  it('библиотека только с избранными GIF выгружается', async () => {
+    library.favorites = [
+      favoriteGif(remoteGif('a'), 3),
+      favoriteGif(remoteGif('b'), 2),
+      favoriteGif(remoteGif('c'), 1),
+    ];
+    const result = await exportLibrary({ now: NOW });
+    const { manifest, names } = await readArchive(result.blob);
+
+    expect(result.fileName).toBe('amo-stickers-2026-01-05.amostickers');
+    expect(result.stickerCount).toBe(0);
+    expect(names).toEqual(['manifest.json']);
+    expect(manifest).toMatchObject({ packs: [], favorites: [{}, {}, {}] });
+    expect((await readLibraryFile(result.blob)).manifest.favorites).toHaveLength(3);
+  });
+
+  it('библиотека только с GIF выгружается без хода', async () => {
+    library.favorites = [favoriteGif(remoteGif('a'), 2)];
+    library.recent = [recentGif(remoteGif('b'), 1)];
+    const onProgress = vi.fn();
+
+    await exportLibrary({ now: NOW, onProgress });
+
+    expect(onProgress).not.toHaveBeenCalled();
+  });
+
+  it('только недавний стикер удалённого пака — выгружать нечего', async () => {
+    library.recent = [recentSticker('tg:gone', 1)];
+
+    await expect(exportLibrary({ now: NOW })).rejects.toThrow(
+      t('error.libraryFile.libraryExportEmpty')
+    );
+  });
+
+  it('без избранного и недавних разделов в описании нет', async () => {
+    seedLibrary();
+    const { manifest } = await readArchive((await exportLibrary({ now: NOW })).blob);
+
+    expect(manifest).not.toHaveProperty('favorites');
+    expect(manifest).not.toHaveProperty('recent');
+  });
+
+  it('снимок больше 8 МБ — ошибка избранного', async () => {
+    library.favorites = [
+      favoriteSticker(
+        sticker({
+          id: 'tg:big',
+          packId: 'tg:Gone',
+          createdAt: 1,
+          blob: sizedBlob(MAX_STICKER_BYTES + 1),
+        }),
+        1
+      ),
+    ];
+
+    await expect(exportLibrary({ now: NOW })).rejects.toThrow(
+      t('error.libraryFile.favoriteGifTooBig', { size: MAX_STICKER_BYTES / BYTES_IN_MB })
+    );
+  });
+
+  it('снимки считаются в предел стикеров файла', async () => {
+    const blob = gifBlob(4);
+
+    library.packs = [{ id: 'custom', title: 'Мои', source: 'custom', createdAt: 1 }];
+    library.stickers = Array.from({ length: MAX_FILE_STICKERS }, (_value, index) => {
+      return sticker({ id: `s${index}`, packId: 'custom', createdAt: index, blob });
+    });
+    library.favorites = [
+      favoriteSticker(sticker({ id: 'gone', packId: 'custom', createdAt: 1, blob }), 1),
+    ];
+
+    await expect(exportLibrary({ now: NOW })).rejects.toThrow(
+      t('error.libraryFile.exportTooBig', { max: MAX_FILE_STICKERS })
+    );
+  });
+
+  it('ничего не пишет в базу', async () => {
+    seedLibrary();
+    seedLists();
+    await exportLibrary({ now: NOW });
+
+    expect(writes.touchPack).not.toHaveBeenCalled();
+    expect(writes.putPack).not.toHaveBeenCalled();
+    expect(writes.pushRecent).not.toHaveBeenCalled();
+  });
+});
+
 describe('exportLibrary — один пак', () => {
   it('без времени пака и с именем по названию', async () => {
     seedLibrary();
@@ -433,6 +792,17 @@ describe('exportLibrary — один пак', () => {
         },
       ],
     });
+  });
+
+  it('без избранного и недавних, даже если стикеры пака в них', async () => {
+    seedLibrary();
+    seedLists();
+    const { manifest } = await readArchive(
+      (await exportLibrary({ packId: 'tg:Cats', now: NOW })).blob
+    );
+
+    expect(manifest).not.toHaveProperty('favorites');
+    expect(manifest).not.toHaveProperty('recent');
   });
 
   it('«Мои стикеры» — имя файла на языке интерфейса', async () => {

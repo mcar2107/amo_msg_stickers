@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'vitest';
+import { IDBFactory, IDBKeyRange } from 'fake-indexeddb';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
   favoriteRecord,
@@ -260,5 +261,62 @@ describe('transactionError', () => {
     const cause = new DOMException('Quota exceeded', 'QuotaExceededError');
 
     expect(transactionError(cause)).toBe(cause);
+  });
+});
+
+describe('countExportable', () => {
+  /**
+   * Модуль базы держит открытое соединение: каждый тест берёт его заново поверх своей пустой базы.
+   *
+   * @returns модуль базы
+   */
+  const freshDb = async () => {
+    vi.resetModules();
+
+    return import('@core/db');
+  };
+
+  beforeEach(() => {
+    vi.stubGlobal('indexedDB', new IDBFactory());
+    vi.stubGlobal('IDBKeyRange', IDBKeyRange);
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('пустая библиотека — 0', async () => {
+    const db = await freshDb();
+
+    expect(await db.countExportable()).toBe(0);
+  });
+
+  it('только избранные GIF — их число', async () => {
+    const db = await freshDb();
+
+    await db.putFavorite(gif('g1', 1).item);
+    await db.putFavorite(gif('g2', 1).item);
+
+    expect(await db.countExportable()).toBe(2);
+  });
+
+  it('только недавний стикер без стикеров — 0: он не выгружается', async () => {
+    const db = await freshDb();
+
+    await db.pushRecent(sticker('gone', 1).item);
+
+    expect(await db.countExportable()).toBe(0);
+  });
+
+  it('стикеры, избранное и недавние GIF; недавние стикеры не считаются', async () => {
+    const db = await freshDb();
+
+    await db.putSticker(stickerRec('s1', 'custom', 1));
+    await db.putSticker(stickerRec('s2', 'custom', 2));
+    await db.putFavorite(sticker('s1', 1).item, stickerRec('s1', 'custom', 1));
+    await db.pushRecent(sticker('s2', 1).item);
+    await db.pushRecent(gif('g1', 1).item);
+
+    expect(await db.countExportable()).toBe(4);
   });
 });

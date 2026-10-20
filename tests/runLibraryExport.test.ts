@@ -84,6 +84,28 @@ describe('runLibraryExport', () => {
     ]);
   });
 
+  it('библиотека без стикеров — итог без числа стикеров', async () => {
+    const run = callbacks({
+      ...FILE,
+      fileName: 'amo-stickers-2026-10-15.amostickers',
+      stickerCount: 0,
+    });
+
+    await runLibraryExport({ target: LIBRARY, ...run });
+
+    expect(run.showStatus).toHaveBeenLastCalledWith('Библиотека выгружена');
+  });
+
+  it('библиотека без стикеров на английском — итог без числа стикеров', async () => {
+    setLocale('en');
+
+    const run = callbacks({ ...FILE, stickerCount: 0 });
+
+    await runLibraryExport({ target: LIBRARY, ...run });
+
+    expect(run.showStatus).toHaveBeenLastCalledWith('Library exported');
+  });
+
   it('сбой сборки — ошибка в статусе, файл не скачивается, промис не отклоняется', async () => {
     const run = callbacks(new Error('Пак не помещается в один файл'));
 

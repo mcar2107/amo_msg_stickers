@@ -30,9 +30,10 @@ export type FileImportFailure = {
 
 export type FinishFileImportOptions = {
   /**
-   * Экран поверх режима в момент завершения импорта; `null` — экрана нет.
+   * Экран поверх режима сейчас; `null` — экрана нет. Геттер, а не значение: итог ждёт перечитывания базы, и за это время
+   * пользователь может уйти с экрана.
    */
-  screen: PickerScreen | null;
+  getScreen: () => PickerScreen | null;
 
   /**
    * Паки библиотеки после импорта в порядке ленты.
@@ -57,4 +58,20 @@ export type FinishFileImportOptions = {
    * Показывает итог импорта в статусе.
    */
   showStatus: (text: string) => void;
+
+  /**
+   * Перечитывает избранное провайдера.
+   */
+  refreshFavorites: () => Promise<void>;
+
+  /**
+   * Просит ленты перечитать недавние.
+   */
+  refreshRecent: () => void;
+
+  /**
+   * Покажет ли лента стикеров раздел «Недавние» после записи; спрашивается, только когда переход к нему возможен.
+   * Промис не отклоняется.
+   */
+  isRecentShown: () => Promise<boolean>;
 };

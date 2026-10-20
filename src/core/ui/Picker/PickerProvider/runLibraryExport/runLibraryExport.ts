@@ -30,7 +30,8 @@ const progressText = (target: ExportTarget, { done, total }: ExportProgress) => 
 };
 
 /**
- * Итог выгрузки для строки статуса.
+ * Итог выгрузки для строки статуса. Библиотека без стикеров — только GIF избранного и недавних — выгружается без
+ * числа стикеров: «стикеров 0» читается как пустой файл.
  *
  * @param target — что выгружалось
  * @param stickerCount — стикеров в файле
@@ -43,6 +44,8 @@ const doneText = (target: ExportTarget, stickerCount: number) => {
     }
 
     case 'library': {
+      if (stickerCount === 0) return t('status.exportLibraryDoneNoStickers');
+
       return t('status.exportLibraryDone', { count: stickerCount });
     }
 

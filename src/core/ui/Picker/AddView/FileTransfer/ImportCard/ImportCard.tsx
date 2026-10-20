@@ -1,6 +1,7 @@
 import type { FunctionComponent as FC } from 'preact';
 
 import { t } from '@core/i18n';
+import { fileCardCheckCount } from '@core/libraryFile';
 
 import { fileCardSummary } from './fileCardText';
 import type { ImportCardProps } from './ImportCard.types';
@@ -22,7 +23,7 @@ const BAR_CLASS = [
  * во время импорта на месте итога — его ход.
  *
  * Паки показаны все: пока есть место, зона растёт под список, а не поместившийся в неё список прокручивается внутри
- * карточки (`PackList/`), тело экрана — нет.
+ * карточки (`PackList/`), тело экрана — нет. У файла без паков — только избранное и недавние — списка нет, только итог.
  *
  * Счётчик «N/M» проверки скринридер читает значением полосы (`aria-valuetext`), а сам текст от него скрыт — иначе
  * прочитал бы его дважды. Ширина полосы — единственное inline-свойство: она меняется на каждый стикер. Запись хода
@@ -36,15 +37,17 @@ export const ImportCard: FC<ImportCardProps> = (props) => {
 
     switch (stage) {
       case null: {
-        return (
-          <p className={`${SECONDARY_TEXT_CLASS} shrink-0 font-semibold`}>
-            {fileCardSummary(card)}
-          </p>
-        );
+        return fileCardSummary(card).map((line) => {
+          return (
+            <p key={line} className={`${SECONDARY_TEXT_CLASS} shrink-0 font-semibold`}>
+              {line}
+            </p>
+          );
+        });
       }
 
       case 'checking': {
-        const total = progress?.total || card.newStickerCount;
+        const total = progress?.total || fileCardCheckCount(card);
         const done = progress?.done || 0;
         const count = t('add.file.progress', { done, total });
         const percent = total ? (done / total) * 100 : 0;
@@ -95,11 +98,9 @@ export const ImportCard: FC<ImportCardProps> = (props) => {
       aria-busy={card ? undefined : 'true'}
       className="flex min-h-0 flex-1 flex-col gap-1"
     >
-      {card ? (
-        <PackList packs={card.packs} />
-      ) : (
-        <p className={SECONDARY_TEXT_CLASS}>{t('add.file.reading')}</p>
-      )}
+      {!card && <p className={SECONDARY_TEXT_CLASS}>{t('add.file.reading')}</p>}
+
+      {!!card?.packs.length && <PackList packs={card.packs} />}
 
       {renderFooter()}
     </div>

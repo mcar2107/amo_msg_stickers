@@ -1,3 +1,4 @@
+import { hasFileCardAdds } from '@core/libraryFile';
 import type { FileImportPhase } from '@ui/PickerProvider/fileImportOutcome';
 import { fileImportFailure } from '@ui/PickerProvider/fileImportOutcome';
 
@@ -24,7 +25,8 @@ const packsAfterWrite = async (refreshPacks: FileImportRun['refreshPacks']) => {
  * Ход импорта файла без состояния Preact: провайдер подключает к нему своё состояние колбэками.
  *
  * Карточка сверяется с библиотекой заново: с выбора файла библиотека могла измениться. Если по свежей сверке добавлять
- * нечего, импорт заканчивается без проверки и записи — карточка сама скажет, что всё уже в библиотеке.
+ * нечего — ни стикеров, ни избранного, ни недавних, — импорт заканчивается без проверки и записи: карточка сама скажет,
+ * что всё уже в библиотеке.
  *
  * Отмена действует только до записи: выданные запросы транзакции коммитятся, и «Отменить», нажатая в этот момент, не
  * превращает исход записи в «Импорт отменён». Отмену отличает `signal`, а не вид ошибки: проверка, упавшая своей
@@ -62,7 +64,7 @@ export const runFileImport = async (run: FileImportRun): Promise<void> => {
     const card = await loadCard(libraryFile);
 
     onCard(card);
-    if (!card.newStickerCount) return;
+    if (!hasFileCardAdds(card)) return;
 
     phase = 'file';
     const plan = await prepare(libraryFile, card, { signal, onProgress });
