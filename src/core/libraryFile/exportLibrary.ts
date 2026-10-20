@@ -6,15 +6,14 @@ import {
   listPacks,
   listStickers,
 } from '@core/db';
-import type { FavoriteRec, RecentRec, RemoteGif, StickerRec } from '@core/db.types';
+import type { FavoriteRec, RecentRec, StickerRec } from '@core/db.types';
 import { isStickerFavorite } from '@core/db.types';
 import { t } from '@core/i18n';
-import { BYTES_IN_MB, isAllowedUrl } from '@core/net';
+import { BYTES_IN_MB } from '@core/net';
 import { orderPacks } from '@core/packOrder';
 import { packTitle } from '@core/packTitle';
 import type { ZipWriteEntry } from '@core/zip';
 import { writeZip, ZipError } from '@core/zip';
-import { isDimension } from '@shared/guards';
 
 import { libraryFileName, packFileName } from './exportFileName';
 import type {
@@ -32,20 +31,17 @@ import {
   MAX_CAPTION_GRAPHEMES,
   MAX_EMOJI_GRAPHEMES,
   MAX_FILE_STICKERS,
-  MAX_GIF_ID_LENGTH,
   MAX_STICKER_BYTES,
   MAX_TITLE_GRAPHEMES,
-  MAX_URL_LENGTH,
 } from './limits';
 import type {
   LibraryManifest,
   ManifestFavorite,
-  ManifestGif,
   ManifestPack,
   ManifestRecent,
   ManifestSticker,
 } from './manifest.types';
-import { parseManifest } from './manifest.types';
+import { parseGif, parseManifest } from './manifest.types';
 
 /**
  * Каталог GIF в архиве. Имена записей — только ASCII: архиватор macOS не распаковывает запись с не-ASCII именем.
@@ -122,42 +118,6 @@ const loadLists = async (isLibrary: boolean): Promise<ExportLists> => {
 };
 
 /**
- * Ссылка GIF, которую примет загрузка: длиннее предела или вне сетевой политики — нет.
- *
- * @param url — ссылка из записи базы
- * @returns true — ссылку можно писать в файл
- */
-const isFormatUrl = (url: string) => {
-  return url.length <= MAX_URL_LENGTH && isAllowedUrl(url);
-};
-
-/**
- * GIF из записи базы для файла. GIF, которую загрузка не примет, пропускается, а не роняет выгрузку: одна запись не того
- * вида не должна лишать человека переноса всей библиотеки.
- *
- * @param gif — GIF из поиска
- * @returns GIF описания с урезанным названием; null — загрузка её не примет
- */
-const toManifestGif = (gif: RemoteGif): ManifestGif | null => {
-  const { provider, id, url, previewUrl, width, height } = gif;
-
-  if (!id || id.length > MAX_GIF_ID_LENGTH) return null;
-  if (!isFormatUrl(url) || !isFormatUrl(previewUrl)) return null;
-  if (!isDimension(width) || !isDimension(height)) return null;
-  const title = clampOptional(gif.title, MAX_TITLE_GRAPHEMES);
-
-  return {
-    provider,
-    id,
-    ...(title === undefined ? {} : { title }),
-    url,
-    previewUrl,
-    width,
-    height,
-  };
-};
-
-/**
  * @param rec — запись избранного
  * @param exportedIds — id стикеров паков файла
  * @param snapshots — записи GIF снимков; снимок дописывает сюда свою
@@ -173,7 +133,7 @@ const toManifestFavorite = (
   const { ts } = rec;
 
   if (!isStickerFavorite(rec)) {
-    const gif = toManifestGif(rec.item.gif);
+    const gif = parseGif(rec.item.gif);
 
     return gif ? { kind: 'gif', ts, gif } : null;
   }
@@ -216,7 +176,7 @@ const toManifestRecent = (
     }
 
     case 'remote': {
-      const gif = toManifestGif(item.gif);
+      const gif = parseGif(item.gif);
 
       return gif ? { kind: 'gif', ts, gif } : null;
     }

@@ -490,10 +490,13 @@ const allowedUrl = (value: object, key: string) => {
 };
 
 /**
- * @param value — GIF из JSON
- * @returns GIF; null — нарушены поля
+ * Им же выгрузка отбирает GIF из базы: GIF, которую загрузка не примет, в файл не пишется и не роняет выгрузку — одна
+ * запись не того вида не должна лишать человека переноса всей библиотеки.
+ *
+ * @param value — GIF из JSON или из записи базы
+ * @returns GIF с урезанным названием; null — нарушены поля
  */
-const parseGif = (value: unknown): ManifestGif | null => {
+export const parseGif = (value: unknown): ManifestGif | null => {
   if (!isObject(value)) return null;
   const provider = field(value, 'provider');
   const id = field(value, 'id');
