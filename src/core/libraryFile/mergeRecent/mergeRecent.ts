@@ -1,5 +1,5 @@
-import type { RecentKind, RecentRec } from '@core/db.types';
-import { itemKey, RECENT_LIMIT, recentKindOf } from '@core/itemKey';
+import type { RecentRec } from '@core/db.types';
+import { itemKey, keepNewestByKind, recentKindOf } from '@core/itemKey';
 import type { ManifestRecent } from '@core/libraryFile';
 
 import type { RecentMerge } from './mergeRecent.types';
@@ -57,27 +57,26 @@ export const mergeRecent = (
     }
   }
 
-  const byTime = [...byKey.values()].sort((a, b) => {
-    return b.rec.ts - a.rec.ts;
+  const recs = Array.from(byKey.values(), ({ rec }) => {
+    return rec;
   });
-  const counts: Record<RecentKind, number> = { sticker: 0, gif: 0 };
+  const { kept, overflow } = keepNewestByKind(recs, (rec) => {
+    return recentKindOf(rec.item);
+  });
+  const merge: RecentMerge = { put: [], deleteKeys: [], added: [] };
 
-  return byTime.reduce<RecentMerge>(
-    (acc, { rec, incoming: item, isInLibrary }) => {
-      const kind = recentKindOf(rec.item);
-      const isKept = counts[kind] < RECENT_LIMIT;
+  for (const rec of kept) {
+    const item = byKey.get(rec.key)?.incoming;
 
-      counts[kind] += 1;
+    if (item) {
+      merge.put.push(rec);
+      merge.added.push(item);
+    }
+  }
 
-      if (item && isKept) {
-        acc.put.push(rec);
-        acc.added.push(item);
-      }
+  for (const { key } of overflow) {
+    if (byKey.get(key)?.isInLibrary) merge.deleteKeys.push(key);
+  }
 
-      if (!isKept && isInLibrary) acc.deleteKeys.push(rec.key);
-
-      return acc;
-    },
-    { put: [], deleteKeys: [], added: [] }
-  );
+  return merge;
 };

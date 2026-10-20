@@ -1,4 +1,4 @@
-import { CUSTOM_PACK_ID, itemKey, RECENT_LIMIT } from '@core/itemKey';
+import { CUSTOM_PACK_ID, itemKey, keepNewestByKind } from '@core/itemKey';
 import { isAllowedUrl } from '@core/net';
 import { SET_NAME_RE } from '@core/sources';
 import { isDimension, isObject } from '@shared/guards';
@@ -761,18 +761,13 @@ const isKept = (item: ManifestFavorite, stickerIds: ReadonlySet<string>) => {
  * @returns недавние от новых к старым, без стикеров вне паков файла
  */
 const keptRecent = (recent: ManifestRecent[], stickerIds: ReadonlySet<string>) => {
-  const counts: Record<ManifestRecent['kind'], number> = { sticker: 0, gif: 0 };
-  const byTime = [...recent].sort((a, b) => {
-    return b.ts - a.ts;
+  const candidates = recent.filter((item) => {
+    return isKept(item, stickerIds);
   });
 
-  return byTime.reduce<ManifestRecent[]>((acc, item) => {
-    if (!isKept(item, stickerIds) || counts[item.kind] >= RECENT_LIMIT) return acc;
-    counts[item.kind] += 1;
-    acc.push(item);
-
-    return acc;
-  }, []);
+  return keepNewestByKind(candidates, (item) => {
+    return item.kind;
+  }).kept;
 };
 
 /**

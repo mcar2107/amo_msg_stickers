@@ -1,4 +1,5 @@
 import type { FavoriteRec, RecentKind, SendItem, StickerRec } from './db.types';
+import type { NewestByKind, TimedRecent } from './itemKey.types';
 
 /**
  * Id «Моих стикеров». Живёт здесь, а не в базе: его берёт и разбор файла выгрузки, который база сама импортирует.
@@ -102,4 +103,36 @@ export const favoriteRecord = (
       throw new Error(`Unknown send item: ${JSON.stringify(unknownItem)}`);
     }
   }
+};
+
+/**
+ * Лимит недавних — по виду: поток отправленных GIF не вытесняет стикеры, и наоборот. Одно правило для записи отправки,
+ * слияния с файлом и разбора файла, поэтому библиотека, карточка файла и импорт держат одни и те же элементы. Сортировка
+ * устойчивая: при равном времени остаётся тот, что раньше во входном порядке.
+ *
+ * @param items — недавние в любом порядке
+ * @param kindOf — вид элемента
+ * @returns самые поздние каждого вида в пределах `RECENT_LIMIT` и вытесненные
+ */
+export const keepNewestByKind = <T extends TimedRecent>(
+  items: readonly T[],
+  kindOf: (item: T) => RecentKind
+): NewestByKind<T> => {
+  const counts: Record<RecentKind, number> = { sticker: 0, gif: 0 };
+  const byTime = [...items].sort((a, b) => {
+    return b.ts - a.ts;
+  });
+
+  return byTime.reduce<NewestByKind<T>>(
+    (acc, item) => {
+      const kind = kindOf(item);
+
+      if (counts[kind] < RECENT_LIMIT) acc.kept.push(item);
+      else acc.overflow.push(item);
+      counts[kind] += 1;
+
+      return acc;
+    },
+    { kept: [], overflow: [] }
+  );
 };

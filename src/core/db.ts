@@ -15,8 +15,8 @@ import {
   CUSTOM_PACK_ID,
   favoriteRecord,
   itemKey,
+  keepNewestByKind,
   LOCAL_KEY_PREFIX,
-  RECENT_LIMIT,
   recentKindOf,
   REMOTE_KEY_PREFIX,
 } from './itemKey';
@@ -636,6 +636,14 @@ export const recentOfKind = (records: RecentRec[], kind: RecentKind): RecentRec[
 };
 
 /**
+ * @param rec — запись недавних
+ * @returns её вид
+ */
+const recentOfRecord = (rec: RecentRec) => {
+  return recentKindOf(rec.item);
+};
+
+/**
  * Лимит считается по виду: поток отправленных GIF не вытесняет стикеры, и наоборот.
  *
  * @param records — все записи недавних
@@ -643,8 +651,10 @@ export const recentOfKind = (records: RecentRec[], kind: RecentKind): RecentRec[
  * @returns ключи самых старых записей этого вида сверх лимита
  */
 export const recentOverflow = (records: RecentRec[], kind: RecentKind): string[] => {
-  return recentOfKind(records, kind).reduce<string[]>((acc, { key }, index) => {
-    if (index >= RECENT_LIMIT) acc.push(key);
+  const { overflow } = keepNewestByKind(records, recentOfRecord);
+
+  return overflow.reduce<string[]>((acc, rec) => {
+    if (recentOfRecord(rec) === kind) acc.push(rec.key);
 
     return acc;
   }, []);
