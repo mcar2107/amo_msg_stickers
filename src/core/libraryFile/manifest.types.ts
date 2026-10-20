@@ -10,6 +10,7 @@ import {
   MAX_CAPTION_GRAPHEMES,
   MAX_EMOJI_GRAPHEMES,
   MAX_FILE_FAVORITES,
+  MAX_FILE_RECENT,
   MAX_FILE_STICKERS,
   MAX_GIF_ID_LENGTH,
   MAX_SET_NAME_LENGTH,
@@ -257,8 +258,8 @@ export const isManifestSnapshot = (
  * - `notOurs` — не описание amo stickers (нет признака формата);
  * - `tooNew` — версия формата новее той, что знает эта сборка;
  * - `invalid` — нарушены поля, их типы, id или повторы;
- * - `tooBig` — стикеров (вместе со снимками избранного) больше `MAX_FILE_STICKERS` или избранного больше
- *   `MAX_FILE_FAVORITES`;
+ * - `tooBig` — стикеров (вместе со снимками избранного) больше `MAX_FILE_STICKERS`, избранного больше
+ *   `MAX_FILE_FAVORITES` или недавних больше `MAX_FILE_RECENT`;
  * - `empty` — ни одного стикера, избранного и недавнего.
  */
 export type ManifestError = 'notOurs' | 'tooNew' | 'invalid' | 'tooBig' | 'empty';
@@ -809,6 +810,12 @@ export const parseManifest = (value: unknown): ManifestParse => {
     return { error: 'tooBig' };
   }
 
+  const rawRecent = field(value, 'recent');
+
+  if (Array.isArray(rawRecent) && rawRecent.length > MAX_FILE_RECENT) {
+    return { error: 'tooBig' };
+  }
+
   const parsedPacks: ManifestPack[] = [];
 
   for (const raw of rawPacks) {
@@ -819,7 +826,7 @@ export const parseManifest = (value: unknown): ManifestParse => {
   }
 
   const parsedFavorites = parseSection(rawFavorites, parseFavorite);
-  const parsedRecent = parseSection(field(value, 'recent'), parseRecent);
+  const parsedRecent = parseSection(rawRecent, parseRecent);
 
   if (!parsedFavorites || !parsedRecent) return { error: 'invalid' };
 

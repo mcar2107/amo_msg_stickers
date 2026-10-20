@@ -5,6 +5,7 @@ import {
   FORMAT_VERSION,
   MAX_CAPTION_GRAPHEMES,
   MAX_FILE_FAVORITES,
+  MAX_FILE_RECENT,
   MAX_FILE_STICKERS,
   MAX_TITLE_GRAPHEMES,
   parseManifest,
@@ -833,6 +834,31 @@ describe('parseManifest: избранное и недавние', () => {
 
     expect(errorOf(withFavorites(MAX_FILE_FAVORITES))).toBeUndefined();
     expect(errorOf(withFavorites(MAX_FILE_FAVORITES + 1))).toBe('tooBig');
+  });
+
+  it('недавних больше предела — слишком большой файл', () => {
+    /**
+     * @param count — число недавних GIF
+     * @returns описание с `count` недавними GIF
+     */
+    const withRecent = (count: number) => {
+      return withSections({
+        recent: Array.from({ length: count }, (_, n) => {
+          return gifItem(`g${n}`, n);
+        }),
+      });
+    };
+
+    expect(errorOf(withRecent(MAX_FILE_RECENT))).toBeUndefined();
+    expect(errorOf(withRecent(MAX_FILE_RECENT + 1))).toBe('tooBig');
+  });
+
+  it('предел недавних проверяется до разбора элементов', () => {
+    const recent = Array.from({ length: MAX_FILE_RECENT + 1 }, () => {
+      return { kind: 'unknown' };
+    });
+
+    expect(errorOf(withSections({ recent }))).toBe('tooBig');
   });
 
   it('снимки считаются в предел стикеров файла вместе со стикерами паков', () => {
