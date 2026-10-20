@@ -467,6 +467,12 @@ const favoriteStickerIds = (plan: ImportPlan): string[] => {
 };
 
 /**
+ * Чтений `writeImport`, которые идут всегда, независимо от плана: ключи паков, ключи стикеров, ключи избранного и
+ * записи недавних. К ним добавляются чтения по плану — стикеры каждого его пака и записи стикеров избранного.
+ */
+const FIXED_IMPORT_READS = 4;
+
+/**
  * Записывает импорт из файла одной транзакцией на паки, стикеры, избранное и недавние: сверка с библиотекой и запись
  * идут в колбэках её запросов, без ожидания чего-либо вне базы, — иначе транзакция закоммитилась бы между чтением и
  * записью. Поэтому библиотека, избранное и недавние сверяются в момент записи, а сбой (квота, закрытие вкладки)
@@ -505,7 +511,7 @@ export const writeImport = async (plan: ImportPlan): Promise<ImportWritten> => {
     hasFavoriteStickers: false,
     hasRecentStickers: false,
   };
-  let pendingReads = 4 + plan.packs.length + stickerIdsToRead.length;
+  let pendingReads = FIXED_IMPORT_READS + plan.packs.length + stickerIdsToRead.length;
 
   /**
    * Записи строятся по последнему прочитанному: до него состояние библиотеки неполное. Удаление недавних сверх лимита
