@@ -15,8 +15,40 @@ paths:
   react-hooks + jsx-a11y);
 - `/.prettierrc` + `/.prettierignore` — форматирование;
 - `/tsconfig.json` — строгий TS (`strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`);
-- `/.lintstagedrc.mjs` — `eslint --fix` / `prettier --write` по staged-файлам; `/.husky/pre-commit` — lint-staged +
-  tsc + `vitest --changed` параллельно.
+- `/.lintstagedrc.mjs` — `eslint --fix` / `prettier --write` / `ast-grep scan` по staged-файлам;
+  `/.husky/pre-commit` — lint-staged + tsc + `vitest --changed` + поиск секретов в staged параллельно;
+- проверки сверх eslint — таблица ниже.
+
+## Проверки сверх eslint
+
+Подборка — https://github.com/mokevnin/dev-guardrails. Каждая падает с ненулевым кодом. Бинарные инструменты
+(ast-grep, agnix, jactionlint, shellcheck, betterleaks, osv-scanner, lychee) закреплены в `/.mise.toml` и
+запускаются через `mise x --`, который доставит недостающий; без mise pre-commit падает с подсказкой. npm-обёртки с
+докачкой на `postinstall` не берём. Версии `.mise.toml` Dependabot не поднимает — руками.
+
+| Команда | Что | Конфиг | Где ещё |
+|---|---|---|---|
+| `pnpm lint:knip` | неиспользуемые файлы, экспорты, типы, зависимости | `/knip.jsonc` | `pnpm lint`, CI `lint` |
+| `pnpm lint:sg` | правила проекта ast-grep и тесты правил | `/sgconfig.yml`, `/.ast-grep/` | `pnpm lint`, pre-commit, CI `lint` |
+| `pnpm lint:agents` | `CLAUDE.md`, `.claude/rules`, скиллы, хуки, `settings.json` (agnix `--strict`) | `/.agnix.toml` | `pnpm lint`, CI `lint` |
+| `pnpm lint:actions` | workflows, composite action, `dependabot.yml`, ShellCheck `run:` | правила по умолчанию | `pnpm lint`, CI `actions` |
+| `pnpm size` | бюджет несжатого размера собранных файлов, после `pnpm build` | `/.size-limit.json` | CI `build` |
+| `pnpm lint:secrets` | секреты во всей истории git | `/.betterleaks.toml` | pre-commit (staged), CI `secrets` |
+| `pnpm lint:deps` | известные уязвимости в lockfile корня и доки | `/osv-scanner.toml` | CI `deps` |
+| `pnpm lint:links` | внешние ссылки README и доки | `/lychee.toml` | `links.yml` по расписанию |
+
+- **Knip.** Экспорт, нужный только своему файлу, — без `export`; ненужный никому — удаляется. Использование в тестах
+  считается использованием. Точки входа esbuild перечислены в конфиге: из `build.mjs` Knip их не берёт.
+- **ast-grep.** Правило — парой `<id>` (`.ts`) и `<id>-tsx`: generic-стрелку `<T>(…)` парсер TSX принимает за JSX.
+  Правила: `no-iterator-chain` (`filter` / `map` / `flatMap` подряд), `no-hex-color` (+ `-css`), `no-cyrillic-literal`
+  (вне `messages.ru.ts`, `throw` и `new …Error`), `no-node-api` (`src/`, `tests/`). Новое правило — с тестом в
+  `.ast-grep/tests/` и снапшотом (`ast-grep test -U`).
+- **Бюджет размера** — текущий размер плюс ~10 %; рост сверх — подъём бюджета в том же PR, он виден в диффе.
+- **Секреты.** Отчёт — с `--redact -v`: файл и строка, значение скрыто.
+- **Уязвимости.** Исправление — обновление пакета; иначе исключение с `reason` и `ignoreUntil`.
+
+Исключение из любой проверки — в её конфиге или комментарием-исключением инструмента над строкой (`# jactionlint
+ignore=<правило>`) и всегда с причиной.
 
 TypeScript в проекте двух версий: `typescript` (6.x) — только для typescript-eslint, который TS 7 пока не
 поддерживает; `typescript-native` (7.x, нативный tsgo) — для проверки типов (`pnpm typecheck`). Бинарь
@@ -35,7 +67,8 @@ TypeScript в проекте двух версий: `typescript` (6.x) — то�
    - `severity: warning` → exit 0, предупреждения всё равно в stderr;
    - сбой линтера → exit 1 + диагностика.
 
-3. **Перед завершением задачи** — `pnpm lint` (eslint + tsc + prettier параллельно) и `pnpm test`.
+3. **Перед завершением задачи** — `pnpm lint` (eslint, tsc, prettier, Knip, ast-grep, agnix, jactionlint
+   параллельно) и `pnpm test`; правка зависимостей — ещё `pnpm lint:deps`, правка сборки — `pnpm build && pnpm size`.
    0 errors и 0 warnings в новом коде.
 
 ## Запреты

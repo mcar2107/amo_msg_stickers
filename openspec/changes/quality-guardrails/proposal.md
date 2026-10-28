@@ -44,7 +44,7 @@ lockfile при выключенных major-обновлениях Dependabot �
 - **Код:** снятие `export` или удаление неиспользуемых экспортов в `src/` и `scripts/` по находкам Knip; поведение не
   меняется.
 - **Конфиги:** новые `knip.json`, `.size-limit.json`, `sgconfig.yml` и `.ast-grep/`, `.agnix.toml`,
-  `.betterleaks.toml`, `osv-scanner.toml`, `lychee.toml`, `.github/jactionlint.yaml`; правки `package.json`,
+  `.betterleaks.toml`, `osv-scanner.toml`, `lychee.toml`; правки `package.json`,
   `pnpm-lock.yaml`, `.mise.toml`, `.lintstagedrc.mjs`, `.husky/pre-commit`,
   `.claude/settings.json`.
 - **CI:** `ci.yml` (задания `actions`, `secrets`, `deps`, бюджет в `build`), новый `links.yml`, правки всех workflows и
