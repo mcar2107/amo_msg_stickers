@@ -32,7 +32,7 @@ export type PreviewTarget = {
 /**
  * Ячейка, на которую переключается закреплённый предпросмотр.
  */
-export type PreviewStep = {
+type PreviewStep = {
   /**
    * Что показывать.
    */

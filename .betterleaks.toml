@@ -1,0 +1,12 @@
+[extend]
+useDefault = true
+
+# `key` в manifest — публичный ключ, по которому Chrome даёт расширению постоянный id
+# (тот же id у карточки в Chrome Web Store): он открыт в любой установленной копии и не секрет.
+[[allowlists]]
+description = "Публичный ключ расширения в manifest"
+targetRules = ["generic-api-key"]
+condition = "AND"
+paths = ['''^src/extension/manifest\.json$''']
+regexTarget = "line"
+regexes = ['''^\s*"key":''']

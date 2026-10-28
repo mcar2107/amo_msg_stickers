@@ -1,6 +1,9 @@
 name: Claude Code
 
 on:
+  # Правило видит только триггер, а не `if` job-а, где проверен автор: причина исключения —
+  # в комментарии к job-у.
+  # jactionlint ignore=dangerous-triggers
   issue_comment:
     types: [created]
   pull_request_review_comment:
@@ -12,12 +15,27 @@ on:
 
 jobs:
   claude:
+    # Комментировать публичный репозиторий может кто угодно, а job получает токен на запись и
+    # секрет: запускает только владелец, участник организации или соавтор. Код PR при этом
+    # исполняется: на ревью checkout берёт merge-коммит PR, а на комментарий к PR
+    # claude-code-action сам переключается на его head — и у PR из форка, с секретом и токеном
+    # на запись (`pnpm lint`, `pnpm test`). Звать `@claude` на PR из форка — прочитав его дифф.
     if: |
-      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude')) ||
-      (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude')) ||
-      (github.event_name == 'pull_request_review' && contains(github.event.review.body, '@claude')) ||
-      (github.event_name == 'issues' && (contains(github.event.issue.body, '@claude') || contains(github.event.issue.title, '@claude')))
+      contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association || github.event.review.author_association || github.event.issue.author_association) && (
+        (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude')) ||
+        (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude')) ||
+        (github.event_name == 'pull_request_review' && contains(github.event.review.body, '@claude')) ||
+        (github.event_name == 'issues' && (contains(github.event.issue.body, '@claude') || contains(github.event.issue.title, '@claude')))
+      )
     runs-on: ubuntu-latest
+    timeout-minutes: 60
+    # Сессии одного issue или PR — по очереди, без отмены: новый `@claude` — новая просьба, а не
+    # замена прежней. Группа на job-е, а не на workflow: прогон, отсеянный `if`, в очередь не
+    # встаёт.
+    concurrency:
+      group: claude-${{ github.event.issue.number || github.event.pull_request.number }}
+      cancel-in-progress: false
+      queue: max
     permissions:
       contents: write
       pull-requests: write
@@ -25,16 +43,20 @@ jobs:
       id-token: write
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          persist-credentials: false
           fetch-depth: 1
 
-      # Зависимости ставятся заранее: без них разрешённые Claude проверки pnpm упали бы.
+      # Зависимости и инструменты `pnpm lint` ставятся заранее: без них разрешённые Claude
+      # проверки упали бы.
       - uses: ./.github/actions/setup
+        with:
+          tools: ast-grep github:agent-sh/agnix github:jdx/jactionlint shellcheck
 
       - name: Run Claude Code
         id: claude
-        uses: anthropics/claude-code-action@v1
+        uses: anthropics/claude-code-action@d70510b174a1244958df0b03166a54912811f3e6 # v1.0.264
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           claude_args: |

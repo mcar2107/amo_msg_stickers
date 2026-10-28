@@ -110,7 +110,7 @@ export type GmRequestDetails = {
 /**
  * Управление запущенным запросом.
  */
-export type GmRequestHandle = {
+type GmRequestHandle = {
   /**
    * Обрывает запрос: остаток тела не скачивается.
    */

@@ -1,0 +1,18 @@
+id: no-node-api
+valid:
+  - 'const bytes = new TextEncoder().encode(text);'
+  - 'const worker = job.process;'
+  - "const url = new URL('./file.txt', import.meta.url);"
+  - "const label = 'node: label';"
+  - "const key = t('path');"
+  - "import { pick } from './path';"
+invalid:
+  - "const bytes = Buffer.from('a');"
+  - 'const token = process.env.TOKEN;'
+  - "import { readFile } from 'node:fs/promises';"
+  - 'const here = __dirname;'
+  - "const fs = require('fs');"
+  - 'const bytes: Buffer = read();'
+  - 'let timer: NodeJS.Timeout;'
+  - "import { join } from 'path';"
+  - "export { readFile } from 'fs/promises';"

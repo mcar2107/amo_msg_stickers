@@ -4,7 +4,7 @@ import type { GifEncoderOptions } from './gifEncoder.types';
  * Начало прохода: Worker заводит новый GIF, прежний (пробный или недописанный)
  * выбрасывается.
  */
-export type GifWorkerStart = GifEncoderOptions & {
+type GifWorkerStart = GifEncoderOptions & {
   /**
    * Вид сообщения.
    */
@@ -16,7 +16,7 @@ export type GifWorkerStart = GifEncoderOptions & {
  * после отправки пуст. Исключение — кадр до первого `ack`: он уходит копией и остаётся
  * у главного потока, чтобы повторить его в фолбэке, если Worker так и не заработал.
  */
-export type GifWorkerFrame = {
+type GifWorkerFrame = {
   /**
    * Вид сообщения.
    */
@@ -36,7 +36,7 @@ export type GifWorkerFrame = {
 /**
  * Конец прохода: Worker закрывает GIF и отвечает `done`.
  */
-export type GifWorkerFinish = {
+type GifWorkerFinish = {
   /**
    * Вид сообщения.
    */
@@ -51,7 +51,7 @@ export type GifWorkerRequest = GifWorkerStart | GifWorkerFrame | GifWorkerFinish
 /**
  * Кадр закодирован; следующий можно слать.
  */
-export type GifWorkerAck = {
+type GifWorkerAck = {
   /**
    * Вид сообщения.
    */
@@ -66,7 +66,7 @@ export type GifWorkerAck = {
 /**
  * Готовый GIF прохода; буфер `bytes` передаётся без копии.
  */
-export type GifWorkerDone = {
+type GifWorkerDone = {
   /**
    * Вид сообщения.
    */
@@ -81,7 +81,7 @@ export type GifWorkerDone = {
 /**
  * Сообщение не обработано: проход дальше не идёт.
  */
-export type GifWorkerError = {
+type GifWorkerError = {
   /**
    * Вид сообщения.
    */

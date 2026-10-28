@@ -32,10 +32,13 @@ pnpm build             # dist/extension/* и dist/amo-stickers.user.js
 pnpm watch             # пересборка, inline-sourcemap, хосты localhost:3000 и :3001
 pnpm harness           # стенд http://localhost:8777/dev/harness.html
 pnpm typecheck         # проверка типов (TS 7): корень и docs/tsconfig.json
-pnpm lint              # eslint + typecheck + prettier --check
+pnpm lint              # eslint, typecheck, prettier --check, Knip, ast-grep, agnix, jactionlint
 pnpm lint:fix          # eslint --fix
 pnpm format            # prettier --write
 pnpm test              # vitest, проект unit
+pnpm size              # бюджет размера dist/ после pnpm build
+pnpm lint:secrets      # секреты в истории git (Betterleaks); lint:deps — уязвимости, lint:links — внешние ссылки
+mise install           # бинарные инструменты проверок из .mise.toml (linting.md)
 pnpm skills:update     # перегенерация .claude/skills/openspec-* и .claude/commands/opsx
 pnpm -C docs i         # зависимости доки — отдельный пакет; нужен до первого коммита (pre-commit гоняет typecheck)
 pnpm docs:dev          # дока локально; docs:build падает на битой ссылке; docs:preview
@@ -55,6 +58,8 @@ TypeScript двух версий: `typescript-native` (7.x) проверяет �
 ```
 build.mjs tsconfig.json vitest.config.ts tailwind.config.ts   # сборка и конфиги (build.md)
 eslint.config.mjs .prettierrc .lintstagedrc.mjs .husky/       # линтеры и гейт коммита (linting.md)
+knip.jsonc sgconfig.yml .ast-grep/ .agnix.toml .size-limit.json .betterleaks.toml osv-scanner.toml lychee.toml
+                                                              # проверки сверх eslint (linting.md)
 src/
   core/                 ядро, общее для обеих целей
     app.ts              старт: поля ввода, кнопка, попап, отправка (amo-dom.md, send.md)

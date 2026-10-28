@@ -1,0 +1,8 @@
+id: no-hex-color-css
+valid:
+  - '.a { color: theme(colors.primary); }'
+  - '.scroll-fade { mask-image: linear-gradient(to bottom, transparent, #000 8px); }'
+  - '.scroll-fade { -webkit-mask-image: linear-gradient(#000, transparent); }'
+invalid:
+  - '.a { color: #fff; }'
+  - '.a { box-shadow: 0 0 0 1px #00000014; }'

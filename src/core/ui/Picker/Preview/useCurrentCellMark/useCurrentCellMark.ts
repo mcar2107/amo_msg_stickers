@@ -6,7 +6,7 @@ import type { PreviewState } from '@ui/Preview';
  * Атрибут кнопки ячейки, которую показывает закреплённый предпросмотр: по нему `picker.css`
  * рисует кольцо фокуса.
  */
-export const CURRENT_CELL_ATTRIBUTE = 'data-preview-current';
+const CURRENT_CELL_ATTRIBUTE = 'data-preview-current';
 
 /**
  * Отмечает в ленте ячейку, которую показывает закреплённый предпросмотр с навигатором ленты:

@@ -1,0 +1,63 @@
+# Правило — парой: `no-node-api` для .ts и `no-node-api-tsx` для .tsx. Грамматики разные: generic-стрелку
+# `<T>(…)` из .ts парсер TSX принимает за JSX.
+
+# Типов Node в проекте нет (types: ["chrome"]), а локальный typecheck видит их транзитивно и
+# пропускает: без правила нарушение всплывает только в CI.
+id: no-node-api
+language: typescript
+severity: error
+message: 'Node API в src/ и tests/ — бери Web API (CLAUDE.md, «Без Node API в TypeScript»)'
+files:
+  - src/**
+  - tests/**
+rule:
+  any:
+    - kind: identifier
+      regex: ^(process|Buffer|NodeJS|__dirname|__filename|require)$
+    # Тип Buffer: в аннотации это type_identifier, а не identifier.
+    - kind: type_identifier
+      regex: ^Buffer$
+    - kind: string_fragment
+      regex: ^node:[a-z]
+    # Встроенный модуль без `node:` — только в спецификаторе импорта: строка 'path' сама по себе
+    # Node не значит.
+    - kind: string_fragment
+      regex: ^(fs|path|os|child_process|util|stream|events|buffer|http|https|net|zlib|worker_threads)(/|$)
+      inside:
+        kind: string
+        any:
+          - inside:
+              kind: import_statement
+          - inside:
+              kind: export_statement
+
+---
+# Типов Node в проекте нет (types: ["chrome"]), а локальный typecheck видит их транзитивно и
+# пропускает: без правила нарушение всплывает только в CI.
+id: no-node-api-tsx
+language: tsx
+severity: error
+message: 'Node API в src/ и tests/ — бери Web API (CLAUDE.md, «Без Node API в TypeScript»)'
+files:
+  - src/**
+  - tests/**
+rule:
+  any:
+    - kind: identifier
+      regex: ^(process|Buffer|NodeJS|__dirname|__filename|require)$
+    # Тип Buffer: в аннотации это type_identifier, а не identifier.
+    - kind: type_identifier
+      regex: ^Buffer$
+    - kind: string_fragment
+      regex: ^node:[a-z]
+    # Встроенный модуль без `node:` — только в спецификаторе импорта: строка 'path' сама по себе
+    # Node не значит.
+    - kind: string_fragment
+      regex: ^(fs|path|os|child_process|util|stream|events|buffer|http|https|net|zlib|worker_threads)(/|$)
+      inside:
+        kind: string
+        any:
+          - inside:
+              kind: import_statement
+          - inside:
+              kind: export_statement

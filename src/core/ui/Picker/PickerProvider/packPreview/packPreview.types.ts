@@ -3,7 +3,7 @@ import type { TgStickerSet } from '@core/sources';
 /**
  * Запрос набора пака у Bot API по имени.
  */
-export type ResolveSet = (name: string) => Promise<TgStickerSet>;
+type ResolveSet = (name: string) => Promise<TgStickerSet>;
 
 export type PackPreview = {
   /**

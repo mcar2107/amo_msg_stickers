@@ -1,16 +1,25 @@
 name: Окружение
 description: Node и pnpm из .mise.toml — те же версии, что локально; зависимости корня и доки по их lockfile
 
+inputs:
+  tools:
+    description: Бинарные инструменты проверок из .mise.toml сверх Node и pnpm, через пробел
+    required: false
+    default: ''
+
 runs:
   using: composite
   steps:
-    - uses: jdx/mise-action@v4
+    # Node, pnpm и только те инструменты проверок, что нужны заданию: иначе каждое качало бы все.
+    - uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4.3.0
+      with:
+        install_args: node pnpm ${{ inputs.tools }}
 
     - id: pnpm-store
       shell: bash
       run: echo "path=$(pnpm store path --silent)" >> "$GITHUB_OUTPUT"
 
-    - uses: actions/cache@v6
+    - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
       with:
         path: ${{ steps.pnpm-store.outputs.path }}
         key: pnpm-store-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', 'docs/pnpm-lock.yaml') }}

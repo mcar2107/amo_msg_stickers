@@ -15,6 +15,11 @@ on:
 permissions:
   contents: read
 
+# `mise x` в скриптах `pnpm` по умолчанию доставляет все недостающие инструменты .mise.toml.
+# Здесь каждое задание ставит свои явно (`install_args`), а недостающий инструмент — ошибка.
+env:
+  MISE_EXEC_AUTO_INSTALL: 'false'
+
 # В PR новый коммит отменяет прогон старого. Вне PR группа — по коммиту: в группе с
 # общим ref GitHub держит лишь один ожидающий прогон и заменяет его новым, так что
 # при серии мержей проверки — а с ними и релиз — промежуточного коммита отменились бы.
@@ -25,32 +30,54 @@ concurrency:
 jobs:
   lint:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - uses: ./.github/actions/setup
+        with:
+          tools: ast-grep github:agent-sh/agnix
+      # Шаги — скрипты `pnpm lint`, кроме typecheck и lint:actions (свои задания): новый `lint:*`
+      # добавляется и туда, и сюда. Шагами, а не одной командой, — чтобы видеть, что упало.
       - run: pnpm lint:es
-      # Упавший eslint не должен прятать ошибки prettier.
+      # Упавший шаг не должен прятать ошибки следующих.
       - if: ${{ !cancelled() }}
         run: pnpm lint:format
+      - if: ${{ !cancelled() }}
+        run: pnpm lint:knip
+      - if: ${{ !cancelled() }}
+        run: pnpm lint:sg
+      - if: ${{ !cancelled() }}
+        run: pnpm lint:agents
 
   typecheck:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - uses: ./.github/actions/setup
       - run: pnpm typecheck
 
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - uses: ./.github/actions/setup
       - run: pnpm test
 
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - uses: ./.github/actions/setup
       # Токен встроенного Telegram-бота и встроенный ключ KLIPY: сборка кладёт их в content
       # script и userscript. Секрета нет (PR из форка, Dependabot) — пустая строка, сборка
@@ -70,6 +97,8 @@ jobs:
             echo "::error::Версия сборки расходится с package.json (${version}): manifest — ${manifest}, @version — ${banner}"
             exit 1
           fi
+      # Бюджет размера собранных файлов — .size-limit.json.
+      - run: pnpm size
       # manifest.json — в корне архива: так его принимают «Загрузить распакованное»
       # после распаковки и Chrome Web Store.
       # Имя без версии: ссылка доки на архив последнего релиза не меняется от версии
@@ -78,7 +107,7 @@ jobs:
         run: |
           cd dist/extension
           zip -r ../amo-stickers.zip .
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: build
           path: |
@@ -90,23 +119,71 @@ jobs:
   # публикации.
   docs:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - uses: ./.github/actions/setup
       - run: pnpm docs:build
 
   version:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       # Полная история — для версии package.json из базовой ветки.
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          persist-credentials: false
           fetch-depth: 0
       # Только Node: скрипт без зависимостей, но импортирует .ts — нужен Node из .mise.toml.
-      - uses: jdx/mise-action@v4
+      - uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4.3.0
         with:
           install_args: node
       - if: ${{ github.event_name == 'pull_request' }}
-        run: node scripts/check-version.mjs --base "origin/${{ github.base_ref }}"
+        run: node scripts/check-version.mjs --base "origin/${GITHUB_BASE_REF}"
       - if: ${{ github.event_name != 'pull_request' }}
         run: node scripts/check-version.mjs
+
+  # Проверкам ниже нужен только свой бинарник из .mise.toml и pnpm для команды проверки —
+  # без node_modules.
+  actions:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4.3.0
+        with:
+          install_args: node pnpm github:jdx/jactionlint shellcheck
+      - run: pnpm lint:actions
+
+  # Вся история, а не дифф PR: секрет в любом коммите уже опубликован.
+  secrets:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4.3.0
+        with:
+          install_args: node pnpm betterleaks
+      - run: pnpm lint:secrets
+
+  # Только в PR: база уязвимостей меняется без коммитов, и релизный прогон (release.yml вызывает
+  # ci.yml) от неё не зависит — новая уязвимость не должна блокировать выпуск.
+  deps:
+    if: ${{ github.event_name == 'pull_request' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4.3.0
+        with:
+          install_args: node pnpm osv-scanner
+      - run: pnpm lint:deps

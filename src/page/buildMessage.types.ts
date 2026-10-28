@@ -5,7 +5,7 @@ import type { AmoQuotedMessage } from './refersTo.types';
 /**
  * Локальное медиа-фото до загрузки — как у фото, которое страница amo отдаёт в очередь.
  */
-export type AmoPhotoMedia = {
+type AmoPhotoMedia = {
   /**
    * Id медиа — непрозрачная уникальная строка; совпадает с `localPhotoSize.localFileId`,
    * иначе amo не найдёт файл при загрузке и повторе.
@@ -61,7 +61,7 @@ export type AmoPhotoMedia = {
 /**
  * Член чата в форме amo для `from` / `to`.
  */
-export type AmoMember = {
+type AmoMember = {
   /**
    * Пусто: у себя и у «всех» id нет.
    */

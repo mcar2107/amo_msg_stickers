@@ -1,0 +1,32 @@
+id: no-hex-color
+snapshots:
+  const attr = "fill='#fff'";:
+    labels:
+      - source: fill='#fff'
+        style: primary
+        start: 14
+        end: 25
+  "const cls = 'bg-[#fff] text-[#ff0000]/50';":
+    labels:
+      - source: bg-[#fff] text-[#ff0000]/50
+        style: primary
+        start: 13
+        end: 40
+  const color = '#fff';:
+    labels:
+      - source: '#fff'
+        style: primary
+        start: 15
+        end: 19
+  "const shadow = 'inset 0 0 0 1px #00000014';":
+    labels:
+      - source: 'inset 0 0 0 1px #00000014'
+        style: primary
+        start: 16
+        end: 41
+  'const style = `color: #ff0000`;':
+    labels:
+      - source: 'color: #ff0000'
+        style: primary
+        start: 15
+        end: 29

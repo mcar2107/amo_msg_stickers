@@ -204,7 +204,7 @@ export type ImportSource = 'telegram' | 'file';
  * Занятость импорта, общая для импорта из Telegram и из файла. `ref`, а не состояние: два запуска в одном кадре
  * видят её до перерисовки.
  */
-export type ImportLock = MutableRef<ImportSource | null>;
+type ImportLock = MutableRef<ImportSource | null>;
 
 /**
  * Этап импорта файла: `checking` — проверка стикеров, её можно отменить; `writing` — запись, её отменить нельзя.

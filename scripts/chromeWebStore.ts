@@ -206,7 +206,7 @@ const readJson = async (
  * @returns access token с доступом к Chrome Web Store API
  * @throws {Error} Google отказал в токене
  */
-export const requestAccessToken = async (
+const requestAccessToken = async (
   fetchFn: typeof fetch,
   key: ServiceAccountKey,
   nowSeconds: number

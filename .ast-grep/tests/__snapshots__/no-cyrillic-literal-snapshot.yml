@@ -1,0 +1,20 @@
+id: no-cyrillic-literal
+snapshots:
+  const label = 'Стикеры';:
+    labels:
+      - source: Стикеры
+        style: primary
+        start: 15
+        end: 29
+  'const status = `Загружено ${count}`;':
+    labels:
+      - source: 'Загружено '
+        style: primary
+        start: 16
+        end: 35
+  showStatus('Ошибка сети');:
+    labels:
+      - source: Ошибка сети
+        style: primary
+        start: 12
+        end: 33

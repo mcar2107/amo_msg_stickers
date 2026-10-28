@@ -1,0 +1,13 @@
+id: no-cyrillic-literal-tsx
+valid:
+  - "throw new Error('Неизвестный формат ответа');"
+  - "reject(new TypeError('Сбой разбора'));"
+  - "const label = t('picker.title');"
+  - "/**\n * Комментарий на русском — не литерал.\n */\nconst x = 1;"
+  - "const el = <span>{t('picker.title')}</span>;"
+invalid:
+  - "const label = 'Стикеры';"
+  - 'const status = `Загружено ${count}`;'
+  - "showStatus('Ошибка сети');"
+  - 'const el = <span>Стикеры</span>;'
+  - 'const el = <input placeholder="Поиск" />;'

@@ -1,0 +1,32 @@
+name: Ссылки
+
+# Внешние ссылки README и доки — по расписанию, а не в PR: чужой сайт может лежать час, и PR
+# из-за этого не должен краснеть. Упавший прогон приходит владельцу письмом.
+on:
+  schedule:
+    # Понедельник, 09:00 по Москве — вместе с Dependabot.
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: links
+  cancel-in-progress: true
+
+jobs:
+  links:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4.3.0
+        with:
+          install_args: node pnpm lychee
+      # Токен — от лимита анонимных запросов к github.com.
+      - run: pnpm lint:links
+        env:
+          GITHUB_TOKEN: ${{ github.token }}

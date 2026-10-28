@@ -1,0 +1,14 @@
+id: no-hex-color-css
+snapshots:
+  '.a { box-shadow: 0 0 0 1px #00000014; }':
+    labels:
+      - source: '#00000014'
+        style: primary
+        start: 27
+        end: 36
+  '.a { color: #fff; }':
+    labels:
+      - source: '#fff'
+        style: primary
+        start: 12
+        end: 16

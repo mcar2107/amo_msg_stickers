@@ -1,0 +1,43 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema-jsonc.json",
+  /**
+   * Точки входа esbuild перечислены в build.mjs, а не в package.json: Knip их сам не найдёт.
+   */
+  "entry": [
+    "src/extension/content.ts",
+    "src/extension/background.ts",
+    "src/page/index.ts",
+    "src/userscript/index.ts",
+    "src/core/gifWorkerEntry.ts",
+    "scripts/*.mjs",
+    "dev/*.{mjs,js,ts}",
+  ],
+  "project": [
+    "src/**/*.{ts,tsx,css}",
+    "scripts/**/*.{ts,mjs}",
+    "tests/**/*.{ts,tsx}",
+    "dev/**/*.{mjs,js,ts}",
+  ],
+  "ignoreDependencies": [
+    /**
+     * Виртуальные модули `gif-worker:code` и `page-agent:code` — их отдаёт плагин build.mjs, пакета нет.
+     */
+    "gif-worker",
+    "page-agent",
+    /**
+     * Зовётся из .husky/pre-commit через `pnpm exec`.
+     */
+    "lint-staged",
+  ],
+  "ignoreBinaries": [
+    /**
+     * Скрипты доки (`pnpm -C docs dev`) — бинарники её собственного package.json.
+     */
+    "dev",
+    "preview",
+    /**
+     * Бинарные инструменты проверок ставит mise по .mise.toml, а не npm.
+     */
+    "mise",
+  ],
+}
