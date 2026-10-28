@@ -1,0 +1,15 @@
+tools = ["claude-code"]
+
+[files]
+exclude = [
+  # Спеки, задачи и журналы OpenSpec — не конфиг агента: правила markdown-памяти на них дают ложные находки.
+  "openspec/**",
+  # Скиллы и команды OpenSpec генерирует `pnpm skills:update`: ручная правка затрётся перегенерацией.
+  ".claude/skills/openspec-*/**",
+  ".claude/commands/opsx/**",
+  # Локальные заготовки и сборки — в .gitignore.
+  "local/**",
+  "dist/**",
+  "node_modules/**",
+  "docs/node_modules/**",
+]
