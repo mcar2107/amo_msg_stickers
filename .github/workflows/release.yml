@@ -10,10 +10,19 @@ on:
 permissions:
   contents: read
 
-# Группы concurrency нет намеренно: GitHub держит в группе лишь один ожидающий
-# прогон и заменяет его новым — при серии мержей промежуточная версия осталась бы
-# без релиза. Параллельные прогоны выпускают разные теги; «Latest» выставляет шаг
-# после создания релиза.
+# Прогоны — по одному, очередью без вытеснения: без `queue: max` GitHub держит в группе
+# лишь один ожидающий прогон и заменяет его новым — при серии мержей промежуточная версия
+# осталась бы без релиза. Группа — своя строка, а не `github.workflow`: в вызванных
+# ci.yml, стора и Pages это имя вызывающего, и они ждали бы сами себя.
+concurrency:
+  group: release
+  cancel-in-progress: false
+  queue: max
+
+# bash с pipefail: сбой `git ls-remote` или `gh release list` в конвейере не прячется.
+defaults:
+  run:
+    shell: bash
 
 jobs:
   ci:
@@ -30,6 +39,7 @@ jobs:
   release:
     needs: ci
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       contents: write
     # Публикация в стор идёт за релизом этого коммита: созданным сейчас или прошлой
@@ -40,7 +50,11 @@ jobs:
       released: ${{ steps.tag.outputs.exists == 'false' || steps.tag.outputs.sha == github.sha }}
       version: ${{ steps.version.outputs.version }}
     steps:
-      - uses: actions/checkout@v7
+      # Тег проверяется `git ls-remote` публичного репозитория, а релиз создаёт `gh` с
+      # GH_TOKEN: токен в git config рабочей копии не нужен.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - id: version
         run: echo "version=$(jq -r .version package.json)" >> "$GITHUB_OUTPUT"
@@ -63,7 +77,7 @@ jobs:
 
       # Та же сборка, что прошла проверки в job-е build.
       - if: ${{ steps.tag.outputs.exists == 'false' }}
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: build
           path: release
@@ -103,7 +117,10 @@ jobs:
     uses: ./.github/workflows/chrome-web-store.yml
     with:
       tag: v${{ needs.release.outputs.version }}
-    secrets: inherit
+    # Только ключ сервисного аккаунта и id издателя — не все секреты репозитория.
+    secrets:
+      CWS_SERVICE_ACCOUNT_KEY: ${{ secrets.CWS_SERVICE_ACCOUNT_KEY }}
+      CWS_PUBLISHER_ID: ${{ secrets.CWS_PUBLISHER_ID }}
 
   # Дока публикуется только с релизом и из его коммита: сайт не описывает ещё не
   # выпущенное. Условие то же, что у стора, — перезапуск упавшей попытки того же прогона

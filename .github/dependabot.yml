@@ -9,8 +9,9 @@ updates:
       day: 'monday'
       time: '09:00'
       timezone: 'Europe/Moscow'
+    # Неделя: за неё скомпрометированный релиз пакета обычно успевают отозвать.
     cooldown:
-      default-days: 5
+      default-days: 7
     open-pull-requests-limit: 5
     assignees:
       - 'mcar2107'
@@ -45,7 +46,7 @@ updates:
       time: '09:00'
       timezone: 'Europe/Moscow'
     cooldown:
-      default-days: 5
+      default-days: 7
     assignees:
       - 'mcar2107'
     groups:

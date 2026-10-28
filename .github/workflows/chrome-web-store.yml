@@ -15,9 +15,29 @@ on:
       tag:
         required: true
         type: string
+    # Без секретов скрипт пропускает публикацию предупреждением — поэтому не required.
+    secrets:
+      CWS_SERVICE_ACCOUNT_KEY:
+        required: false
+      CWS_PUBLISHER_ID:
+        required: false
 
 permissions:
   contents: read
+
+# Публикации — по одной, очередью без вытеснения: без `queue: max` GitHub держит в группе
+# лишь один ожидающий запуск и заменяет его новым — ручной запуск старого тега отменил бы
+# ждущую публикацию новой версии из релиза. Версию, которая уже в сторе, скрипт не
+# загружает.
+concurrency:
+  group: chrome-web-store
+  cancel-in-progress: false
+  queue: max
+
+# bash с pipefail: битый архив (`unzip`) роняет шаг, а не отдаёт пустую версию в `jq`.
+defaults:
+  run:
+    shell: bash
 
 jobs:
   publish:
@@ -25,15 +45,13 @@ jobs:
     if: ${{ github.ref == 'refs/heads/master' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    # Группы concurrency нет намеренно: GitHub держит в группе лишь один ожидающий
-    # запуск и заменяет его новым — ручной запуск старого тега отменил бы ждущую
-    # публикацию новой версии из релиза. Версию, которая уже в сторе, скрипт не
-    # загружает, а отказ стора на одновременной загрузке — красный job для перезапуска.
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       # Только Node: скрипт без зависимостей, но импортирует .ts — нужен Node из .mise.toml.
-      - uses: jdx/mise-action@v4
+      - uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4.3.0
         with:
           install_args: node
 

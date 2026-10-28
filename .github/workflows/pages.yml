@@ -13,17 +13,28 @@ on:
 permissions:
   contents: read
 
+# Публикации — по одной, очередью без вытеснения: идущая не отменяется — оборванный деплой
+# оставил бы сайт в неизвестном состоянии, а без `queue: max` ожидающий прогон вытеснялся бы
+# новым.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+  queue: max
+
 jobs:
   build:
     # У workflow_dispatch нет фильтра веток: ручной запуск с другой ветки опубликовал бы
     # её доку. Пропуск сборки пропускает и деплой.
     if: ${{ github.ref == 'refs/heads/master' }}
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - uses: ./.github/actions/setup
       - run: pnpm docs:build
-      - uses: actions/upload-pages-artifact@v5
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
           path: docs/.vitepress/dist
 
@@ -31,18 +42,13 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       pages: write
       id-token: write
-    # Группа на деплое, а не на workflow: сборки двух прогонов идут параллельно, а
-    # публикации — по одной. Идущая не отменяется: оборванный деплой оставил бы сайт в
-    # неизвестном состоянии, а следующий всё равно опубликует свежую сборку.
-    concurrency:
-      group: pages
-      cancel-in-progress: false
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - id: deployment
-        uses: actions/deploy-pages@v5
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
