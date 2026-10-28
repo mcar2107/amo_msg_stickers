@@ -16,10 +16,10 @@ on:
 jobs:
   claude:
     # Комментировать публичный репозиторий может кто угодно, а job получает токен на запись и
-    # секрет: запускает только владелец, участник организации или соавтор. На `issue_comment`
-    # и `issues` checkout берёт ветку по умолчанию, на ревью PR — merge-коммит PR, и его код
-    # (`pnpm install`, setup) исполняется: ревью PR из форка идёт без секретов и с токеном на
-    # чтение, а ветки самого репозитория пишут только соавторы.
+    # секрет: запускает только владелец, участник организации или соавтор. Код PR при этом
+    # исполняется: на ревью checkout берёт merge-коммит PR, а на комментарий к PR
+    # claude-code-action сам переключается на его head — и у PR из форка, с секретом и токеном
+    # на запись (`pnpm lint`, `pnpm test`). Звать `@claude` на PR из форка — прочитав его дифф.
     if: |
       contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association || github.event.review.author_association || github.event.issue.author_association) && (
         (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude')) ||

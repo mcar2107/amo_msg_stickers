@@ -37,7 +37,7 @@
 Альтернатива — Docker-образы и официальные action каждого инструмента: в CI быстро, но локально другая команда и
 другая версия, а спека требует одного результата.
 
-### Окружение CI ставит только Node и pnpm
+### Окружение CI ставит Node, pnpm и только нужные заданию инструменты
 
 `.github/actions/setup` передаёт `mise-action` `install_args: node pnpm` и инструменты из своего входа `tools`, иначе
 каждое задание качало бы все семь бинарников. Задание с инструментом ставит его явно: через `tools` setup-а (`lint`) или
@@ -108,7 +108,7 @@ Knip, ast-grep и agnix — шагами задания `lint` с `if: !cancelle
 | `no-iterator-chain` — `filter` / `map` / `flatMap`, за которым сразу `filter` / `map` / `flatMap` | `src`, `scripts`, `tests`, `dev` | — |
 | `no-hex-color` — hex в строке или в значении CSS | `src` | `convert.ts`: цвет подписи впечатывается в пиксели GIF и от темы не зависит; маска `.scroll-fade` — у `mask-image` значим только альфа-канал |
 | `no-cyrillic-literal` — кириллица в строке, шаблоне, JSX-тексте | `src` | `messages.ru.ts`; литерал внутри `throw` или `new …Error` — ошибка-инвариант для разработчика |
-| `no-node-api` — `process`, `Buffer`, `__dirname`, `__filename`, `require`, импорт `node:*` | `src`, `tests` | — |
+| `no-node-api` — `process`, `Buffer` (и тип), `NodeJS`, `__dirname`, `__filename`, `require`, импорт `node:*` и встроенного модуля без префикса | `src`, `tests` | — |
 
 ### Betterleaks: правила по умолчанию плюс одно исключение
 

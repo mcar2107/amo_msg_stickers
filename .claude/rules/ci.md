@@ -61,8 +61,9 @@ paths:
 - **`claude.yml`:** `@claude` в issue, комментарии или ревью запускает `anthropics/claude-code-action`. Секрет
   `CLAUDE_CODE_OAUTH_TOKEN` (`claude setup-token`); разрешены `pnpm lint`, `test`, `typecheck`, `format`. Запускает
   только `OWNER` / `MEMBER` / `COLLABORATOR` (`author_association`): комментировать публичный репозиторий может любой, а
-  job получает токен на запись. На ревью PR checkout берёт merge-коммит PR и исполняет его код — из форка без секретов,
-  ветки репозитория пишут только соавторы. Сессии одного issue или PR — очередью без отмены, группой на job-е:
+  job получает токен на запись. Код PR при этом исполняется: на ревью checkout берёт merge-коммит PR, на комментарий к
+  PR claude-code-action сам переключается на его head — и у PR из форка, с секретом. `@claude` на PR из форка — только
+  прочитав дифф. Сессии одного issue или PR — очередью без отмены, группой на job-е:
   отсеянный `if` прогон в очередь не встаёт. Инструменты `pnpm lint` ставит setup (`tools`).
 - **`board.yml`:** ветка `<type>/<номер issue>-<имя>` переводит карточку на доске
   (`https://github.com/users/mcar2107/projects/1`) из Backlog или Ready в In progress — встроенные workflows доски
