@@ -19,7 +19,7 @@
     "lint:sg": "mise x -- ast-grep scan && mise x -- ast-grep test",
     "lint:agents": "mise x -- agnix --strict .",
     "lint:actions": "mise x -- jactionlint",
-    "lint:secrets": "mise x -- betterleaks git . --redact --no-banner",
+    "lint:secrets": "mise x -- betterleaks git . --redact -v --no-banner",
     "lint:deps": "mise x -- osv-scanner scan source --config=osv-scanner.toml -L pnpm-lock.yaml -L docs/pnpm-lock.yaml",
     "lint:links": "mise x -- lychee --config lychee.toml README.md \"docs/**/*.md\"",
     "size": "size-limit",

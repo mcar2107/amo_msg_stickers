@@ -1,3 +1,11 @@
-# Гейт коммита: параллельная проверка staged-файлов (lint-staged),
-# типов (tsc) и тестов по изменённым файлам — шаги независимы.
-pnpm exec concurrently --kill-others-on-fail "pnpm exec lint-staged" "pnpm typecheck" "pnpm exec vitest --project=unit --changed --run --passWithNoTests" || exit 1
+# Гейт коммита: параллельная проверка staged-файлов (lint-staged), типов (tsc), тестов по
+# изменённым файлам и секретов в staged-изменениях — шаги независимы.
+#
+# Бинарные инструменты проверок (ast-grep, betterleaks) ставит mise по .mise.toml: без него
+# проверка секретов не прошла бы молча, а не упала.
+if ! command -v mise >/dev/null 2>&1; then
+  echo 'pre-commit: нужен mise (https://mise.jdx.dev) — инструменты проверок ставятся по .mise.toml' >&2
+  exit 1
+fi
+
+pnpm exec concurrently --kill-others-on-fail "pnpm exec lint-staged" "pnpm typecheck" "pnpm exec vitest --project=unit --changed --run --passWithNoTests" "mise x -- betterleaks git --pre-commit --staged --redact -v --no-banner" || exit 1
