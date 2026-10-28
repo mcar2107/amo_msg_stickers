@@ -22,7 +22,7 @@ export type StickerSection<T> = {
 /**
  * Вид ряда ленты: заголовок раздела или ряд ячеек.
  */
-export type StickerRowKind = 'header' | 'cells';
+type StickerRowKind = 'header' | 'cells';
 
 /**
  * Ряд ленты стикеров с готовой геометрией.

@@ -24,7 +24,7 @@ export type UsePressPreviewOptions = {
 /**
  * Вход указателя на ячейку: поля совпадают с полями `PointerEvent`.
  */
-export type PressEntry = {
+type PressEntry = {
   /**
    * Вид указателя: `mouse`, `pen` или `touch`.
    */

@@ -7,7 +7,7 @@ import type { buttonVariants } from './Button';
  * Вид обязателен: у кнопки нет вида по умолчанию, поэтому `null` и `undefined` из
  * `VariantProps` отрезаны.
  */
-export type ButtonVariant = NonNullable<VariantProps<typeof buttonVariants>['variant']>;
+type ButtonVariant = NonNullable<VariantProps<typeof buttonVariants>['variant']>;
 
 /**
  * Событие клика по кнопке.
@@ -52,7 +52,7 @@ type ButtonBaseProps = {
 /**
  * Обычная кнопка: действие — только колбэк, поэтому он обязателен.
  */
-export type ButtonActionProps = ButtonBaseProps & {
+type ButtonActionProps = ButtonBaseProps & {
   /**
    * Тип кнопки; без него — `button`, кнопка не отправляет формы.
    */
@@ -74,7 +74,7 @@ export type ButtonActionProps = ButtonBaseProps & {
  * Кнопка отправки формы: действие — обработчик `submit` формы, поэтому колбэк
  * необязателен.
  */
-export type ButtonSubmitProps = ButtonBaseProps & {
+type ButtonSubmitProps = ButtonBaseProps & {
   /**
    * Тип кнопки — отправка формы.
    */

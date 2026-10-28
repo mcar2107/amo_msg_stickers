@@ -17,7 +17,7 @@ export type FramePlanItem = {
  * Контекст, в который источник рисует кадр. Уже, чем `CanvasRenderingContext2D`:
  * источнику нужно только стереть холст и нарисовать кадр.
  */
-export type FrameTarget = Pick<CanvasRenderingContext2D, 'clearRect' | 'drawImage'>;
+type FrameTarget = Pick<CanvasRenderingContext2D, 'clearRect' | 'drawImage'>;
 
 /**
  * Открытый источник кадров: кадры рисуются по запросу, а не хранятся, поэтому любой проход

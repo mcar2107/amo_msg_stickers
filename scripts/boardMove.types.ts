@@ -1,7 +1,7 @@
 /**
  * Вариант поля `Status` доски.
  */
-export type StatusOption = {
+type StatusOption = {
   /**
    * Идентификатор варианта для мутации.
    */
@@ -15,7 +15,7 @@ export type StatusOption = {
 /**
  * Поле `Status` доски в ответе GraphQL: не однозначный выбор приходит пустым объектом.
  */
-export type StatusField = {
+type StatusField = {
   /**
    * Идентификатор поля для мутации.
    */
@@ -30,7 +30,7 @@ export type StatusField = {
  * Владелец доски: логин приходит у пользователя и организации, у остального типа — пустой
  * объект.
  */
-export type OwnerNode = {
+type OwnerNode = {
   /**
    * Логин владельца.
    */
@@ -40,7 +40,7 @@ export type OwnerNode = {
 /**
  * Значение поля `Status` у карточки.
  */
-export type StatusValueNode = {
+type StatusValueNode = {
   /**
    * Название выбранного варианта.
    */
@@ -50,7 +50,7 @@ export type StatusValueNode = {
 /**
  * Доска карточки в ответе GraphQL.
  */
-export type ProjectNode = {
+type ProjectNode = {
   /**
    * Идентификатор доски для мутации.
    */

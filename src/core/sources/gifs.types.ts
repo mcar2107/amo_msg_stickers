@@ -73,7 +73,7 @@ export type GiphyItem = {
   images: Record<string, unknown>;
 };
 
-export type GiphyPagination = {
+type GiphyPagination = {
   /**
    * Смещение текущей страницы.
    */
@@ -243,7 +243,7 @@ export const isTenorResponse = (value: unknown): value is TenorResponse => {
 /**
  * Версия GIF для отправки с известным весом.
  */
-export type WeightedVariant<T> = {
+type WeightedVariant<T> = {
   /**
    * Вариант файла, прошедший гард формы и сетевую политику.
    */

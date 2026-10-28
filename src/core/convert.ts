@@ -23,7 +23,7 @@ import { MAX_GIF_BYTES } from './sidePick';
 /**
  * Родной размер стикеров Telegram; меньше — мыло на Retina.
  */
-export const STICKER_SIZE = 512;
+const STICKER_SIZE = 512;
 
 /**
  * Пропорции подписи от высоты стикера: кегль, отступ базовой линии от низа,

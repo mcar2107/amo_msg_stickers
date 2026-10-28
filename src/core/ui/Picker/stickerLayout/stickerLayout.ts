@@ -9,7 +9,7 @@ import type {
 /**
  * Высота заголовка раздела, в пикселях.
  */
-export const HEADER_HEIGHT = 32;
+const HEADER_HEIGHT = 32;
 
 /**
  * Число колонок сетки стикеров.

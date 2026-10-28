@@ -51,7 +51,7 @@ export const messageTemplate = (key: MessageKey) => {
  * @param value — число для подстановки
  * @returns число в записи текущего языка
  */
-export const formatNumber = (value: number) => {
+const formatNumber = (value: number) => {
   return new Intl.NumberFormat(currentLocale).format(value);
 };
 

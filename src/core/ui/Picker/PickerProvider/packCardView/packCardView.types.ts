@@ -18,7 +18,7 @@ export type PackSummary = {
 /**
  * Сбой превью, кроме «пак не найден»: карточки нет, импорт работает как без неё.
  */
-export type NoPreview = {
+type NoPreview = {
   /**
    * Превью нет.
    */
@@ -28,7 +28,7 @@ export type NoPreview = {
 /**
  * Telegram ответил, что пака нет: ошибка у поля, «Импорт» недоступна.
  */
-export type NotFoundPreview = {
+type NotFoundPreview = {
   /**
    * Пака нет.
    */
@@ -77,7 +77,7 @@ export type PreviewEntry = {
 /**
  * Превью набора с признаком библиотеки на момент показа.
  */
-export type ReadyPreview = {
+type ReadyPreview = {
   /**
    * Набор получен.
    */

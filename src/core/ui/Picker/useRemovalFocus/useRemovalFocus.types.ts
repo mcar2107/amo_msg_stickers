@@ -30,7 +30,7 @@ export type PendingFocus<T> = {
  * Запоминает цели фокуса перед удалением или правкой; фокус переходит на первую уцелевшую цель,
  * когда лента перечитана.
  */
-export type ExpectRemoval = (targets: FocusTarget[]) => void;
+type ExpectRemoval = (targets: FocusTarget[]) => void;
 
 /**
  * Фокус после удаления или правки ленты.
