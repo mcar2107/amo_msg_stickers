@@ -1,0 +1,8 @@
+# Только внешние ссылки: внутренние ссылки доки проверяет `pnpm docs:build`.
+scheme = ["https", "http"]
+
+# Сторонние пакеты доки и её сборка — не наши страницы.
+exclude_path = ["docs/node_modules", "docs/\\.vitepress/(cache|dist)"]
+
+# Локальные адреса из инструкций для разработчика.
+exclude_loopback = true
