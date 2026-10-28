@@ -23,7 +23,7 @@
 ## 5. jactionlint
 
 - [x] 5.1 все `uses` — по полному SHA с комментарием-тегом; проверка — `unpinned-uses` нет
-- [x] 5.2 остальные находки исправлены по design.md (`persist-credentials`, `timeout-minutes`, `pipefail`, `base_ref` через `env`, секреты стора, cooldown, `author_association` в `claude.yml`, `concurrency`), неисправимые — в `.github/jactionlint.yaml` с причиной; проверка — `jactionlint` зелёный
+- [x] 5.2 остальные находки исправлены по design.md (`persist-credentials`, `timeout-minutes`, `pipefail`, `base_ref` через `env`, секреты стора, cooldown, `author_association` в `claude.yml`, `concurrency`), неисправимые — комментарием `# jactionlint ignore=<правило>` над строкой с причиной; проверка — `jactionlint` зелёный
 - [x] 5.3 скрипт `lint:actions` в `pnpm lint`, задание `actions` в `ci.yml`; проверка — пробный `uses: x/y@v1` валит задание
 
 ## 6. size-limit

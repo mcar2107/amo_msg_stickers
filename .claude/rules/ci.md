@@ -13,9 +13,10 @@ paths:
 ## Устройство
 
 - `.github/actions/setup` — окружение всех заданий: Node и pnpm из `.mise.toml` (`jdx/mise-action` с `install_args:
-  node pnpm`, как локально), зависимости корня и доки (`pnpm -C docs install --frozen-lockfile`) — без доки eslint и
-  typecheck падают на импорте vitepress. Бинарные инструменты проверок ставит задание, которому они нужны: своим
-  `mise-action` с `install_args` или `mise x` в скрипте `pnpm` (`linting.md`, «Проверки сверх eslint»).
+  node pnpm` плюс вход `tools`, как локально), зависимости корня и доки (`pnpm -C docs install --frozen-lockfile`) —
+  без доки eslint и typecheck падают на импорте vitepress. Бинарные инструменты проверок задание ставит явно: `tools`
+  setup-а или своим `mise-action` с `install_args`. В `ci.yml` `MISE_EXEC_AUTO_INSTALL=false`: иначе `mise x` в
+  скрипте `pnpm` доставил бы все недостающие инструменты `.mise.toml`, а недостающий нужный — ошибка.
 - **Action — по полному SHA** с комментарием-тегом (`@<sha> # v7.0.1`): тег можно перенести на другой код, а
   Dependabot обновляет SHA вместе с комментарием. Проверяет `pnpm lint:actions` (jactionlint): ещё
   `persist-credentials: false` у checkout без push, `timeout-minutes` у каждого задания, `concurrency` у каждого
@@ -30,7 +31,7 @@ paths:
 - **`ci.yml`, PR в `master`:** статусы `lint` (eslint, prettier, Knip, ast-grep, agnix — шагами с `!cancelled()`),
   `typecheck`, `test` (полный, не `--changed`), `build` (с бюджетом `pnpm size`), `docs` (`docs:build` ловит битые
   ссылки), `version`, `actions` (jactionlint), `secrets` (Betterleaks по всей истории), `deps` (OSV-Scanner по обоим
-  lockfile). Новый коммит отменяет старый прогон. Артефакт `build` — `amo-stickers.zip` и `amo-stickers.user.js`
+  lockfile, только в PR: база уязвимостей меняется без коммитов, и релиз от неё не зависит). Новый коммит отменяет старый прогон. Артефакт `build` — `amo-stickers.zip` и `amo-stickers.user.js`
   для проверки до мержа.
 - **Встроенные `TELEGRAM_BOT_TOKEN` и `KLIPY_API_KEY`** — секреты в `env` шага `pnpm build`; `release.yml` передаёт их
   в `ci.yml` явно, `ci.yml` объявляет в `workflow_call.secrets`: вызванный workflow секретов не видит, а
@@ -60,7 +61,9 @@ paths:
 - **`claude.yml`:** `@claude` в issue, комментарии или ревью запускает `anthropics/claude-code-action`. Секрет
   `CLAUDE_CODE_OAUTH_TOKEN` (`claude setup-token`); разрешены `pnpm lint`, `test`, `typecheck`, `format`. Запускает
   только `OWNER` / `MEMBER` / `COLLABORATOR` (`author_association`): комментировать публичный репозиторий может любой, а
-  job получает токен на запись. Сессии одного issue или PR — очередью без отмены.
+  job получает токен на запись. На ревью PR checkout берёт merge-коммит PR и исполняет его код — из форка без секретов,
+  ветки репозитория пишут только соавторы. Сессии одного issue или PR — очередью без отмены, группой на job-е:
+  отсеянный `if` прогон в очередь не встаёт. Инструменты `pnpm lint` ставит setup (`tools`).
 - **`board.yml`:** ветка `<type>/<номер issue>-<имя>` переводит карточку на доске
   (`https://github.com/users/mcar2107/projects/1`) из Backlog или Ready в In progress — встроенные workflows доски
   делают это только по PR, а ветка раньше. Прочие статусы, ветку без номера (`release/<версия>`), issue вне доски и

@@ -13,7 +13,9 @@ ignores:
   - src/core/convert.ts
 rule:
   kind: string_fragment
-  regex: (^|[\s:(,])#([0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})\b
+  # Перед `#` — начало строки, пробел, `:` `(` `,` (CSS), `[` (значение Tailwind `bg-[#fff]`),
+  # `=` `;` и кавычки (атрибуты SVG и inline-стили).
+  regex: (^|[\s:(,\[=;'"])#([0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})\b
   not:
     # Селектор по id (`'#add'`) пишется так же, как короткий hex.
     inside:
@@ -36,7 +38,9 @@ ignores:
   - src/core/convert.ts
 rule:
   kind: string_fragment
-  regex: (^|[\s:(,])#([0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})\b
+  # Перед `#` — начало строки, пробел, `:` `(` `,` (CSS), `[` (значение Tailwind `bg-[#fff]`),
+  # `=` `;` и кавычки (атрибуты SVG и inline-стили).
+  regex: (^|[\s:(,\[=;'"])#([0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})\b
   not:
     # Селектор по id (`'#add'`) пишется так же, как короткий hex.
     inside:

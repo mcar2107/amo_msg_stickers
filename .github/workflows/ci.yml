@@ -15,6 +15,11 @@ on:
 permissions:
   contents: read
 
+# `mise x` в скриптах `pnpm` по умолчанию доставляет все недостающие инструменты .mise.toml.
+# Здесь каждое задание ставит свои явно (`install_args`), а недостающий инструмент — ошибка.
+env:
+  MISE_EXEC_AUTO_INSTALL: 'false'
+
 # В PR новый коммит отменяет прогон старого. Вне PR группа — по коммиту: в группе с
 # общим ref GitHub держит лишь один ожидающий прогон и заменяет его новым, так что
 # при серии мержей проверки — а с ними и релиз — промежуточного коммита отменились бы.
@@ -26,15 +31,15 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    # ast-grep и agnix ставит `mise x` из .mise.toml; agnix — из релиза на GitHub, токен — от
-    # лимита анонимных запросов к API.
-    env:
-      GITHUB_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - uses: ./.github/actions/setup
+        with:
+          tools: ast-grep github:agent-sh/agnix
+      # Шаги — скрипты `pnpm lint`, кроме typecheck и lint:actions (свои задания): новый `lint:*`
+      # добавляется и туда, и сюда. Шагами, а не одной командой, — чтобы видеть, что упало.
       - run: pnpm lint:es
       # Упавший шаг не должен прятать ошибки следующих.
       - if: ${{ !cancelled() }}
@@ -168,7 +173,10 @@ jobs:
           install_args: node pnpm betterleaks
       - run: pnpm lint:secrets
 
+  # Только в PR: база уязвимостей меняется без коммитов, и релизный прогон (release.yml вызывает
+  # ci.yml) от неё не зависит — новая уязвимость не должна блокировать выпуск.
   deps:
+    if: ${{ github.event_name == 'pull_request' }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:

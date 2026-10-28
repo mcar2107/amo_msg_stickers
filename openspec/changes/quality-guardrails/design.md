@@ -39,8 +39,10 @@
 
 ### Окружение CI ставит только Node и pnpm
 
-`.github/actions/setup` передаёт `mise-action` `install_args: node pnpm`, иначе каждое задание качало бы все семь
-бинарников. Задание с инструментом ставит его своим шагом `mise-action` с `install_args`.
+`.github/actions/setup` передаёт `mise-action` `install_args: node pnpm` и инструменты из своего входа `tools`, иначе
+каждое задание качало бы все семь бинарников. Задание с инструментом ставит его явно: через `tools` setup-а (`lint`) или
+своим `mise-action` (`actions`, `secrets`, `deps`). `MISE_EXEC_AUTO_INSTALL=false` в `ci.yml`: иначе `mise x` в
+скрипте `pnpm` доставил бы все недостающие инструменты `.mise.toml`.
 
 ### Где запускается каждая проверка
 
@@ -52,7 +54,7 @@
 | jactionlint | `pnpm lint:actions` в `pnpm lint` | — | новое `actions` |
 | size-limit | `pnpm size` после `pnpm build` | — | `build`, после сборки |
 | Betterleaks | `pnpm lint:secrets` | `betterleaks git --pre-commit --staged` | новое `secrets`, вся история |
-| OSV-Scanner | `pnpm lint:deps` | — | новое `deps` |
+| OSV-Scanner | `pnpm lint:deps` | — | новое `deps`, только в PR |
 | lychee | `pnpm lint:links` | — | новый `links.yml`: раз в неделю и вручную |
 
 Knip, ast-grep и agnix — шагами задания `lint` с `if: !cancelled()`, как prettier: одна упавшая не прячет остальные,
@@ -105,7 +107,7 @@ Knip, ast-grep и agnix — шагами задания `lint` с `if: !cancelle
 |---|---|---|
 | `no-iterator-chain` — `filter` / `map` / `flatMap`, за которым сразу `filter` / `map` / `flatMap` | `src`, `scripts`, `tests`, `dev` | — |
 | `no-hex-color` — hex в строке или в значении CSS | `src` | `convert.ts`: цвет подписи впечатывается в пиксели GIF и от темы не зависит; маска `.scroll-fade` — у `mask-image` значим только альфа-канал |
-| `no-cyrillic-literal` — кириллица в строке, шаблоне, JSX-тексте | `src` | `messages.ru.ts`; литерал внутри `throw` — ошибка-инвариант для разработчика |
+| `no-cyrillic-literal` — кириллица в строке, шаблоне, JSX-тексте | `src` | `messages.ru.ts`; литерал внутри `throw` или `new …Error` — ошибка-инвариант для разработчика |
 | `no-node-api` — `process`, `Buffer`, `__dirname`, `__filename`, `require`, импорт `node:*` | `src`, `tests` | — |
 
 ### Betterleaks: правила по умолчанию плюс одно исключение

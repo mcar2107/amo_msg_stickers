@@ -29,20 +29,23 @@ paths:
 | Команда | Что | Конфиг | Где ещё |
 |---|---|---|---|
 | `pnpm lint:knip` | неиспользуемые файлы, экспорты, типы, зависимости | `/knip.jsonc` | `pnpm lint`, CI `lint` |
-| `pnpm lint:sg` | правила проекта ast-grep и тесты правил | `/sgconfig.yml`, `/.ast-grep/` | `pnpm lint`, pre-commit, CI `lint` |
+| `pnpm lint:sg` | правила проекта ast-grep и тесты правил | `/sgconfig.yml`, `/.ast-grep/` | `pnpm lint`, pre-commit (только `scan` по staged), CI `lint` |
 | `pnpm lint:agents` | `CLAUDE.md`, `.claude/rules`, скиллы, хуки, `settings.json` (agnix `--strict`) | `/.agnix.toml` | `pnpm lint`, CI `lint` |
 | `pnpm lint:actions` | workflows, composite action, `dependabot.yml`, ShellCheck `run:` | правила по умолчанию | `pnpm lint`, CI `actions` |
 | `pnpm size` | бюджет несжатого размера собранных файлов, после `pnpm build` | `/.size-limit.json` | CI `build` |
 | `pnpm lint:secrets` | секреты во всей истории git | `/.betterleaks.toml` | pre-commit (staged), CI `secrets` |
-| `pnpm lint:deps` | известные уязвимости в lockfile корня и доки | `/osv-scanner.toml` | CI `deps` |
+| `pnpm lint:deps` | известные уязвимости в lockfile корня и доки | `/osv-scanner.toml` | CI `deps` (только PR) |
 | `pnpm lint:links` | внешние ссылки README и доки | `/lychee.toml` | `links.yml` по расписанию |
 
 - **Knip.** Экспорт, нужный только своему файлу, — без `export`; ненужный никому — удаляется. Использование в тестах
   считается использованием. Точки входа esbuild перечислены в конфиге: из `build.mjs` Knip их не берёт.
 - **ast-grep.** Правило — парой `<id>` (`.ts`) и `<id>-tsx`: generic-стрелку `<T>(…)` парсер TSX принимает за JSX.
   Правила: `no-iterator-chain` (`filter` / `map` / `flatMap` подряд), `no-hex-color` (+ `-css`), `no-cyrillic-literal`
-  (вне `messages.ru.ts`, `throw` и `new …Error`), `no-node-api` (`src/`, `tests/`). Новое правило — с тестом в
-  `.ast-grep/tests/` и снапшотом (`ast-grep test -U`).
+  (вне `messages.ru.ts`, `throw` и `new …Error`), `no-node-api` (`src/`, `tests/`). `.mjs` разбирается парсером
+  TypeScript. Новое правило — с тестом в `.ast-grep/tests/` и снапшотом (`ast-grep test -U`). Известные пропуски:
+  цепочка за `!` / `as` / скобками и пары итераторов кроме `filter` / `map` / `flatMap`; цвета `rgb()` / `hsl()`; hex
+  ловится и в тексте вида `'Issue #123'` — такую строку выносить в словарь всё равно нужно.
+- **Новый `lint:*`** — и в `pnpm lint`, и шагом задания `lint` в `ci.yml` (шаги раздельные, чтобы видеть, что упало).
 - **Бюджет размера** — текущий размер плюс ~10 %; рост сверх — подъём бюджета в том же PR, он виден в диффе.
 - **Секреты.** Отчёт — с `--redact -v`: файл и строка, значение скрыто.
 - **Уязвимости.** Исправление — обновление пакета; иначе исключение с `reason` и `ignoreUntil`.

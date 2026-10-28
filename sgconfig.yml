@@ -2,3 +2,6 @@ ruleDirs:
   - .ast-grep/rules
 testConfigs:
   - testDir: .ast-grep/tests
+# .mjs (скрипты сборки и CI, сервер стенда) — тем же парсером TypeScript: JS — его подмножество.
+languageGlobs:
+  typescript: ['*.mjs']

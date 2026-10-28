@@ -18,7 +18,7 @@ snapshots:
         style: primary
         start: 15
         end: 29
-  const status = `Загружено ${count}`;:
+  'const status = `Загружено ${count}`;':
     labels:
       - source: 'Загружено '
         style: primary

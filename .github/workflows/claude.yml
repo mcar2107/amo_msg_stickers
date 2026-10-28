@@ -1,8 +1,8 @@
 name: Claude Code
 
 on:
-  # Автора комментария проверяет условие job-а (`author_association`), а код PR job не
-  # исполняет: правило условия не читает.
+  # Правило видит только триггер, а не `if` job-а, где проверен автор: причина исключения —
+  # в комментарии к job-у.
   # jactionlint ignore=dangerous-triggers
   issue_comment:
     types: [created]
@@ -13,18 +13,13 @@ on:
   pull_request_review:
     types: [submitted]
 
-# Сессии одного issue или PR — по очереди, без отмены: новый `@claude` — новая просьба, а не
-# замена прежней.
-concurrency:
-  group: claude-${{ github.event.issue.number || github.event.pull_request.number }}
-  cancel-in-progress: false
-  queue: max
-
 jobs:
   claude:
     # Комментировать публичный репозиторий может кто угодно, а job получает токен на запись и
-    # секрет: запускает только владелец, участник организации или соавтор. Кода PR job не
-    # исполняет — checkout берёт ветку по умолчанию.
+    # секрет: запускает только владелец, участник организации или соавтор. На `issue_comment`
+    # и `issues` checkout берёт ветку по умолчанию, на ревью PR — merge-коммит PR, и его код
+    # (`pnpm install`, setup) исполняется: ревью PR из форка идёт без секретов и с токеном на
+    # чтение, а ветки самого репозитория пишут только соавторы.
     if: |
       contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association || github.event.review.author_association || github.event.issue.author_association) && (
         (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude')) ||
@@ -34,6 +29,13 @@ jobs:
       )
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    # Сессии одного issue или PR — по очереди, без отмены: новый `@claude` — новая просьба, а не
+    # замена прежней. Группа на job-е, а не на workflow: прогон, отсеянный `if`, в очередь не
+    # встаёт.
+    concurrency:
+      group: claude-${{ github.event.issue.number || github.event.pull_request.number }}
+      cancel-in-progress: false
+      queue: max
     permissions:
       contents: write
       pull-requests: write
@@ -46,8 +48,11 @@ jobs:
           persist-credentials: false
           fetch-depth: 1
 
-      # Зависимости ставятся заранее: без них разрешённые Claude проверки pnpm упали бы.
+      # Зависимости и инструменты `pnpm lint` ставятся заранее: без них разрешённые Claude
+      # проверки упали бы.
       - uses: ./.github/actions/setup
+        with:
+          tools: ast-grep github:agent-sh/agnix github:jdx/jactionlint shellcheck
 
       - name: Run Claude Code
         id: claude

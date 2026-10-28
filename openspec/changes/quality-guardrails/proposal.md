@@ -24,7 +24,7 @@ lockfile при выключенных major-обновлениях Dependabot �
 - **lychee** — внешние ссылки README и доки, по расписанию раз в неделю и вручную, не в PR.
 - Версии бинарных инструментов — в `.mise.toml`, npm-инструментов — в `package.json`; каждый запускается локально
   одной командой `pnpm`, быстрые — внутри `pnpm lint`.
-- В PR — три новых статуса: `actions`, `secrets`, `deps`.
+- В PR — три новых статуса: `actions`, `secrets`, `deps`; `deps` — только в PR, не в релизном прогоне.
 
 Поведение продукта не меняется.
 
@@ -43,7 +43,7 @@ lockfile при выключенных major-обновлениях Dependabot �
 
 - **Код:** снятие `export` или удаление неиспользуемых экспортов в `src/` и `scripts/` по находкам Knip; поведение не
   меняется.
-- **Конфиги:** новые `knip.json`, `.size-limit.json`, `sgconfig.yml` и `.ast-grep/`, `.agnix.toml`,
+- **Конфиги:** новые `knip.jsonc`, `.size-limit.json`, `sgconfig.yml` и `.ast-grep/`, `.agnix.toml`,
   `.betterleaks.toml`, `osv-scanner.toml`, `lychee.toml`; правки `package.json`,
   `pnpm-lock.yaml`, `.mise.toml`, `.lintstagedrc.mjs`, `.husky/pre-commit`,
   `.claude/settings.json`.
