@@ -1,0 +1,26 @@
+[
+  {
+    "name": "content script",
+    "path": "dist/extension/content.js",
+    "brotli": false,
+    "limit": "570 kB"
+  },
+  {
+    "name": "service worker",
+    "path": "dist/extension/background.js",
+    "brotli": false,
+    "limit": "49 kB"
+  },
+  {
+    "name": "page agent",
+    "path": "dist/extension/page.js",
+    "brotli": false,
+    "limit": "12 kB"
+  },
+  {
+    "name": "userscript",
+    "path": "dist/amo-stickers.user.js",
+    "brotli": false,
+    "limit": "590 kB"
+  }
+]
