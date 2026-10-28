@@ -1,0 +1,10 @@
+id: no-cyrillic-literal
+valid:
+  - "throw new Error('Неизвестный формат ответа');"
+  - "reject(new TypeError('Сбой разбора'));"
+  - "const label = t('picker.title');"
+  - "/**\n * Комментарий на русском — не литерал.\n */\nconst x = 1;"
+invalid:
+  - "const label = 'Стикеры';"
+  - 'const status = `Загружено ${count}`;'
+  - "showStatus('Ошибка сети');"

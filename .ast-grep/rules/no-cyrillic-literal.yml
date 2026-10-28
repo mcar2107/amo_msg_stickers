@@ -1,0 +1,53 @@
+# Правило — парой: `no-cyrillic-literal` для .ts и `no-cyrillic-literal-tsx` для .tsx. Грамматики разные: generic-стрелку
+# `<T>(…)` из .ts парсер TSX принимает за JSX.
+
+# Видимый текст — только ключом словаря (i18n.md). Кириллица в src/ остаётся в messages.ru.ts и в
+# ошибках-инвариантах для разработчика, которые пользователь не видит.
+id: no-cyrillic-literal
+language: typescript
+severity: error
+message: 'Кириллица в строке — вынеси текст в словарь (messages.ru.ts и messages.en.ts)'
+files:
+  - src/**
+ignores:
+  - src/**/messages.ru.ts
+rule:
+  any:
+    - kind: string_fragment
+    - kind: jsx_text
+  regex: '[А-Яа-яЁё]'
+  not:
+    inside:
+      stopBy: end
+      any:
+        - kind: throw_statement
+        - kind: new_expression
+          has:
+            field: constructor
+            regex: Error$
+
+---
+# Видимый текст — только ключом словаря (i18n.md). Кириллица в src/ остаётся в messages.ru.ts и в
+# ошибках-инвариантах для разработчика, которые пользователь не видит.
+id: no-cyrillic-literal-tsx
+language: tsx
+severity: error
+message: 'Кириллица в строке — вынеси текст в словарь (messages.ru.ts и messages.en.ts)'
+files:
+  - src/**
+ignores:
+  - src/**/messages.ru.ts
+rule:
+  any:
+    - kind: string_fragment
+    - kind: jsx_text
+  regex: '[А-Яа-яЁё]'
+  not:
+    inside:
+      stopBy: end
+      any:
+        - kind: throw_statement
+        - kind: new_expression
+          has:
+            field: constructor
+            regex: Error$

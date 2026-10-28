@@ -1,0 +1,32 @@
+id: no-cyrillic-literal-tsx
+snapshots:
+  const el = <input placeholder="Поиск" />;:
+    labels:
+      - source: Поиск
+        style: primary
+        start: 31
+        end: 41
+  const el = <span>Стикеры</span>;:
+    labels:
+      - source: Стикеры
+        style: primary
+        start: 17
+        end: 31
+  const label = 'Стикеры';:
+    labels:
+      - source: Стикеры
+        style: primary
+        start: 15
+        end: 29
+  const status = `Загружено ${count}`;:
+    labels:
+      - source: 'Загружено '
+        style: primary
+        start: 16
+        end: 35
+  showStatus('Ошибка сети');:
+    labels:
+      - source: Ошибка сети
+        style: primary
+        start: 12
+        end: 33

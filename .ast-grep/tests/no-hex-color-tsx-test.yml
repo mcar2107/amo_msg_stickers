@@ -1,0 +1,11 @@
+id: no-hex-color-tsx
+valid:
+  - "const anchor = document.querySelector('#add');"
+  - "const hash = '#section';"
+  - "const text = 'color';"
+  - 'const el = <div className="bg-primary" />;'
+invalid:
+  - "const color = '#fff';"
+  - "const shadow = 'inset 0 0 0 1px #00000014';"
+  - 'const style = `color: #ff0000`;'
+  - "const el = <div style={{ color: '#000' }} />;"

@@ -1,0 +1,66 @@
+# Правило — парой: `no-hex-color` для .ts и `no-hex-color-tsx` для .tsx. Грамматики разные: generic-стрелку
+# `<T>(…)` из .ts парсер TSX принимает за JSX.
+
+# Цвета — только токены tailwind.config.ts (CLAUDE.md, «Сквозные правила»).
+id: no-hex-color
+language: typescript
+severity: error
+message: 'Hex-цвет в коде — бери токен tailwind.config.ts'
+files:
+  - src/**
+ignores:
+  # Подпись впечатывается в пиксели GIF: её цвет — часть картинки, а не темы пикера.
+  - src/core/convert.ts
+rule:
+  kind: string_fragment
+  regex: (^|[\s:(,])#([0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})\b
+  not:
+    # Селектор по id (`'#add'`) пишется так же, как короткий hex.
+    inside:
+      stopBy: end
+      kind: call_expression
+      has:
+        field: function
+        regex: (querySelector|querySelectorAll|closest|matches)$
+
+---
+# Цвета — только токены tailwind.config.ts (CLAUDE.md, «Сквозные правила»).
+id: no-hex-color-tsx
+language: tsx
+severity: error
+message: 'Hex-цвет в коде — бери токен tailwind.config.ts'
+files:
+  - src/**
+ignores:
+  # Подпись впечатывается в пиксели GIF: её цвет — часть картинки, а не темы пикера.
+  - src/core/convert.ts
+rule:
+  kind: string_fragment
+  regex: (^|[\s:(,])#([0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})\b
+  not:
+    # Селектор по id (`'#add'`) пишется так же, как короткий hex.
+    inside:
+      stopBy: end
+      kind: call_expression
+      has:
+        field: function
+        regex: (querySelector|querySelectorAll|closest|matches)$
+
+---
+# CSS пикера: цвет — классом Tailwind или `theme()` по токену, не литералом.
+id: no-hex-color-css
+language: css
+severity: error
+message: 'Hex-цвет в CSS — бери токен tailwind.config.ts'
+files:
+  - src/**
+rule:
+  kind: color_value
+  not:
+    inside:
+      stopBy: end
+      kind: declaration
+      has:
+        kind: property_name
+        # Маска берёт у цвета только альфа-канал: оттенок в ней ничего не значит, токен темы тут лишний.
+        regex: ^(-webkit-)?mask
