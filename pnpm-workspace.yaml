@@ -6,3 +6,8 @@ peerDependencyRules:
     # последняя версия плагина объявляет eslint только до ^9, но под 10 его правила работают; без правила pnpm
     # предупреждает о peer-зависимости на каждой установке
     eslint-plugin-jsx-a11y>eslint: '10'
+
+overrides:
+  # GHSA-g3hv-75wg-m249 (DoS через globparts): потребители (eslint-цепочка, eslint-plugin-jsx-a11y)
+  # ещё не выпустили версий с minimatch 11, override снимает уязвимые 3.x и 10.x из дерева
+  minimatch: 11.0.3
